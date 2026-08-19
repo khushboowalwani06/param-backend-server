@@ -1,0 +1,269 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, TextInput } from 'react-native';
+import { sheetsService } from '../../services/sheetsService';
+import { useAuth } from '../../context/AuthContext';
+import AgingPanel from '../../components/AgingPanel';
+import { Search, RefreshCw, Download, X } from 'lucide-react-native';
+
+export default function CustomerAging() {
+  const { user } = useAuth();
+  const [dealers, setDealers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeSegment, setActiveSegment] = useState('All Segments');
+
+  const loadCustomers = async (isBackground = false, isManualRefresh = false) => {
+    try {
+      if (isManualRefresh) setIsRefreshing(true);
+      else if (!isBackground) setLoading(true);
+      
+      const data = await sheetsService.getAllUsers(user);
+      setDealers(data.filter(u => u.Role === 'customer' || u.Role === 'dealer'));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomers();
+  }, [user]);
+
+  const filteredDealers = dealers.filter(d => {
+    const segment = d.Segment ? d.Segment : (d.Role === 'dealer' || !d.NonTradeActivated ? 'Trade' : 'Non-Trade');
+    if (activeSegment !== 'All Segments' && segment !== activeSegment) return false;
+
+    const term = searchTerm.toLowerCase();
+    return (
+      d.Name?.toLowerCase().includes(term) ||
+      d.Company?.toLowerCase().includes(term) ||
+      d.UserID?.toLowerCase().includes(term)
+    );
+  });
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#1A1A1A" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Customer Ageing & Balances</Text>
+        <Text style={styles.subtitle}>Overview of outstanding balances and ageing buckets across all active dealers.</Text>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <View style={styles.segments}>
+          {['All Segments', 'Trade', 'Non-Trade'].map(seg => (
+            <TouchableOpacity 
+              key={seg}
+              onPress={() => setActiveSegment(seg)}
+              style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}
+            >
+              <Text style={[styles.segmentText, activeSegment === seg && styles.segmentTextActive]}>{seg}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.searchBar}>
+          <Search size={20} color="#94A3B8" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search customers or company..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor="#94A3B8"
+          />
+          {searchTerm.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchTerm('')}>
+              <X size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            onPress={() => loadCustomers(false, true)} 
+            disabled={isRefreshing}
+            style={styles.refreshBtn}
+          >
+            {isRefreshing ? <ActivityIndicator size="small" color="#1A1A1A" /> : <RefreshCw size={16} color="#1A1A1A" />}
+            <Text style={styles.refreshText}>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => alert('Export CSV requires web platform currently')} style={styles.exportBtn}>
+            <Download size={16} color="#FFF" />
+            <Text style={styles.exportText}>Export CSV</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <FlatList
+        data={filteredDealers}
+        style={styles.list}
+        initialNumToRender={5}
+        windowSize={5}
+        maxToRenderPerBatch={5}
+        removeClippedSubviews={true}
+        keyExtractor={(dealer, index) => dealer.UserID ? dealer.UserID.toString() : index.toString()}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No customers found.</Text>
+          </View>
+        }
+        renderItem={({ item: dealer }) => (
+            <View style={styles.card}>
+              <Text style={styles.customerName}>{dealer.Name}</Text>
+              <Text style={styles.companyName}>{dealer.Company}</Text>
+              <AgingPanel customer={dealer} onUpdate={() => loadCustomers(true)} />
+            </View>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#F8FAFC',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: '#64748B',
+    fontSize: 14,
+  },
+  filtersContainer: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  segments: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  segmentBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFF',
+  },
+  segmentBtnActive: {
+    backgroundColor: '#1A1A1A',
+    borderColor: '#1A1A1A',
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  segmentTextActive: {
+    color: '#FFF',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#1A1A1A',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  refreshBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  refreshText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  exportBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#10B981',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  exportText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  list: {
+    flex: 1,
+  },
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  customerName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  companyName: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 16,
+  },
+});
