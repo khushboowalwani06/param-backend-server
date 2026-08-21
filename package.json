@@ -3,7 +3,6 @@
   "main": "src/main.jsx",
   "version": "1.0.0",
   "dependencies": {
-    "@expo/ui": "~0.2.0-beta.9",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-picker/picker": "2.11.1",
     "@react-navigation/drawer": "^7.13.8",
@@ -12,6 +11,7 @@
     "@supabase/supabase-js": "^2.112.3",
     "date-fns": "^4.4.0",
     "expo": "^54.0.0",
+    "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.14",
     "expo-device": "~8.0.10",
     "expo-document-picker": "~14.0.8",
@@ -47,8 +47,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },

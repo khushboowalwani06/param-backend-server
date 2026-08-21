@@ -2,16 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-const getLocalIp = () => {
-  const hostUri = Constants?.expoConfig?.hostUri;
-  if (hostUri) {
-    return hostUri.split(':')[0];
-  }
-  return Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-};
-
-const defaultApiUrl = `http://${getLocalIp()}:3000/api`;
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || defaultApiUrl;
+const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 const activeRequests = new Map();
 const responseCache = new Map();
 const CACHE_TTL = 30000; // 30 seconds

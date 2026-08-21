@@ -28,8 +28,14 @@ export const AuthProvider = ({ children }) => {
       try {
         savedUser = await AsyncStorage.getItem('dms_user');
         if (savedUser) {
-          setUser(JSON.parse(savedUser));
-          refreshUser();
+          const parsed = JSON.parse(savedUser);
+          if (parsed.Role !== 'admin') {
+            await AsyncStorage.removeItem('dms_user');
+            setUser(null);
+          } else {
+            setUser(parsed);
+            refreshUser();
+          }
         }
       } catch (err) {
         console.error('Failed to init auth:', err);
@@ -72,6 +78,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const u = await sheetsService.login(email, password);
+      
+      if (u.Role !== 'admin') {
+        await sheetsService.logout();
+        throw new Error('COMING SOON: Mobile access for your role is currently under development!');
+      }
+
       setUser(u);
       await AsyncStorage.setItem('dms_user', JSON.stringify(u));
       return u;
