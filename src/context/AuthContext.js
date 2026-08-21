@@ -29,7 +29,8 @@ export const AuthProvider = ({ children }) => {
         savedUser = await AsyncStorage.getItem('dms_user');
         if (savedUser) {
           const parsed = JSON.parse(savedUser);
-          if (parsed.Role !== 'admin') {
+          const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer'];
+          if (!validRoles.includes(parsed.Role)) {
             await AsyncStorage.removeItem('dms_user');
             setUser(null);
           } else {
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
       const savedUserParsed = savedUser ? JSON.parse(savedUser) : null;
       const userId = savedUserParsed?.UserID;
-      
+
       let channel;
       if (userId) {
         channel = supabase.channel(`profile-updates-${userId}-${Date.now()}`)
@@ -78,8 +79,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const u = await sheetsService.login(email, password);
-      
-      if (u.Role !== 'admin') {
+
+      const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer'];
+      if (!validRoles.includes(u.Role)) {
         await sheetsService.logout();
         throw new Error('COMING SOON: Mobile access for your role is currently under development!');
       }

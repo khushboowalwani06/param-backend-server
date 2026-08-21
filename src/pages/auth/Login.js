@@ -192,7 +192,7 @@ export default function Login() {
     try {
       const sanitizedEmail = email.trim();
       const user = await login(sanitizedEmail, password);
-      navigation.navigate('Layout');
+      // Navigation is handled automatically by App.jsx conditional rendering
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally {

@@ -8,6 +8,7 @@ import { ToastProvider } from './context/ToastContext';
 import { View, ActivityIndicator } from 'react-native';
 
 import Login from './pages/auth/Login';
+import WaitingPage from './pages/auth/WaitingPage';
 import Layout from './components/Layout';
 
 const Stack = createNativeStackNavigator();
@@ -28,6 +29,8 @@ function AppContent() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user ? (
           <Stack.Screen name="Login" component={Login} />
+        ) : (user.ApprovalStatus === 'Pending' || user.ApprovalStatus === 'Rejected') ? (
+          <Stack.Screen name="Waiting" component={WaitingPage} />
         ) : (
           <Stack.Screen name="Layout" component={Layout} />
         )}
