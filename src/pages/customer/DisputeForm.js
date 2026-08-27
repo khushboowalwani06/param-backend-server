@@ -8,7 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
-import StatusBadge from '../../components/StatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
 
 export default function DisputeForm() {
   const { user } = useAuth();
@@ -200,8 +200,8 @@ export default function DisputeForm() {
               pastDisputes.map(d => (
                 <View key={d.DisputeID} style={styles.historyCard}>
                   <View style={styles.historyHeader}>
-                    <View>
-                      <Text style={styles.historyId}>{d.DisputeID}</Text>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={styles.historyId} numberOfLines={1}>{d.DisputeID}</Text>
                       <Text style={styles.historyDate}>{new Date(d.CreatedAt || Date.now()).toLocaleDateString()}</Text>
                     </View>
                     <StatusBadge status={d.Status} />

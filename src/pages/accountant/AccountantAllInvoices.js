@@ -116,8 +116,8 @@ export default function AccountantAllInvoices() {
         renderItem={({ item: order }) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <View>
-                <Text style={styles.ordId}>{order.OrdID}</Text>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.ordId} numberOfLines={1}>{order.OrdID}</Text>
                 <Text style={styles.dateText}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
               </View>
               <StatusBadge status={order.ApprovalStatus} />

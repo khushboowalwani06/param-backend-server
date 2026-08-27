@@ -174,8 +174,8 @@ export default function CustomerOrders() {
                 ) : (
                   <>
                     <View style={styles.orderHeader}>
-                      <View>
-                        <Text style={styles.orderId}>{order.OrdID}</Text>
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <Text style={styles.orderId} numberOfLines={1}>{order.OrdID}</Text>
                         <Text style={styles.orderDate}>{new Date(order.OrderTimestamp).toLocaleDateString()}</Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
@@ -214,9 +214,9 @@ export default function CustomerOrders() {
                     )}
 
                     <View style={styles.orderFooter}>
-                      <View style={styles.productRow}>
+                      <View style={[styles.productRow, { flex: 1, paddingRight: 8 }]}>
                         <Package size={14} color="#8E8E93" />
-                        <Text style={styles.productText}>{order.Product}</Text>
+                        <Text style={styles.productText} numberOfLines={1}>{order.Product}</Text>
                       </View>
                       <View style={styles.footerActions}>
                         {order.ApprovalStatus === 'Delivered' && (
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#E2E8F0' },
   dotActive: { backgroundColor: '#34C759', borderColor: '#34C759' },
 
-  orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16 },
+  orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16, flexWrap: 'wrap', gap: 8 },
   productRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   productText: { fontSize: 12, color: '#8E8E93', fontWeight: '500' },
   footerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },

@@ -18,7 +18,9 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.orderId}>{order.OrdID}</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.orderId} numberOfLines={1}>{order.OrdID}</Text>
+        </View>
         <StatusBadge status={order.ApprovalStatus} />
       </View>
 
@@ -187,7 +189,9 @@ export default function SalesHistory() {
         </View>
 
         <View style={styles.tools}>
-          <SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search history..." />
+          <View style={{ flex: 1, minWidth: 200 }}>
+            <SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search history..." />
+          </View>
           <TouchableOpacity style={styles.filterBtn} onPress={() => setIsFilterModalVisible(true)}>
             <Filter size={18} color="#1A1A1A" />
           </TouchableOpacity>

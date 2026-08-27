@@ -289,7 +289,9 @@ export default function SalesQueue() {
         </View>
 
         <View style={styles.tools}>
-          <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search orders..." />
+          <View style={{ flex: 1, minWidth: 200 }}>
+            <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search orders..." />
+          </View>
           <ExportButton data={filteredOrders} filename="sales_queue" />
         </View>
 

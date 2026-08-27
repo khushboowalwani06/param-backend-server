@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
-import StatusBadge from '../../components/StatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
 
 export default function CustomerInvoices() {
   const { user } = useAuth();
@@ -144,8 +144,8 @@ export default function CustomerInvoices() {
               return (
                 <View key={order.OrdID} style={styles.card}>
                   <View style={styles.cardHeader}>
-                    <View>
-                      <Text style={styles.cardId}>{order.OrdID}</Text>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={styles.cardId} numberOfLines={1}>{order.OrdID}</Text>
                       <Text style={styles.cardDate}>{new Date(order.OrderTimestamp).toLocaleDateString()}</Text>
                     </View>
                     <StatusBadge status={order.ApprovalStatus} />

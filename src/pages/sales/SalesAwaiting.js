@@ -13,7 +13,9 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.orderId}>{order.OrdID}</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.orderId} numberOfLines={1}>{order.OrdID}</Text>
+        </View>
         <StatusBadge status={order.ApprovalStatus} />
       </View>
 

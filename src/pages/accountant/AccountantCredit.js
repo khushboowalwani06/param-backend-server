@@ -109,9 +109,9 @@ export default function AccountantCredit() {
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.orderId}>{item.OrdID}</Text>
-            <Text style={styles.customerName}>{item.Company || item.Name}</Text>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text style={styles.orderId} numberOfLines={1}>{item.OrdID}</Text>
+            <Text style={styles.customerName} numberOfLines={1}>{item.Company || item.Name}</Text>
           </View>
           <StatusBadge status={item.ApprovalStatus} />
         </View>
