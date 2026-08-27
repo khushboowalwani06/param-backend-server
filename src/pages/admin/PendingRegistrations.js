@@ -85,16 +85,16 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
       <Animated.View style={[styles.cardFace, styles.cardFront, frontAnimatedStyle]}>
         <View style={styles.cardHeader}>
           <View>
-            <Text style={styles.userName}>{user.Name}</Text>
-            <Text style={styles.userCompany}>{user.Company || 'N/A'} | {user.Role}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{user.Name}</Text>
+            <Text style={styles.userCompany} numberOfLines={1}>{user.Company || 'N/A'} | {user.Role}</Text>
           </View>
           <View style={styles.pendingBadge}><Text style={styles.pendingText}>PENDING</Text></View>
         </View>
 
         <View style={styles.cardBody}>
-          <View style={styles.infoRow}><Text style={styles.infoLabel}>Email</Text><Text style={styles.infoVal}>{user.Email}</Text></View>
-          <View style={styles.infoRow}><Text style={styles.infoLabel}>Phone</Text><Text style={styles.infoVal}>{user.Phone || 'N/A'}</Text></View>
-          <View style={styles.infoRow}><Text style={styles.infoLabel}>GSTIN</Text><Text style={styles.infoVal}>{user.BPID || 'N/A'}</Text></View>
+          <View style={styles.infoRow}><Text style={styles.infoLabel}>Email</Text><Text style={styles.infoVal} numberOfLines={1}>{user.Email}</Text></View>
+          <View style={styles.infoRow}><Text style={styles.infoLabel}>Phone</Text><Text style={styles.infoVal} numberOfLines={1}>{user.Phone || 'N/A'}</Text></View>
+          <View style={styles.infoRow}><Text style={styles.infoLabel}>GSTIN</Text><Text style={styles.infoVal} numberOfLines={1}>{user.BPID || 'N/A'}</Text></View>
         </View>
 
         <View style={styles.docsArea}>
@@ -102,7 +102,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
             <FileText size={16} color="#1A1A1A" />
             <Text style={styles.docsTitle}>Attached Documents</Text>
           </View>
-          
+
           {userDocs ? (
             <View>
               <DocumentRow docBase64={userDocs.aadhar} label="Aadhar Card" />
@@ -122,17 +122,17 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
         </View>
 
         <View style={styles.cardActions}>
-          <TouchableOpacity 
-            style={[styles.actionBtn, styles.rejectBtn, actionLoading && {opacity: 0.5}]} 
-            onPress={onReject} 
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.rejectBtn, actionLoading && { opacity: 0.5 }]}
+            onPress={onReject}
             disabled={actionLoading}
           >
             <XSquare size={16} color="#DC2626" />
             <Text style={styles.rejectText}>{actionLoading ? 'Wait...' : 'Reject'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.actionBtn, styles.approveBtn, actionLoading && {opacity: 0.5}]} 
-            onPress={onApprove} 
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.approveBtn, actionLoading && { opacity: 0.5 }]}
+            onPress={onApprove}
             disabled={actionLoading}
           >
             <CheckSquare size={16} color="#FFF" />
@@ -168,17 +168,17 @@ export const PendingRegistrations = () => {
   const { success, error } = useToast();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [loadedDocuments, setLoadedDocuments] = useState({});
   const [loadingDocuments, setLoadingDocuments] = useState({});
   const [actionLoading, setActionLoading] = useState(null);
-  
+
   const [rejectingUser, setRejectingUser] = useState(null);
   const [rejectionReasons, setRejectionReasons] = useState([]);
   const rejectionOptions = [
     'Aadhar Card', 'PAN Card', 'GST Certificate', 'Company PAN', 'Bank Cheque', 'Image is blurry/unreadable', 'Document name mismatch'
   ];
-  
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   useRealtime(['users'], () => setRefreshKey(k => k + 1));
@@ -223,7 +223,7 @@ export const PendingRegistrations = () => {
         method: 'POST',
         body: JSON.stringify(body)
       });
-      
+
       success(`User ${action}d successfully`);
       setRejectingUser(null);
       setRejectionReasons([]);
@@ -239,16 +239,16 @@ export const PendingRegistrations = () => {
     setRejectionReasons(prev => prev.includes(reason) ? prev.filter(r => r !== reason) : [...prev, reason]);
   };
 
-  if (loading) return <View style={{padding: 16}}><CardSkeleton /><CardSkeleton /></View>;
+  if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerRow}>
-        <View style={styles.headerInfo}>
+        <View style={[styles.headerInfo, { flex: 1, marginRight: 12 }]}>
           <View style={styles.iconBox}><UserPlus size={24} color="#9333EA" /></View>
-          <View>
-            <Text style={styles.headerTitle}>Pending Registrations</Text>
-            <Text style={styles.headerSub}>Review and approve new retailer accounts</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle} numberOfLines={1} adjustsFontSizeToFit>Pending Registrations</Text>
+            <Text style={styles.headerSub} numberOfLines={2}>Review and approve new retailer accounts</Text>
           </View>
         </View>
         <ExportButton data={pendingUsers} filename="PendingRegistrations" />
@@ -257,7 +257,7 @@ export const PendingRegistrations = () => {
       <View style={styles.content}>
         {pendingUsers.length === 0 ? (
           <View style={styles.emptyBox}>
-            <CheckSquare size={48} color="#D1D1D6" style={{marginBottom: 16}} />
+            <CheckSquare size={48} color="#D1D1D6" style={{ marginBottom: 16 }} />
             <Text style={styles.emptyTitle}>All Caught Up!</Text>
             <Text style={styles.emptySub}>There are no pending registrations at the moment.</Text>
           </View>
@@ -287,10 +287,10 @@ export const PendingRegistrations = () => {
                 <X size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               <Text style={styles.modalText}>
-                Please select the reason(s) for rejecting <Text style={{fontWeight:'700'}}>{rejectingUser?.Name}</Text>'s registration. This will be shown to the customer.
+                Please select the reason(s) for rejecting <Text style={{ fontWeight: '700' }}>{rejectingUser?.Name}</Text>'s registration. This will be shown to the customer.
               </Text>
               <View style={styles.reasonsList}>
                 {rejectionOptions.map(r => (
@@ -308,8 +308,8 @@ export const PendingRegistrations = () => {
               <TouchableOpacity style={styles.cancelBtn} onPress={() => { setRejectingUser(null); setRejectionReasons([]); }}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.confirmRejectBtn, rejectionReasons.length === 0 && {opacity:0.5}]}
+              <TouchableOpacity
+                style={[styles.confirmRejectBtn, rejectionReasons.length === 0 && { opacity: 0.5 }]}
                 disabled={rejectionReasons.length === 0 || actionLoading === rejectingUser?.UserID}
                 onPress={() => handleAction(rejectingUser.UserID, 'reject', rejectionReasons.join(', '))}
               >
@@ -325,7 +325,7 @@ export const PendingRegistrations = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E5E5EA', flexWrap: 'wrap', gap: 12 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E5E5EA', gap: 12 },
   headerInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconBox: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#1A1A1A', marginBottom: 2 },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   emptyBox: { alignItems: 'center', padding: 40, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA' },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
   emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center' },
-  
+
   cardContainer: { position: 'relative', width: '100%', minHeight: 380, marginBottom: 16 },
   cardFace: { position: 'absolute', width: '100%', height: '100%', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', overflow: 'hidden', elevation: 2, backfaceVisibility: 'hidden' },
   cardFront: {},
@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
   cardBody: { padding: 16, gap: 8 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoLabel: { fontSize: 14, color: '#8E8E93', fontWeight: '500' },
-  infoVal: { fontSize: 14, color: '#1A1A1A', fontWeight: '600' },
-  
+  infoVal: { fontSize: 14, color: '#1A1A1A', fontWeight: '600', flexShrink: 1 },
+
   docsArea: { backgroundColor: '#F8F9FA', padding: 16, flex: 1 },
   docsTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   docsTitle: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   noDocsText: { fontSize: 12, color: '#8E8E93' },
   loadDocsBtn: { backgroundColor: '#EFF6FF', paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: '#BFDBFE', alignItems: 'center' },
   loadDocsText: { color: '#2563EB', fontWeight: '600', fontSize: 14 },
-  
+
   cardActions: { flexDirection: 'row', padding: 16, borderTopWidth: 1, borderTopColor: '#E5E5EA', backgroundColor: '#FFF', gap: 12 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 8, gap: 8 },
   rejectBtn: { backgroundColor: '#FEF2F2' },
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   closePreviewBtn: { padding: 8, backgroundColor: '#F1F5F9', borderRadius: 8 },
   previewBody: { flex: 1, backgroundColor: '#F8FAFC', padding: 16, justifyContent: 'center', alignItems: 'center' },
   previewImg: { width: '100%', height: '100%', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
-  
+
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.75)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#FFF', borderRadius: 12, overflow: 'hidden' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   checkbox: { width: 20, height: 20, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
   checkboxActive: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
-  reasonText: { fontSize: 14, color: '#1E293B', fontWeight: '500' },
+  reasonText: { fontSize: 14, color: '#1E293B', fontWeight: '500', flexShrink: 1 },
   modalFooter: { flexDirection: 'row', justifyContent: 'flex-end', padding: 16, backgroundColor: '#F8FAFC', borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 12 },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 6 },
   cancelText: { color: '#475569', fontWeight: '600', fontSize: 14 },

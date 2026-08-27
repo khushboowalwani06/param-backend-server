@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         savedUser = await AsyncStorage.getItem('dms_user');
         if (savedUser) {
           const parsed = JSON.parse(savedUser);
-          const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer'];
+          const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer', 'accountant'];
           if (!validRoles.includes(parsed.Role)) {
             await AsyncStorage.removeItem('dms_user');
             setUser(null);
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const u = await sheetsService.login(email, password);
 
-      const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer'];
+      const validRoles = ['admin', 'sales', 'customer', 'dealer', 'retailer', 'accountant'];
       if (!validRoles.includes(u.Role)) {
         await sheetsService.logout();
         throw new Error('COMING SOON: Mobile access for your role is currently under development!');

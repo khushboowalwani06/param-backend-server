@@ -28,7 +28,7 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
   const backInterpolate = flipAnim.interpolate({ inputRange: [0, 180], outputRange: ['180deg', '360deg'] });
 
   const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
-  
+
   const u = users.find(usr => usr.UserID === order.UserID);
   const userSegment = u ? (u.Segment ? u.Segment : (u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade')) : 'Trade';
   const isNonTrade = userSegment === 'Non-Trade';
@@ -46,13 +46,13 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
       <View style={styles.cardBody}>
         <View style={styles.infoBlock}>
           <Text style={styles.infoLabel}>CUSTOMER</Text>
-          <Text style={styles.infoValue}>{order.Name} <Text style={{fontWeight:'400', color:'#8E8E93'}}>({order.Company})</Text></Text>
+          <Text style={styles.infoValue} numberOfLines={1}>{order.Name} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({order.Company})</Text></Text>
         </View>
-        
+
         <View style={styles.infoBlock}>
           <Text style={styles.infoLabel}>PRODUCT</Text>
-          <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between'}}>
-            <Text style={[styles.infoValue, {flex:1}]} numberOfLines={1}>{order.Product}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{order.Product}</Text>
             <View style={[styles.segmentBadge, isNonTrade && styles.segmentBadgeNonTrade]}>
               <Text style={[styles.segmentText, isNonTrade && styles.segmentTextNonTrade]}>{userSegment}</Text>
             </View>
@@ -62,11 +62,11 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
         <View style={styles.grid2}>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>QUANTITY</Text>
-            <Text style={[styles.infoValue, {fontSize:16}]}>{order.EstimateQty} {order.Unit}</Text>
+            <Text style={[styles.infoValue, { fontSize: 16 }]}>{order.EstimateQty} {order.Unit}</Text>
           </View>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>UNIT PRICE</Text>
-            <Text style={[styles.infoValue, {fontSize:16}]}>{formatCurrency(order.UnitPrice || 0)}</Text>
+            <Text style={[styles.infoValue, { fontSize: 16 }]}>{formatCurrency(order.UnitPrice || 0)}</Text>
           </View>
         </View>
 
@@ -74,8 +74,8 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
           <Text style={styles.infoLabel}>ESTIMATE AMOUNT</Text>
           <Text style={styles.amtValue}>{formatCurrency(order.EstimateAmt || 0)}</Text>
         </View>
-        
-        <View style={{flex:1}}/>
+
+        <View style={{ flex: 1 }} />
         <TouchableOpacity onPress={onEditStart} style={styles.editBtn}>
           <Edit2 size={16} color="#475569" />
           <Text style={styles.editBtnText}>Edit Order</Text>
@@ -136,7 +136,7 @@ export const AllOrders = () => {
     setCurrentPage(1);
   }, [searchTerm, activeSegment, startDate, endDate]);
 
-  if (loading) return <View style={{padding:16}}><CardSkeleton /><CardSkeleton /></View>;
+  if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   const filteredOrders = orders.filter(o => {
     if (activeSegment !== 'All Segments') {
@@ -150,7 +150,7 @@ export const AllOrders = () => {
       let ts = o.OrderTimestamp;
       if (!ts.endsWith('Z') && !ts.includes('+')) ts += 'Z';
       const orderDate = new Date(ts);
-      
+
       if (startDate && orderDate < new Date(startDate)) return false;
       if (endDate) {
         const end = new Date(endDate);
@@ -176,11 +176,11 @@ export const AllOrders = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>All Orders Directory</Text>
         <Text style={styles.headerSub}>Complete ledger of all orders across the system.</Text>
-        
+
         <View style={styles.filtersWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.segmentsRow}>
             {['All Segments', 'Trade', 'Non-Trade'].map(seg => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={seg}
                 onPress={() => setActiveSegment(seg)}
                 style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}
@@ -190,15 +190,15 @@ export const AllOrders = () => {
             ))}
           </ScrollView>
 
-          <DateRangeFilter 
+          <DateRangeFilter
             startDate={startDate} endDate={endDate}
             onDateChange={({ startDate: s, endDate: e }) => { setStartDate(s); setEndDate(e); }}
             onClear={() => { setStartDate(''); setEndDate(''); }}
-            style={{marginBottom: 12}}
+            style={{ marginBottom: 12 }}
           />
 
-          <View style={{flexDirection:'row', gap:12, marginBottom:12}}>
-            <View style={{flex:1}}>
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+            <View style={{ flex: 1 }}>
               <SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search ID, Company..." />
             </View>
             <ExportButton data={filteredOrders} filename="AllOrders" />
@@ -208,9 +208,9 @@ export const AllOrders = () => {
 
       <ScrollView contentContainerStyle={styles.listContent}>
         {paginatedOrders.map(order => (
-          <OrderCard 
-            key={order.OrdID} 
-            order={order} 
+          <OrderCard
+            key={order.OrdID}
+            order={order}
             users={users}
             isEditing={editingOrder?.OrdID === order.OrdID}
             onEditStart={() => setEditingOrder(order)}
@@ -220,12 +220,12 @@ export const AllOrders = () => {
         ))}
 
         {paginatedOrders.length === 0 && (
-          <View style={{padding:40, alignItems:'center'}}>
-            <Text style={{color:'#8E8E93'}}>No orders found.</Text>
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ color: '#8E8E93' }}>No orders found.</Text>
           </View>
         )}
       </ScrollView>
-      
+
       {totalPages > 1 && (
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       )}
@@ -245,10 +245,10 @@ const styles = StyleSheet.create({
   segmentText: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },
   segmentTextActive: { color: '#FFF' },
   listContent: { padding: 16, gap: 16, paddingBottom: 40 },
-  
-  cardContainer: { width: '100%', minHeight: 400 },
-  cardFace: { position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', elevation: 2 },
-  cardFaceBack: { backgroundColor: '#F8F9FA' },
+
+  cardContainer: { width: '100%' },
+  cardFace: { width: '100%', backfaceVisibility: 'hidden', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', elevation: 2 },
+  cardFaceBack: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#F8F9FA' },
   cardHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   orderId: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
   orderDate: { fontSize: 12, color: '#8E8E93', marginTop: 4 },

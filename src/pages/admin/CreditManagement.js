@@ -55,7 +55,7 @@ export const CreditManagement = () => {
     if (updatingIds.has(customerId)) return;
     setUpdatingIds(prev => new Set(prev).add(customerId));
 
-    setCustomers(prev => prev.map(c => 
+    setCustomers(prev => prev.map(c =>
       c.UserID === customerId ? { ...c, [field]: value } : c
     ));
 
@@ -100,14 +100,14 @@ export const CreditManagement = () => {
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  if (loading) return <View style={{padding: 16}}><CardSkeleton /><CardSkeleton /></View>;
+  if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Credit & Account Management</Text>
         <View style={styles.actionsRow}>
-          <View style={{flex: 1, minWidth: 200}}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search customers..." /></View>
+          <View style={{ flex: 1, minWidth: 200 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search customers..." /></View>
           <ExportButton data={filteredCustomers} filename="CreditManagement" />
           <TouchableOpacity style={styles.sweepBtn} onPress={handleSweep}>
             <Text style={styles.sweepText}>Issue Overdue Penalties</Text>
@@ -123,11 +123,11 @@ export const CreditManagement = () => {
           return (
             <View key={c.UserID} style={styles.card}>
               {isUpdating && <View style={styles.overlay}><ActivityIndicator color="#0F172A" /></View>}
-              
+
               <View style={styles.cardHeader}>
-                <View>
-                  <Text style={styles.custName}>{c.Name}</Text>
-                  <Text style={styles.custCompany}>{c.Company} (ID: {c.UserID})</Text>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={styles.custName} numberOfLines={1}>{c.Name}</Text>
+                  <Text style={styles.custCompany} numberOfLines={1}>{c.Company} (ID: {c.UserID})</Text>
                 </View>
                 <View style={[styles.statusBadge, isBlocked ? styles.statusBlocked : styles.statusActive]}>
                   <Text style={[styles.statusText, isBlocked ? styles.statusTextBlocked : styles.statusTextActive]}>
@@ -154,7 +154,7 @@ export const CreditManagement = () => {
 
                 <View style={styles.gridItem}>
                   <Text style={styles.label}>Non-Trade Access</Text>
-                  <View style={{height: 40, justifyContent: 'center', alignItems: 'flex-start'}}>
+                  <View style={{ height: 40, justifyContent: 'center', alignItems: 'flex-start' }}>
                     <Switch
                       value={isTrue(c.NonTradeActivated)}
                       onValueChange={(val) => handleUpdate(c.UserID, 'NonTradeActivated', val)}
@@ -208,8 +208,8 @@ export const CreditManagement = () => {
         })}
 
         {filteredCustomers.length === 0 && (
-          <View style={{padding: 40, alignItems: 'center'}}>
-            <Text style={{color: '#8E8E93'}}>No customers found.</Text>
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ color: '#8E8E93' }}>No customers found.</Text>
           </View>
         )}
 
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' },
   sweepBtn: { backgroundColor: '#DC2626', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
   sweepText: { color: '#FFF', fontWeight: '600', fontSize: 14 },
-  
+
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   card: { backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', padding: 16, position: 'relative' },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.7)', zIndex: 10, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   statusTextActive: { color: '#16A34A' },
   statusTextBlocked: { color: '#DC2626' },
-  
+
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   gridItem: { width: '45%' },
   label: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 8 },
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   pickerWrapper: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, backgroundColor: '#F8F9FA', overflow: 'hidden', height: 40, justifyContent: 'center' },
   picker: { height: 40 },
   outAmt: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginTop: 8 },
-  
+
   actions: { marginTop: 16, alignItems: 'flex-end' },
   unlockBtn: { backgroundColor: '#0F172A', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6 },
   unlockText: { color: '#FFF', fontWeight: '600', fontSize: 12 },

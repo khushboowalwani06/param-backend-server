@@ -23,7 +23,7 @@ export const AdminProducts = () => {
 
   const [newProductName, setNewProductName] = useState('');
   const [newProductGrade, setNewProductGrade] = useState('');
-  
+
   const [editProductName, setEditProductName] = useState('');
   const [editBagPrice, setEditBagPrice] = useState('');
   const [editTonPrice, setEditTonPrice] = useState('');
@@ -34,7 +34,7 @@ export const AdminProducts = () => {
 
   const [basePrice, setBasePrice] = useState('');
   const [zoneRates, setZoneRates] = useState([]);
-  
+
   const [zoneMappings, setZoneMappings] = useState([]);
   const [isSavingMappings, setIsSavingMappings] = useState(false);
 
@@ -103,7 +103,7 @@ export const AdminProducts = () => {
       const workbook = XLSX.read(b64, { type: 'base64' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      
+
       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       let headerRowIndex = -1;
       for (let i = 0; i < rows.length; i++) {
@@ -117,13 +117,13 @@ export const AdminProducts = () => {
 
       const headers = rows[headerRowIndex];
       const rates = [];
-      
+
       for (let i = headerRowIndex + 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row || row.length === 0) continue;
         const grade = row[0];
         if (!grade) continue;
-        
+
         for (let j = 1; j < headers.length; j++) {
           const zone = headers[j];
           const formula = row[j];
@@ -139,7 +139,7 @@ export const AdminProducts = () => {
       }
 
       if (rates.length === 0) throw new Error("No valid rates found in sheet");
-      
+
       await sheetsService.uploadZoneRates(rates, activePricingMode);
       Alert.alert('Success', `Successfully imported ${rates.length} ${activePricingMode} zone logic rules!`);
       fetchRates();
@@ -208,17 +208,19 @@ export const AdminProducts = () => {
   const handleDelete = async (id) => {
     Alert.alert('Confirm', 'Are you sure you want to delete this product?', [
       { text: 'Cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        isSubmittingRef.current = true; setIsSubmitting(true);
-        try {
-          await sheetsService.deleteProduct(user, id);
-          await fetchProducts();
-        } catch (err) {
-          Alert.alert('Error', 'Failed to delete product');
-        } finally {
-          isSubmittingRef.current = false; setIsSubmitting(false);
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          isSubmittingRef.current = true; setIsSubmitting(true);
+          try {
+            await sheetsService.deleteProduct(user, id);
+            await fetchProducts();
+          } catch (err) {
+            Alert.alert('Error', 'Failed to delete product');
+          } finally {
+            isSubmittingRef.current = false; setIsSubmitting(false);
+          }
         }
-      }}
+      }
     ]);
   };
 
@@ -262,7 +264,8 @@ export const AdminProducts = () => {
       "Enter new Grade name (e.g. 'OPC53'):",
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Add', onPress: async (grade) => {
+        {
+          text: 'Add', onPress: async (grade) => {
             if (!grade) return;
             try {
               await sheetsService.addZoneRateGrade(grade, activePricingMode);
@@ -277,7 +280,8 @@ export const AdminProducts = () => {
   const deleteGrade = (grade) => {
     Alert.alert('Confirm Delete', `Are you sure you want to delete the entire grade "${grade}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
           try {
             setIsSubmitting(true);
             await sheetsService.deleteZoneRateGrade(grade, activePricingMode);
@@ -292,7 +296,7 @@ export const AdminProducts = () => {
     ]);
   };
 
-  if (loading) return <View style={{padding:16}}><CardSkeleton /><CardSkeleton /></View>;
+  if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -308,7 +312,7 @@ export const AdminProducts = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Inventory & Pricing</Text>
         <Text style={styles.headerSub}>Manage the product catalog available for ordering.</Text>
-        
+
         <View style={styles.actionRow}>
           <View style={styles.tabsRow}>
             {['Trade', 'Non-Trade'].map(seg => (
@@ -324,7 +328,7 @@ export const AdminProducts = () => {
               <Text style={styles.importText}>{isImporting ? 'Importing...' : 'Import Rates'}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsAdding(!isAdding)} style={styles.addBtn}>
-              {isAdding ? <X size={16} color="#FFF"/> : <Plus size={16} color="#FFF"/>}
+              {isAdding ? <X size={16} color="#FFF" /> : <Plus size={16} color="#FFF" />}
               <Text style={styles.addText}>{isAdding ? 'Cancel' : 'Add Product'}</Text>
             </TouchableOpacity>
           </View>
@@ -357,13 +361,13 @@ export const AdminProducts = () => {
             <ScrollView horizontal style={styles.tableScroll}>
               <View>
                 <View style={[styles.tableRow, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, styles.headerCell, {width: 150}]}>Grade</Text>
+                  <Text style={[styles.tableCell, styles.headerCell, { width: 150 }]}>Grade</Text>
                   {zones.map(z => <Text key={z} style={[styles.tableCell, styles.headerCell]}>{z}</Text>)}
                 </View>
                 {grades.map(grade => (
                   <View key={grade} style={styles.tableRow}>
-                    <View style={[styles.tableCell, {width: 150, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}]}>
-                      <Text style={{fontWeight:'600'}}>{grade}</Text>
+                    <View style={[styles.tableCell, { width: 150, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                      <Text style={{ fontWeight: '600' }}>{grade}</Text>
                       <TouchableOpacity onPress={() => deleteGrade(grade)} disabled={isSubmitting}>
                         <Trash2 size={16} color="#dc2626" />
                       </TouchableOpacity>
@@ -380,18 +384,18 @@ export const AdminProducts = () => {
                       }
                       const isAvail = rate?.is_available !== false;
                       return (
-                        <View key={zone} style={[styles.tableCell, {backgroundColor: isAvail ? '#FFF' : '#F8F9FA'}]}>
+                        <View key={zone} style={[styles.tableCell, { backgroundColor: isAvail ? '#FFF' : '#F8F9FA' }]}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <Text style={{ fontSize: 10, color: '#8E8E93' }}>Available</Text>
                             <Switch value={isAvail} onValueChange={(val) => toggleAvailable(rate?.id, val)} style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }} />
                           </View>
-                          <TextInput 
-                            style={styles.formulaInput} 
-                            defaultValue={rate?.formula || ''} 
+                          <TextInput
+                            style={styles.formulaInput}
+                            defaultValue={rate?.formula || ''}
                             onBlur={(e) => updateFormula(rate?.id, e.nativeEvent.text, rate?.formula)}
-                            placeholder="Formula" 
+                            placeholder="Formula"
                           />
-                          <View style={{opacity: isAvail ? 1 : 0.4}}>
+                          <View style={{ opacity: isAvail ? 1 : 0.4 }}>
                             <Text style={styles.priceLg}>{finalPrice !== '-' ? `₹ ${finalPrice}` : '-'}</Text>
                             {finalPrice !== '-' && <Text style={styles.priceSm}>₹ {finalPrice * 20} / ton</Text>}
                           </View>
@@ -421,20 +425,20 @@ export const AdminProducts = () => {
 
             return (
               <View key={p.ProductID} style={styles.productRow}>
-                <View style={{flex: 1}}>
+                <View style={{ width: '100%' }}>
                   {isEditing ? (
-                    <TextInput style={[styles.input, {marginBottom:8}]} value={editProductName} onChangeText={setEditProductName} />
+                    <TextInput style={[styles.input, { marginBottom: 8 }]} value={editProductName} onChangeText={setEditProductName} />
                   ) : (
                     <>
-                      <Text style={styles.prodName}>{p.ProductName}</Text>
-                      <View style={{flexDirection:'row', gap:8, marginTop:4}}>
+                      <Text style={styles.prodName} numberOfLines={2} ellipsizeMode="tail">{p.ProductName}</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                         <Text style={styles.prodId}>{p.ProductID}</Text>
                         {p.Grade && <View style={styles.gradeBadge}><Text style={styles.gradeText}>{p.Grade}</Text></View>}
                       </View>
                     </>
                   )}
                 </View>
-                <View style={{flex:1, flexDirection:'row', gap:16, justifyContent:'flex-end', alignItems:'center'}}>
+                <View style={{ width: '100%', flexDirection: 'row', gap: 16, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                   <View>
                     <Text style={styles.priceLabel}>Price / Bag</Text>
                     {isEditing ? <TextInput style={styles.editPrice} value={editBagPrice} onChangeText={setEditBagPrice} keyboardType="numeric" /> : <Text style={styles.priceVal}>₹ {currentBagPrice || '-'}</Text>}
@@ -443,16 +447,16 @@ export const AdminProducts = () => {
                     <Text style={styles.priceLabel}>Price / Ton</Text>
                     {isEditing ? <TextInput style={styles.editPrice} value={editTonPrice} onChangeText={setEditTonPrice} keyboardType="numeric" /> : <Text style={styles.priceVal}>₹ {currentTonPrice || '-'}</Text>}
                   </View>
-                  <View style={{width: 60, flexDirection:'row', justifyContent:'flex-end'}}>
+                  <View style={{ width: 60, flexDirection: 'row', justifyContent: 'flex-end' }}>
                     {isEditing ? (
-                      <View style={{flexDirection:'row', gap:8}}>
-                        <TouchableOpacity onPress={() => handleEditSubmit(p.ProductID)}><Text style={{color:'#0284C7', fontWeight:'600'}}>Save</Text></TouchableOpacity>
-                        <TouchableOpacity onPress={() => setEditingId(null)}><X size={16} color="#8E8E93"/></TouchableOpacity>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity onPress={() => handleEditSubmit(p.ProductID)}><Text style={{ color: '#0284C7', fontWeight: '600' }}>Save</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => setEditingId(null)}><X size={16} color="#8E8E93" /></TouchableOpacity>
                       </View>
                     ) : (
-                      <View style={{flexDirection:'row', gap:12}}>
-                        <TouchableOpacity onPress={() => startEditing(p)}><Edit2 size={16} color="#8E8E93"/></TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDelete(p.ProductID)}><Trash2 size={16} color="#EF4444"/></TouchableOpacity>
+                      <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <TouchableOpacity onPress={() => startEditing(p)}><Edit2 size={16} color="#8E8E93" /></TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDelete(p.ProductID)}><Trash2 size={16} color="#EF4444" /></TouchableOpacity>
                       </View>
                     )}
                   </View>
@@ -474,7 +478,7 @@ export const AdminProducts = () => {
               <Text style={styles.saveMappingsText}>{isSavingMappings ? 'Saving...' : 'Save Mappings'}</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.zoneMappingsGrid}>
             {DEFAULT_ZONES.map(zone => {
               const mapping = zoneMappings.find(m => m.zone === zone) || { zone, districts: '' };
@@ -535,7 +539,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#FFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA' },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
   cardSub: { fontSize: 12, color: '#8E8E93', marginTop: 4, marginBottom: 16 },
-  baseRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 16 },
+  baseRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 16, flexWrap: 'wrap' },
   tableScroll: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8 },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
   tableHeader: { backgroundColor: '#F8F9FA' },

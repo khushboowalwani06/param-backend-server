@@ -30,13 +30,13 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
 
         <View style={styles.infoRow}>
           <Text style={styles.label}>CUSTOMER</Text>
-          <Text style={styles.valueText}>{order.Name}</Text>
-          <Text style={styles.subText}>{order.Company}</Text>
+          <Text style={styles.valueText} numberOfLines={1}>{order.Name}</Text>
+          <Text style={styles.subText} numberOfLines={1}>{order.Company}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Text style={styles.label}>ITEMS</Text>
-          <Text style={styles.valueText}>{order.EstimateQty} {order.Unit || 'Bags'} • {order.Product}</Text>
+          <Text style={styles.valueText} numberOfLines={1}>{order.EstimateQty} {order.Unit || 'Bags'} • {order.Product}</Text>
         </View>
 
         <View style={styles.infoRow}>

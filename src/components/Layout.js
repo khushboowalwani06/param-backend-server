@@ -21,6 +21,8 @@ import { RetailersDirectory } from '../pages/shared/RetailersDirectory';
 
 // Shared & Accountant pages
 import AccountantAllInvoices from '../pages/accountant/AccountantAllInvoices';
+import AccountantQueue from '../pages/accountant/AccountantQueue';
+import AccountantCredit from '../pages/accountant/AccountantCredit';
 import SharedLogistics from './SharedLogistics';
 import CustomerAging from '../pages/shared/CustomerAging';
 import CompetitorLog from '../pages/sales/CompetitorLog';
@@ -47,6 +49,7 @@ export default function Layout() {
   const isAdmin = user?.Role === 'admin';
   const isSales = user?.Role === 'sales';
   const isCustomer = user?.Role === 'customer' || user?.Role === 'dealer' || user?.Role === 'retailer';
+  const isAccountant = user?.Role === 'accountant';
 
   return (
     <Drawer.Navigator
@@ -61,8 +64,15 @@ export default function Layout() {
           borderBottomColor: '#F1F5F9',
         },
         headerTintColor: '#1A1A1A',
+        headerTitleAlign: 'left',
         headerTitleStyle: {
           fontWeight: '600',
+          fontSize: 17,
+        },
+        headerTitleContainerStyle: {
+          flexShrink: 1,
+          maxWidth: '55%',
+          paddingRight: 10,
         },
         drawerActiveBackgroundColor: '#F1F5F9',
         drawerActiveTintColor: '#1A1A1A',
@@ -83,7 +93,7 @@ export default function Layout() {
           <Drawer.Screen name="admin/documents" component={CustomerDocuments} options={{ drawerLabel: 'Customer Documents', title: 'Customer Documents' }} />
           <Drawer.Screen name="admin/import" component={ImportData} options={{ drawerLabel: 'Import Data', title: 'Import Data' }} />
           <Drawer.Screen name="admin/notes" component={OutstandingNotes} options={{ drawerLabel: 'Outstanding Notes', title: 'Outstanding Notes' }} />
-          
+
           <Drawer.Screen name="admin/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: 'All Invoices', title: 'All Invoices' }} />
           <Drawer.Screen name="admin/logistics" component={SharedLogistics} options={{ drawerLabel: 'Logistics', title: 'Logistics' }} />
           <Drawer.Screen name="admin/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
@@ -114,6 +124,17 @@ export default function Layout() {
           <Drawer.Screen name="customer/invoices" component={CustomerInvoices} options={{ drawerLabel: 'Invoices & Payments', title: 'Invoices & Payments' }} />
           <Drawer.Screen name="customer/disputes" component={DisputeForm} options={{ drawerLabel: 'Report Issue', title: 'Report Issue' }} />
           <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: 'Rewards', title: 'Rewards' }} />
+        </>
+      )}
+
+      {isAccountant && (
+        <>
+          <Drawer.Screen name="accountant/queue" component={AccountantQueue} options={{ drawerLabel: 'Pending Invoice', title: 'Pending Invoice' }} />
+          <Drawer.Screen name="accountant/verify" component={AccountantCredit} options={{ drawerLabel: 'Verify Payments', title: 'Verify Payments' }} />
+          <Drawer.Screen name="accountant/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Retailers Directory', title: 'Retailers Directory' }} />
+          <Drawer.Screen name="accountant/credit" component={AccountantCredit} options={{ drawerLabel: 'Active Credit', title: 'Active Credit' }} />
+          <Drawer.Screen name="accountant/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: 'All Invoices', title: 'All Invoices' }} />
+          <Drawer.Screen name="accountant/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
         </>
       )}
     </Drawer.Navigator>

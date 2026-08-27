@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Activit
 import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import { X, FileText, Download, Search } from 'lucide-react-native';
+import { SearchFilter } from '../../components/SearchFilter';
 
 const { width } = Dimensions.get('window');
 
@@ -39,19 +40,19 @@ export default function AccountantAllInvoices() {
         sheetsService.getOrders(user),
         sheetsService.getAllAccounts(user).catch(() => [])
       ]);
-      
-      const invoicedOrders = data.filter(o => 
-        o.ApprovalStatus === 'Payment Pending' || 
-        o.ApprovalStatus === 'Payment Sent' || 
+
+      const invoicedOrders = data.filter(o =>
+        o.ApprovalStatus === 'Payment Pending' ||
+        o.ApprovalStatus === 'Payment Sent' ||
         o.ApprovalStatus === 'Closed' ||
         o.ApprovalStatus === 'Overdue'
       );
-      
+
       const ordersWithAccounts = invoicedOrders.map(o => {
         const acc = accountsData.find(a => a.OrdID === o.OrdID) || {};
         return { ...o, ...acc };
       });
-      
+
       ordersWithAccounts.sort((a, b) => new Date(b.OrderTimestamp) - new Date(a.OrderTimestamp));
       setOrders(ordersWithAccounts);
     } catch (err) {
@@ -87,20 +88,12 @@ export default function AccountantAllInvoices() {
       </View>
 
       <View style={styles.actionsContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color="#94A3B8" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by Order ID or Trans ID..."
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            placeholderTextColor="#94A3B8"
+        <View style={{ flex: 1, minWidth: 200 }}>
+          <SearchFilter 
+            value={searchTerm} 
+            onChange={setSearchTerm} 
+            placeholder="Search by Order ID or Trans ID..." 
           />
-          {searchTerm.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchTerm('')}>
-              <X size={20} color="#94A3B8" />
-            </TouchableOpacity>
-          )}
         </View>
         <TouchableOpacity style={styles.exportBtn} onPress={() => alert('Export CSV not fully ported yet.')}>
           <FileText size={16} color="#1A1A1A" />
@@ -121,81 +114,81 @@ export default function AccountantAllInvoices() {
           </View>
         }
         renderItem={({ item: order }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View>
-                  <Text style={styles.ordId}>{order.OrdID}</Text>
-                  <Text style={styles.dateText}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
-                </View>
-                <StatusBadge status={order.ApprovalStatus} />
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View>
+                <Text style={styles.ordId}>{order.OrdID}</Text>
+                <Text style={styles.dateText}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
               </View>
+              <StatusBadge status={order.ApprovalStatus} />
+            </View>
 
-              <View style={styles.cardBody}>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Customer:</Text>
-                  <Text style={styles.value}>{order.Company || order.Name}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Amount:</Text>
-                  <Text style={styles.valueBold}>₹{order.FinalInvoicedAmount ? Number(order.FinalInvoicedAmount).toLocaleString() : Number(order.EstimateAmt || 0).toLocaleString()}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Payment Info:</Text>
-                  <View style={{flex: 1}}>
-                    {(order.TransactionID || order.PaymentReference) ? (
-                      <>
-                        <Text style={styles.value}>Txn: {order.TransactionID || order.PaymentReference}</Text>
-                        {(order.PaymentScreenshot || order.PaymentProofLink) && (
-                          <TouchableOpacity 
-                            style={styles.receiptBtn}
-                            onPress={() => setViewReceiptUrl(order.PaymentScreenshot || order.PaymentProofLink)}
-                          >
-                            <FileText size={12} color="#16A34A" />
-                            <Text style={styles.receiptText}>View Receipt</Text>
-                          </TouchableOpacity>
-                        )}
-                      </>
-                    ) : (
-                      <Text style={[styles.value, { color: '#94A3B8' }]}>Pending</Text>
-                    )}
-                  </View>
-                </View>
+            <View style={styles.cardBody}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Customer:</Text>
+                <Text style={styles.value}>{order.Company || order.Name}</Text>
               </View>
-
-              <View style={styles.cardFooter}>
-                {order.InvoicePdf || order.InvoicePdfLink ? (
-                  <TouchableOpacity 
-                    style={styles.invoiceBtn}
-                    onPress={() => alert('View Invoice functionality requires webview/pdf viewer')}
-                  >
-                    <FileText size={14} color="#1A1A1A" />
-                    <Text style={styles.invoiceText}>View Invoice</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={[styles.invoiceBtn, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderWidth: 1 }]}>
-                    <FileText size={14} color="#9CA3AF" />
-                    <Text style={[styles.invoiceText, { color: '#9CA3AF' }]}>No Invoice Yet</Text>
-                  </View>
-                )}
+              <View style={styles.row}>
+                <Text style={styles.label}>Amount:</Text>
+                <Text style={styles.valueBold}>₹{order.FinalInvoicedAmount ? Number(order.FinalInvoicedAmount).toLocaleString() : Number(order.EstimateAmt || 0).toLocaleString()}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Payment Info:</Text>
+                <View style={{ flex: 1 }}>
+                  {(order.TransactionID || order.PaymentReference) ? (
+                    <>
+                      <Text style={styles.value}>Txn: {order.TransactionID || order.PaymentReference}</Text>
+                      {(order.PaymentScreenshot || order.PaymentProofLink) && (
+                        <TouchableOpacity
+                          style={styles.receiptBtn}
+                          onPress={() => setViewReceiptUrl(order.PaymentScreenshot || order.PaymentProofLink)}
+                        >
+                          <FileText size={12} color="#16A34A" />
+                          <Text style={styles.receiptText}>View Receipt</Text>
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={[styles.value, { color: '#94A3B8' }]}>Pending</Text>
+                  )}
+                </View>
               </View>
             </View>
+
+            <View style={styles.cardFooter}>
+              {order.InvoicePdf || order.InvoicePdfLink ? (
+                <TouchableOpacity
+                  style={styles.invoiceBtn}
+                  onPress={() => alert('View Invoice functionality requires webview/pdf viewer')}
+                >
+                  <FileText size={14} color="#1A1A1A" />
+                  <Text style={styles.invoiceText}>View Invoice</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.invoiceBtn, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderWidth: 1 }]}>
+                  <FileText size={14} color="#9CA3AF" />
+                  <Text style={[styles.invoiceText, { color: '#9CA3AF' }]}>No Invoice Yet</Text>
+                </View>
+              )}
+            </View>
+          </View>
         )}
       />
 
       {/* View Receipt Modal */}
       <Modal visible={!!viewReceiptUrl} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.closeBtn}
             onPress={() => setViewReceiptUrl(null)}
           >
             <X size={24} color="#FFF" />
           </TouchableOpacity>
           {viewReceiptUrl && (
-            <Image 
-              source={{ uri: viewReceiptUrl }} 
-              style={styles.modalImage} 
-              resizeMode="contain" 
+            <Image
+              source={{ uri: viewReceiptUrl }}
+              style={styles.modalImage}
+              resizeMode="contain"
             />
           )}
         </View>
@@ -231,23 +224,6 @@ const styles = StyleSheet.create({
     flexDirection: width > 768 ? 'row' : 'column',
     gap: 12,
     marginBottom: 20,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#1A1A1A',
   },
   exportBtn: {
     flexDirection: 'row',

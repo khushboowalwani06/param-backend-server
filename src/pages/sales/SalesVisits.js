@@ -129,7 +129,7 @@ export default function SalesVisits() {
               return (
                 <View key={visit.id || idx} style={styles.visitCard}>
                   <View style={styles.visitHeader}>
-                    <Text style={styles.visitDealer}>{displayName}</Text>
+                    <Text style={styles.visitDealer} numberOfLines={1}>{displayName}</Text>
                     <View style={styles.visitDateBadge}>
                       <Text style={styles.visitDateText}>{new Date(visit.date).toLocaleDateString()}</Text>
                     </View>

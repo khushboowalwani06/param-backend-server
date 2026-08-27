@@ -88,10 +88,10 @@ export default function CompetitorLog() {
                 </View>
 
                 <View style={styles.cardBody}>
-                  <Text style={styles.competitorName}>{intel.competitor_name}</Text>
+                  <Text style={styles.competitorName} numberOfLines={1}>{intel.competitor_name}</Text>
                   <View style={styles.salesRepRow}>
                     <User size={14} color="#64748B" />
-                    <Text style={styles.salesRepName}>{intel.sales_rep_name}</Text>
+                    <Text style={styles.salesRepName} numberOfLines={1}>{intel.sales_rep_name}</Text>
                   </View>
                   <Text style={styles.dateText}>{new Date(intel.created_at).toLocaleString()}</Text>
                 </View>
@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1A1A',
     marginLeft: 6,
+    flexShrink: 1,
   },
   dateText: {
     fontSize: 12,

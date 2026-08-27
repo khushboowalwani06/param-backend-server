@@ -83,7 +83,9 @@ export const ChallanTracking = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Challan & Deposit Tracking</Text>
+          <View style={{ flex: 1, marginRight: 12 }}>
+            <Text style={styles.headerTitle} numberOfLines={2} adjustsFontSizeToFit>Challan & Deposit Tracking</Text>
+          </View>
           <ExportButton data={challans} filename="ChallanLog" />
         </View>
       </View>
@@ -172,37 +174,39 @@ export const ChallanTracking = () => {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Challan Log</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tableScroll}>
-            <View>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 120}]}>Challan ID</Text>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 100}]}>Date</Text>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 200}]}>Dealer / Party</Text>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 120}]}>Depot</Text>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 80}]}>Grade</Text>
-                <Text style={[styles.tableCell, styles.headerCell, {width: 80}]}>Quantity</Text>
-              </View>
-              
-              {challans.map(c => {
-                const d = dealers.find(x => x.UserID === c.UserID);
-                return (
-                  <View key={c.ChallanID} style={styles.tableRow}>
-                    <Text style={[styles.tableCell, {width: 120, fontWeight:'600'}]}>{c.ChallanID}</Text>
-                    <Text style={[styles.tableCell, {width: 100, color:'#8E8E93'}]}>{new Date(c.Date).toLocaleDateString()}</Text>
-                    <Text style={[styles.tableCell, {width: 200}]} numberOfLines={1}>{d ? `${d.Name} (${d.Company})` : c.UserID}</Text>
-                    <Text style={[styles.tableCell, {width: 120}]}>{c.Depot}</Text>
-                    <Text style={[styles.tableCell, {width: 80}]}>{c.Grade}</Text>
-                    <Text style={[styles.tableCell, {width: 80, fontWeight:'600', color:'#1A1A1A'}]}>{c.QuantityDeposited}</Text>
+          <View style={{ gap: 12 }}>
+            {challans.map(c => {
+              const d = dealers.find(x => x.UserID === c.UserID);
+              return (
+                <View key={c.ChallanID} style={styles.challanCard}>
+                  <View style={styles.challanCardHeader}>
+                    <Text style={styles.challanId}>{c.ChallanID}</Text>
+                    <Text style={styles.challanDate}>{new Date(c.Date).toLocaleDateString()}</Text>
                   </View>
-                );
-              })}
-              {challans.length === 0 && (
-                <View style={{padding: 20, alignItems: 'center'}}>
-                  <Text style={{color: '#8E8E93'}}>No challans found</Text>
+                  <Text style={styles.challanDealer} numberOfLines={1}>{d ? `${d.Name} (${d.Company})` : c.UserID}</Text>
+                  <View style={styles.challanCardDetails}>
+                    <View style={styles.challanDetailCol}>
+                      <Text style={styles.challanDetailLabel}>Depot</Text>
+                      <Text style={styles.challanDetailValue}>{c.Depot}</Text>
+                    </View>
+                    <View style={styles.challanDetailCol}>
+                      <Text style={styles.challanDetailLabel}>Grade</Text>
+                      <Text style={styles.challanDetailValue}>{c.Grade}</Text>
+                    </View>
+                    <View style={styles.challanDetailCol}>
+                      <Text style={styles.challanDetailLabel}>Quantity</Text>
+                      <Text style={styles.challanDetailValue}>{c.QuantityDeposited}</Text>
+                    </View>
+                  </View>
                 </View>
-              )}
-            </View>
-          </ScrollView>
+              );
+            })}
+            {challans.length === 0 && (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <Text style={{color: '#8E8E93'}}>No challans found</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -235,9 +239,13 @@ const styles = StyleSheet.create({
   submitBtn: { width: '100%', backgroundColor: '#1A1A1A', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   submitText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
   
-  tableScroll: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, backgroundColor: '#FFF' },
-  tableHeader: { flexDirection: 'row', backgroundColor: '#F8F9FA', borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
-  tableCell: { padding: 12, fontSize: 14, color: '#1A1A1A' },
-  headerCell: { fontWeight: '700', fontSize: 12, color: '#8E8E93', textTransform: 'uppercase' }
+  challanCard: { backgroundColor: '#F8F9FA', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#E5E5EA' },
+  challanCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  challanId: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
+  challanDate: { fontSize: 12, color: '#8E8E93', fontWeight: '500' },
+  challanDealer: { fontSize: 14, color: '#1A1A1A', marginBottom: 12, fontWeight: '500' },
+  challanCardDetails: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12 },
+  challanDetailCol: { flex: 1 },
+  challanDetailLabel: { fontSize: 10, color: '#8E8E93', fontWeight: '600', textTransform: 'uppercase', marginBottom: 4 },
+  challanDetailValue: { fontSize: 14, color: '#1A1A1A', fontWeight: '700' }
 });

@@ -48,9 +48,9 @@ const DocumentCard = ({ user, userDocs, isDocLoading, onLoadDocs, onPreview }) =
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.userName}>{user.Name}</Text>
-          <Text style={styles.userCompany}>{user.Company || 'N/A'} | {user.Role}</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.userName} numberOfLines={1}>{user.Name}</Text>
+          <Text style={styles.userCompany} numberOfLines={1}>{user.Company || 'N/A'} | {user.Role}</Text>
         </View>
         <View style={styles.approvedBadge}><Text style={styles.approvedText}>APPROVED</Text></View>
       </View>

@@ -46,7 +46,9 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
   const renderFront = () => (
     <Animated.View style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{r.Name || 'Unknown'}</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.cardTitle} numberOfLines={1}>{r.Name || 'Unknown'}</Text>
+        </View>
         <View style={[styles.badge, { backgroundColor: badgeBg }]}>
           <Text style={[styles.badgeText, { color: badgeColor }]}>{segment}</Text>
         </View>
@@ -54,10 +56,10 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
       <Text style={styles.cardSub}>{r.Company || 'No Company'} | {r.UserID}</Text>
       
       <View style={styles.infoGrid}>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Phone</Text><Text style={styles.infoValue}>{r.Phone || 'N/A'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Phone</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Phone || 'N/A'}</Text></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Address</Text><Text style={[styles.infoValue, {textAlign:'right', flex:1}]}>{r.Address || 'N/A'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>PAN & GST</Text><Text style={styles.infoValue}>{r.Documents?.pan || 'N/A'} | {r.Documents?.gst || 'N/A'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Email</Text><Text style={styles.infoValue}>{r.Email || r.EmailAddress || 'No Email'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>PAN & GST</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Documents?.pan || 'N/A'} | {r.Documents?.gst || 'N/A'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Email</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Email || r.EmailAddress || 'No Email'}</Text></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Sales Rep</Text><View style={{alignItems:'flex-end'}}><Text style={styles.infoValue}>{repName}</Text>{repId && <Text style={{fontSize:10, color:'#8E8E93'}}>{repId}</Text>}</View></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Total Orders</Text><Text style={[styles.infoValue, {fontWeight:'700'}]}>{ordersCount}</Text></View>
       </View>

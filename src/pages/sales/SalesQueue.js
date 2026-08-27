@@ -26,8 +26,8 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
 
       <View style={styles.clientInfo}>
         <Text style={styles.sectionLabel}>CLIENT INFO</Text>
-        <Text style={styles.companyName}>{order.Company}</Text>
-        <Text style={styles.clientName}>{order.Name}</Text>
+        <Text style={styles.companyName} numberOfLines={1}>{order.Company}</Text>
+        <Text style={styles.clientName} numberOfLines={1}>{order.Name}</Text>
       </View>
 
       <View style={styles.divider} />
@@ -35,7 +35,7 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
       <View style={styles.grid}>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>PRODUCT TYPE</Text>
-          <Text style={styles.gridVal}>{order.Product}</Text>
+          <Text style={styles.gridVal} numberOfLines={1}>{order.Product}</Text>
         </View>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>QUANTITY</Text>
@@ -48,7 +48,7 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
         {order.City ? (
           <View style={styles.gridItem}>
             <Text style={styles.sectionLabel}>DESTINATION</Text>
-            <Text style={styles.gridVal}>{order.City}</Text>
+            <Text style={styles.gridVal} numberOfLines={1}>{order.City}</Text>
           </View>
         ) : null}
       </View>
@@ -273,7 +273,7 @@ export default function SalesQueue() {
           <View style={styles.targetsGrid}>
             <View style={styles.targetCol}>
               <Text style={styles.targetLabel}>Volume (Tons)</Text>
-              <Text style={styles.targetVal}>{monthlyVolume.toFixed(1)} / {VOLUME_TARGET}</Text>
+              <Text style={styles.targetVal} adjustsFontSizeToFit numberOfLines={1}>{monthlyVolume.toFixed(1)} / {VOLUME_TARGET}</Text>
               <View style={styles.progressBar}>
                 <View style={[styles.progressFill, { width: `${Math.min(100, (monthlyVolume/VOLUME_TARGET)*100)}%` }]} />
               </View>

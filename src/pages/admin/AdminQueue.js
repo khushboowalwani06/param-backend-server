@@ -27,11 +27,11 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
 
       <View style={styles.clientInfo}>
         <Text style={styles.sectionLabel}>CLIENT INFO</Text>
-        <Text style={styles.companyName}>{order.Company}</Text>
-        <Text style={styles.clientName}>{order.Name}</Text>
+        <Text style={styles.companyName} numberOfLines={1}>{order.Company}</Text>
+        <Text style={styles.clientName} numberOfLines={1}>{order.Name}</Text>
         <View style={styles.repRow}>
           <User size={12} color="#64748B" />
-          <Text style={styles.repText}>Sales Rep: {order.SalesApproverID || 'System'}</Text>
+          <Text style={styles.repText} numberOfLines={1}>Sales Rep: {order.SalesApproverID || 'System'}</Text>
         </View>
       </View>
 
@@ -182,16 +182,16 @@ export const AdminQueue = () => {
     }
   };
 
-  if (loading) return <View style={{padding:16}}><CardSkeleton /><CardSkeleton /></View>;
+  if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   const filteredOrders = orders.filter(o => {
     const term = searchTerm.toLowerCase();
-    const matchesSearch = o.OrdID?.toLowerCase().includes(term) || 
-                          o.Company?.toLowerCase().includes(term) ||
-                          o.Product?.toLowerCase().includes(term) ||
-                          o.Name?.toLowerCase().includes(term) ||
-                          o.SalesApproverID?.toLowerCase().includes(term);
-    
+    const matchesSearch = o.OrdID?.toLowerCase().includes(term) ||
+      o.Company?.toLowerCase().includes(term) ||
+      o.Product?.toLowerCase().includes(term) ||
+      o.Name?.toLowerCase().includes(term) ||
+      o.SalesApproverID?.toLowerCase().includes(term);
+
     let matchesTime = true;
     if (timeFilter !== 'All Time' && o.OrderTimestamp) {
       let ts = o.OrderTimestamp;
@@ -201,7 +201,7 @@ export const AdminQueue = () => {
       else if (timeFilter === 'Yesterday') matchesTime = isYesterday(orderDate);
       else if (timeFilter === 'Last 7 Days') matchesTime = isThisWeek(orderDate);
     }
-    
+
     return matchesSearch && matchesTime;
   });
 
@@ -209,12 +209,14 @@ export const AdminQueue = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Final Approval Queue</Text>
+          <View style={{ flex: 1, marginRight: 12 }}>
+            <Text style={styles.headerTitle} numberOfLines={2} adjustsFontSizeToFit>Final Approval Queue</Text>
+          </View>
           <ExportButton data={filteredOrders} filename="AdminQueue" />
         </View>
-        
+
         <View style={styles.filters}>
-          <View style={{flex: 1}}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search Order ID..." /></View>
+          <View style={{ flex: 1 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search Order ID..." /></View>
           <View style={styles.pickerWrapper}>
             <Calendar size={16} color="#8E8E93" style={styles.pickerIcon} />
             <Picker
@@ -260,11 +262,11 @@ export const AdminQueue = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             {editingOrder && (
-              <EditOrderModal 
-                order={editingOrder} 
-                onClose={() => setEditingOrder(null)} 
-                onUpdate={() => { setEditingOrder(null); fetchOrders(); }} 
-                inline 
+              <EditOrderModal
+                order={editingOrder}
+                onClose={() => setEditingOrder(null)}
+                onUpdate={() => { setEditingOrder(null); fetchOrders(); }}
+                inline
               />
             )}
           </View>
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
   pickerWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, backgroundColor: '#FFF', paddingHorizontal: 12 },
   pickerIcon: { marginRight: -10, zIndex: 1 },
   picker: { flex: 1, height: 40, marginLeft: -10 },
-  
+
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   emptyState: { padding: 48, alignItems: 'center', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA' },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginTop: 16, marginBottom: 8 },
@@ -326,7 +328,7 @@ const styles = StyleSheet.create({
   companyName: { fontSize: 14, fontWeight: '800', color: '#0F172A' },
   clientName: { fontSize: 14, color: '#64748B' },
   repRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
-  repText: { fontSize: 12, color: '#64748B' },
+  repText: { fontSize: 12, color: '#64748B', flexShrink: 1 },
   divider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   gridItem: { width: '45%' },
