@@ -33,7 +33,9 @@ export default function CustomerOverview() {
           if (latestProfile) setRealtimeUser(latestProfile);
         }
       } catch (err) {
-        console.error(err);
+        if (!err.message?.toLowerCase().includes('forbidden') && !err.message?.toLowerCase().includes('unauthorized') && !err.message?.toLowerCase().includes('token')) {
+          console.error(err);
+        }
       } finally {
         setLoading(false);
       }

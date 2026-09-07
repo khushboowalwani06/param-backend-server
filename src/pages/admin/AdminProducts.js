@@ -239,9 +239,9 @@ export const AdminProducts = () => {
   };
 
   const updateFormula = async (rateId, newFormula, oldFormula) => {
-    if (!rateId || newFormula.toUpperCase() === oldFormula) return;
+    if (!rateId || !newFormula || String(newFormula).toUpperCase() === String(oldFormula).toUpperCase()) return;
     try {
-      await sheetsService.updateZoneRateCell(rateId, { formula: newFormula.toUpperCase() });
+      await sheetsService.updateZoneRateCell(rateId, { formula: String(newFormula).toUpperCase() });
       fetchRates();
     } catch (err) {
       Alert.alert('Error', 'Failed to update formula');
@@ -375,9 +375,9 @@ export const AdminProducts = () => {
                     {zones.map(zone => {
                       const rate = activeRates.find(r => r.grade === grade && r.zone === zone);
                       let finalPrice = '-';
-                      if (rate && basePrice) {
+                      if (rate && basePrice && rate.formula) {
                         try {
-                          const formula = rate.formula.toUpperCase().replace(/X/g, Number(basePrice));
+                          const formula = String(rate.formula).toUpperCase().replace(/X/g, Number(basePrice));
                           // Safe eval workaround
                           finalPrice = eval(formula);
                         } catch (e) { finalPrice = 'Error'; }

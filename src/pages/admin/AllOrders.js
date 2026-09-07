@@ -34,7 +34,7 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
   const isNonTrade = userSegment === 'Non-Trade';
 
   const renderFront = () => (
-    <Animated.View style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
+    <Animated.View pointerEvents={isEditing ? 'none' : 'auto'} style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.orderId}>{order.OrdID}</Text>
@@ -85,7 +85,7 @@ const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdat
   );
 
   const renderBack = () => (
-    <Animated.View style={[styles.cardFace, styles.cardFaceBack, { transform: [{ rotateY: backInterpolate }] }]}>
+    <Animated.View pointerEvents={isEditing ? 'auto' : 'none'} style={[styles.cardFace, styles.cardFaceBack, { transform: [{ rotateY: backInterpolate }] }]}>
       <EditOrderModal order={order} inline={true} onClose={onEditCancel} onUpdate={onUpdate} />
     </Animated.View>
   );

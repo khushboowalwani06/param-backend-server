@@ -105,7 +105,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
             >
               <Picker.Item label="Select Product..." value="" />
               {products.map(p => (
-                <Picker.Item key={p.ProductID} label={p.ProductName} value={p.ProductName} />
+                <Picker.Item key={p.ProductID} label={p.ProductName || 'Unknown'} value={p.ProductName || ''} />
               ))}
             </Picker>
           </View>

@@ -11,6 +11,7 @@ import { Check, Calendar, User, History, ChevronUp, ChevronDown } from 'lucide-r
 import { isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
+import { Pagination } from '../../components/Pagination';
 
 const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit }) => {
   return (
@@ -121,6 +122,9 @@ export const AdminQueue = () => {
   const [expandedOrders, setExpandedOrders] = useState({});
   const [customerHistory, setCustomerHistory] = useState({});
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
 
   const fetchOrders = async () => {
@@ -129,6 +133,7 @@ export const AdminQueue = () => {
       const queue = data.filter(o => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval');
       queue.sort((a, b) => new Date(a.OrderTimestamp) - new Date(b.OrderTimestamp));
       setOrders(queue);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -205,6 +210,9 @@ export const AdminQueue = () => {
     return matchesSearch && matchesTime;
   });
 
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -241,7 +249,7 @@ export const AdminQueue = () => {
             <Text style={styles.emptySub}>{searchTerm ? `No orders matching "${searchTerm}".` : 'No orders awaiting final approval.'}</Text>
           </View>
         ) : (
-          filteredOrders.map((order, index) => (
+          paginatedOrders.map((order, index) => (
             <QueueCard
               key={order.OrdID}
               index={index}
@@ -257,6 +265,10 @@ export const AdminQueue = () => {
           ))
         )}
       </View>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       <Modal visible={!!editingOrder} transparent animationType="slide">
         <View style={styles.modalOverlay}>

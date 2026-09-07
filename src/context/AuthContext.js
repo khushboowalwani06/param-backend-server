@@ -18,7 +18,9 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('dms_user', JSON.stringify(u));
       return u;
     } catch (err) {
-      console.error('Failed to refresh user profile:', err);
+      if (!err.message?.toLowerCase().includes('forbidden') && !err.message?.toLowerCase().includes('unauthorized') && !err.message?.toLowerCase().includes('token')) {
+        console.error('Failed to refresh user profile:', err);
+      }
     }
   };
 

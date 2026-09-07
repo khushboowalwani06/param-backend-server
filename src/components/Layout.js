@@ -90,6 +90,7 @@ export default function Layout() {
           <Drawer.Screen name="admin/queue" component={AdminQueue} options={{ drawerLabel: 'Admin Queue', title: 'Admin Queue' }} />
           <Drawer.Screen name="admin/challans" component={ChallanTracking} options={{ drawerLabel: 'Challan Tracking', title: 'Challan Tracking' }} />
           <Drawer.Screen name="admin/credit" component={CreditManagement} options={{ drawerLabel: 'Credit Management', title: 'Credit Management' }} />
+          <Drawer.Screen name="admin/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: 'Place Order' }} />
           <Drawer.Screen name="admin/documents" component={CustomerDocuments} options={{ drawerLabel: 'Customer Documents', title: 'Customer Documents' }} />
           <Drawer.Screen name="admin/import" component={ImportData} options={{ drawerLabel: 'Import Data', title: 'Import Data' }} />
           <Drawer.Screen name="admin/notes" component={OutstandingNotes} options={{ drawerLabel: 'Outstanding Notes', title: 'Outstanding Notes' }} />
@@ -113,6 +114,7 @@ export default function Layout() {
           <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: 'Competitor Intel', title: 'Competitor Intel' }} />
           <Drawer.Screen name="sales/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
           <Drawer.Screen name="sales/disputes" component={DisputesPanel} options={{ drawerLabel: 'Reported Issues', title: 'Reported Issues' }} />
+          <Drawer.Screen name="sales/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: 'Place Order' }} />
         </>
       )}
 

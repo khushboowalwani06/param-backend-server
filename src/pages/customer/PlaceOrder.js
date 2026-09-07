@@ -130,9 +130,9 @@ export default function PlaceOrder() {
       });
       
       let finalBagPrice = 0;
-      if (rateRow && rateRow.is_available !== false && basePrice > 0) {
+      if (rateRow && rateRow.is_available !== false && basePrice > 0 && rateRow.formula) {
         try {
-          const formula = rateRow.formula.toUpperCase().replace(/X/g, basePrice);
+          const formula = String(rateRow.formula).toUpperCase().replace(/X/g, basePrice);
           finalBagPrice = eval(formula); // using eval for simplicity in formula parsing
         } catch (_e) {
           finalBagPrice = 0;

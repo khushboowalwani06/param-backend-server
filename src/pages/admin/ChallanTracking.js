@@ -8,6 +8,7 @@ import { CardSkeleton } from '../../components/Skeleton';
 import { ExportButton } from '../../components/ExportButton';
 import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'lucide-react-native';
+import { Pagination } from '../../components/Pagination';
 
 export const ChallanTracking = () => {
   const { user } = useAuth();
@@ -25,6 +26,10 @@ export const ChallanTracking = () => {
     Grade: 'OPC',
     QuantityDeposited: ''
   });
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   useRealtime(['challans'], () => setRefreshKey(k => k + 1));
@@ -39,6 +44,7 @@ export const ChallanTracking = () => {
       const data = await sheetsService._fetch('/challans');
       data.sort((a, b) => new Date(b.Date) - new Date(a.Date));
       setChallans(data);
+      setCurrentPage(1);
     } catch (err) {
       error('Failed to load data');
     } finally {
@@ -78,6 +84,9 @@ export const ChallanTracking = () => {
   };
 
   if (loading) return <View style={{padding: 16}}><CardSkeleton /><CardSkeleton /></View>;
+
+  const totalPages = Math.ceil(challans.length / itemsPerPage);
+  const paginatedChallans = challans.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <ScrollView style={styles.container}>
@@ -175,7 +184,7 @@ export const ChallanTracking = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Challan Log</Text>
           <View style={{ gap: 12 }}>
-            {challans.map(c => {
+            {paginatedChallans.map(c => {
               const d = dealers.find(x => x.UserID === c.UserID);
               return (
                 <View key={c.ChallanID} style={styles.challanCard}>
@@ -207,6 +216,12 @@ export const ChallanTracking = () => {
               </View>
             )}
           </View>
+
+          {totalPages > 1 && (
+            <View style={{ marginTop: 16 }}>
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            </View>
+          )}
         </View>
       </View>
     </ScrollView>

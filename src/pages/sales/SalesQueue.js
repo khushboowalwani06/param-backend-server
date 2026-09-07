@@ -10,7 +10,7 @@ import { EditOrderModal } from '../../components/EditOrderModal';
 import { Check, Calendar, User, History, ChevronUp, ChevronDown, Target } from 'lucide-react-native';
 import { isThisMonth } from 'date-fns';
 import { CardSkeleton } from '../../components/Skeleton';
-
+import { Pagination } from '../../components/Pagination';
 const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit }) => {
   return (
     <View style={styles.card}>
@@ -126,6 +126,9 @@ export default function SalesQueue() {
   const [rejectingOrder, setRejectingOrder] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
 
   const fetchData = async () => {
@@ -138,6 +141,7 @@ export default function SalesQueue() {
       const queue = ordersData.filter(o => o.ApprovalStatus === 'Pending Sales Approval');
       queue.sort((a, b) => new Date(a.OrderTimestamp) - new Date(b.OrderTimestamp));
       setOrders(queue);
+      setCurrentPage(1);
 
       let thisMonthVolume = 0;
       ordersData.forEach(o => {
@@ -250,6 +254,9 @@ export default function SalesQueue() {
     return o.OrdID?.toLowerCase().includes(term) || o.Company?.toLowerCase().includes(term);
   });
 
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (loading) {
     return (
       <View style={{ flex: 1, padding: 16 }}>
@@ -302,7 +309,7 @@ export default function SalesQueue() {
             <Text style={styles.emptySub}>No orders currently awaiting your approval.</Text>
           </View>
         ) : (
-          filteredOrders.map((order, idx) => (
+          paginatedOrders.map((order, idx) => (
             <QueueCard
               key={order.OrdID}
               order={order}
@@ -318,6 +325,10 @@ export default function SalesQueue() {
           ))
         )}
       </ScrollView>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       {/* Reject Modal */}
       <Modal visible={!!rejectingOrder} transparent animationType="fade">

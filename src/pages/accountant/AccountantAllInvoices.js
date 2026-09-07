@@ -4,6 +4,7 @@ import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import { X, FileText, Download, Search } from 'lucide-react-native';
 import { SearchFilter } from '../../components/SearchFilter';
+import { Pagination } from '../../components/Pagination';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +29,9 @@ export default function AccountantAllInvoices() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewReceiptUrl, setViewReceiptUrl] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     fetchData();
@@ -55,6 +59,7 @@ export default function AccountantAllInvoices() {
 
       ordersWithAccounts.sort((a, b) => new Date(b.OrderTimestamp) - new Date(a.OrderTimestamp));
       setOrders(ordersWithAccounts);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,6 +85,9 @@ export default function AccountantAllInvoices() {
     );
   }
 
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -102,7 +110,7 @@ export default function AccountantAllInvoices() {
       </View>
 
       <FlatList
-        data={filteredOrders}
+        data={paginatedOrders}
         keyExtractor={order => order.OrdID}
         style={styles.listContainer}
         initialNumToRender={10}
@@ -174,6 +182,12 @@ export default function AccountantAllInvoices() {
           </View>
         )}
       />
+
+      {totalPages > 1 && (
+        <View style={{ padding: 16 }}>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </View>
+      )}
 
       {/* View Receipt Modal */}
       <Modal visible={!!viewReceiptUrl} transparent animationType="fade">

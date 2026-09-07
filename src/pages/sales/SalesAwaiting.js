@@ -6,6 +6,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { useRealtime } from '../../hooks/useRealtime';
 import { Clock, Truck, MapPin, Edit3, Check, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
+import { Pagination } from '../../components/Pagination';
 
 const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice, editingPriceId, setEditingPriceId, editingPriceValue, setEditingPriceValue }) => {
   const isEditing = editingPriceId === order.OrdID;
@@ -104,6 +105,9 @@ export default function SalesAwaiting() {
   
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editingPriceValue, setEditingPriceValue] = useState('');
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
 
@@ -116,6 +120,7 @@ export default function SalesAwaiting() {
       );
       awaitingAdmin.sort((a, b) => new Date(a.OrderTimestamp) - new Date(b.OrderTimestamp));
       setOrders(awaitingAdmin);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -182,6 +187,9 @@ export default function SalesAwaiting() {
     );
   }
 
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const paginatedOrders = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -198,7 +206,7 @@ export default function SalesAwaiting() {
             <Text style={styles.emptySub}>All your approved orders have either been dispatched or are waiting for Admin sign-off.</Text>
           </View>
         ) : (
-          orders.map(order => (
+          paginatedOrders.map(order => (
             <AwaitingCard
               key={order.OrdID}
               order={order}
@@ -215,6 +223,10 @@ export default function SalesAwaiting() {
         )}
 
       </ScrollView>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
     </View>
   );
 }

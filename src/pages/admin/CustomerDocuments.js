@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, ActivityIndicator, Alert, Image } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useToast } from '../../context/ToastContext';
 import { CheckSquare, FileText, UserPlus, Eye, Download, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
 import { useRealtime } from '../../hooks/useRealtime';
 import { SearchFilter } from '../../components/SearchFilter';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { Pagination } from '../../components/Pagination';
 
 const DocumentCard = ({ user, userDocs, isDocLoading, onLoadDocs, onPreview }) => {
   const handleDownload = async (base64, label) => {
     try {
-      const isPdf = base64.includes('application/pdf');
+      const isPdf = base64.includes('application/pdf') || base64.endsWith('.pdf');
       const ext = isPdf ? '.pdf' : '.png';
-      const cleanB64 = base64.split(',')[1] || base64;
       const fileUri = `${FileSystem.documentDirectory}${label.replace(/\s+/g, '_')}${ext}`;
-      await FileSystem.writeAsStringAsync(fileUri, cleanB64, { encoding: FileSystem.EncodingType.Base64 });
+      
+      if (base64.startsWith('http')) {
+        await FileSystem.downloadAsync(base64, fileUri);
+      } else {
+        let rawB64 = (base64.split(',')[1] || base64).replace(/\s+/g, '');
+        try { rawB64 = decodeURIComponent(rawB64); } catch (e) {}
+        await FileSystem.writeAsStringAsync(fileUri, rawB64, { encoding: 'base64' });
+      }
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri);
       }
     } catch (err) {
       console.error(err);
+      Alert.alert('Download Error', err.message || String(err));
     }
   };
 
@@ -99,6 +107,9 @@ export const CustomerDocuments = () => {
   const [loadingDocuments, setLoadingDocuments] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useRealtime(['users'], () => setRefreshKey(k => k + 1));
 
   useEffect(() => {
@@ -114,6 +125,7 @@ export const CustomerDocuments = () => {
         u.ApprovalStatus !== 'Pending' && u.ApprovalStatus !== 'Rejected'
       );
       setApprovedUsers(approvedCustomers);
+      setCurrentPage(1);
     } catch (err) {
       error('Failed to load customers');
     } finally {
@@ -135,6 +147,27 @@ export const CustomerDocuments = () => {
     }
   };
 
+  const handlePreview = async (doc) => {
+    try {
+      if (doc.data && doc.data.startsWith('data:')) {
+        const isPdf = doc.data.includes('application/pdf');
+        const ext = isPdf ? '.pdf' : '.png';
+        let rawB64 = (doc.data.split(',')[1] || doc.data).replace(/\s+/g, '');
+        try { rawB64 = decodeURIComponent(rawB64); } catch (e) {}
+        const cleanB64 = rawB64;
+        const fileUri = `${FileSystem.cacheDirectory}preview_${Date.now()}${ext}`;
+        await FileSystem.writeAsStringAsync(fileUri, cleanB64, { encoding: 'base64' });
+        setPreviewDoc({ ...doc, data: fileUri });
+      } else {
+        setPreviewDoc(doc);
+      }
+    } catch (err) {
+      console.error('Failed to prepare preview:', err);
+      Alert.alert('Preview Error', err.message || String(err));
+      setPreviewDoc(doc);
+    }
+  };
+
   if (loading) return <View style={{padding: 16}}><CardSkeleton /><CardSkeleton /></View>;
 
   const filteredUsers = approvedUsers.filter(user => {
@@ -147,6 +180,9 @@ export const CustomerDocuments = () => {
       user.UserID?.toLowerCase().includes(term)
     );
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <ScrollView style={styles.container}>
@@ -172,18 +208,22 @@ export const CustomerDocuments = () => {
             <Text style={styles.emptySub}>{searchTerm ? 'No customers match your search.' : 'There are no approved customers at the moment.'}</Text>
           </View>
         ) : (
-          filteredUsers.map(user => (
+          paginatedUsers.map(user => (
             <DocumentCard
               key={user.UserID}
               user={user}
               userDocs={loadedDocuments[user.UserID]}
               isDocLoading={loadingDocuments[user.UserID]}
               onLoadDocs={() => loadUserDocuments(user.UserID)}
-              onPreview={setPreviewDoc}
+              onPreview={handlePreview}
             />
           ))
         )}
       </View>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       <Modal visible={!!previewDoc} transparent animationType="slide">
         <View style={styles.previewOverlay}>
@@ -195,7 +235,7 @@ export const CustomerDocuments = () => {
           </View>
           <View style={styles.previewBody}>
             {previewDoc && (
-              <Image source={{ uri: previewDoc.data }} style={styles.previewImg} resizeMode="contain" />
+              <Image source={{ uri: previewDoc.data.replace(/\s+/g, '') }} style={styles.previewImg} resizeMode="contain" />
             )}
           </View>
         </View>

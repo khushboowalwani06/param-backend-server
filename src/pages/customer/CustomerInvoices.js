@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
 import { StatusBadge } from '../../components/StatusBadge';
+import { Pagination } from '../../components/Pagination';
 
 export default function CustomerInvoices() {
   const { user } = useAuth();
@@ -14,6 +15,9 @@ export default function CustomerInvoices() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   // Payment Modal State
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [payOrderId, setPayOrderId] = useState(null);
@@ -35,6 +39,7 @@ export default function CustomerInvoices() {
       const invoicedOrders = data.filter(o => o.UserID === user.UserID && (o.ApprovalStatus === 'Payment Pending' || o.ApprovalStatus === 'Payment Sent' || o.ApprovalStatus === 'Closed'));
       invoicedOrders.sort((a, b) => new Date(b.OrderTimestamp) - new Date(a.OrderTimestamp));
       setOrders(invoicedOrders);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to load invoices.');
@@ -99,6 +104,9 @@ export default function CustomerInvoices() {
     return true;
   });
 
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -136,7 +144,7 @@ export default function CustomerInvoices() {
           </View>
         ) : (
           <View style={styles.list}>
-            {filteredOrders.map(order => {
+            {paginatedOrders.map(order => {
               const isClosed = order.ApprovalStatus === 'Closed';
               const isPaymentSent = order.ApprovalStatus === 'Payment Sent';
               const isPaid = isClosed || isPaymentSent;
@@ -203,6 +211,10 @@ export default function CustomerInvoices() {
           </View>
         )}
       </ScrollView>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       {/* Pay Modal */}
       <Modal visible={payModalOpen} transparent animationType="slide">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, StyleSheet, Animated, Alert, Platform, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { sheetsService } from '../../services/sheetsService';
@@ -10,10 +10,11 @@ import { Users, Search, Gift, X, Edit2, Trash2, ShoppingCart, Pencil, Check } fr
 import { LocationFilter } from '../../components/LocationFilter';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
+import { Pagination } from '../../components/Pagination';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, segment, ordersCount, outstColor, badgeBg, badgeColor, targetValue, achievedValue, onOpenProfile, onOpenRewards, onDelete, onOrder, handleSaveCreditLimit }) => {
+const RetailerCard = React.memo(({ r, user, repName, repId, outst, creditLimit, spendable, segment, ordersCount, outstColor, badgeBg, badgeColor, targetValue, achievedValue, onDelete, onOrder, handleSaveCreditLimit, availableDistricts, onSaveProfile, onSaveRewards, rewardsData }) => {
   const [flipped, setFlipped] = useState(false);
   const [flipContext, setFlipContext] = useState(null);
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -22,7 +23,17 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
   const [editingCredit, setEditingCredit] = useState(false);
   const [editLimit, setEditLimit] = useState(String(creditLimit));
   
-  const [rewardsForm, setRewardsForm] = useState({target1: '150', rewardName1: 'Silver Tier Trip', target2: '280', rewardName2: 'Gold Tier Trip (Dubai)'});
+  const [profileForm, setProfileForm] = useState({ Name: r.Name || '', Company: r.Company || '', Phone: r.Phone || '', City: r.City || '', District: r.District || '', Segment: r.Segment || (r.NonTradeActivated ? 'Non-Trade' : 'Trade') });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const [rewardsForm, setRewardsForm] = useState({
+    startDate: rewardsData?.startDate || '',
+    endDate: rewardsData?.endDate || '',
+    target1: rewardsData?.targets?.[0]?.target?.toString() || '',
+    rewardName1: rewardsData?.targets?.[0]?.rewardName || '',
+    target2: rewardsData?.targets?.[1]?.target?.toString() || '',
+    rewardName2: rewardsData?.targets?.[1]?.rewardName || ''
+  });
   const [savingRewards, setSavingRewards] = useState(false);
 
   const flipTo = (toValue, context) => {
@@ -44,7 +55,7 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
   const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
 
   const renderFront = () => (
-    <Animated.View style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
+    <Animated.View pointerEvents={flipped ? 'none' : 'auto'} style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
       <View style={styles.cardHeader}>
         <View style={{ flex: 1, paddingRight: 8 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>{r.Name || 'Unknown'}</Text>
@@ -132,29 +143,93 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
   );
 
   const renderBack = () => (
-    <Animated.View style={[styles.cardFace, styles.cardFaceBack, { transform: [{ rotateY: backInterpolate }] }]}>
+    <Animated.View pointerEvents={flipped ? 'auto' : 'none'} style={[styles.cardFace, styles.cardFaceBack, { transform: [{ rotateY: backInterpolate }] }]}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{flipContext === 'rewards' ? 'Edit Rewards' : 'Edit Details'}</Text>
         <TouchableOpacity onPress={() => flipTo(0, null)}><X size={20} color="#8E8E93" /></TouchableOpacity>
       </View>
       
-      <ScrollView style={{flex:1}}>
+      <ScrollView style={{flex:1, marginBottom: 12}}>
         {flipContext === 'rewards' ? (
           <View style={{gap: 12}}>
-            <Text style={styles.infoLabel}>Currently editable in web version</Text>
-            <Text style={styles.infoValue}>Full rewards management coming soon to mobile.</Text>
+            <View>
+              <Text style={styles.formLabel}>Start Date</Text>
+              <TextInput style={styles.formInput} value={rewardsForm.startDate} onChangeText={t => setRewardsForm({...rewardsForm, startDate: t})} placeholder="YYYY-MM-DD" />
+            </View>
+            <View>
+              <Text style={styles.formLabel}>End Date</Text>
+              <TextInput style={styles.formInput} value={rewardsForm.endDate} onChangeText={t => setRewardsForm({...rewardsForm, endDate: t})} placeholder="YYYY-MM-DD" />
+            </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.formGroupTitle}>Target 1 (Silver)</Text>
+              <TextInput style={styles.formInput} value={rewardsForm.target1} onChangeText={t => setRewardsForm({...rewardsForm, target1: t})} placeholder="Qty (Tons)" keyboardType="numeric" />
+              <TextInput style={[styles.formInput, {marginTop: 8}]} value={rewardsForm.rewardName1} onChangeText={t => setRewardsForm({...rewardsForm, rewardName1: t})} placeholder="Reward Name" />
+            </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.formGroupTitle}>Target 2 (Gold)</Text>
+              <TextInput style={styles.formInput} value={rewardsForm.target2} onChangeText={t => setRewardsForm({...rewardsForm, target2: t})} placeholder="Qty (Tons)" keyboardType="numeric" />
+              <TextInput style={[styles.formInput, {marginTop: 8}]} value={rewardsForm.rewardName2} onChangeText={t => setRewardsForm({...rewardsForm, rewardName2: t})} placeholder="Reward Name" />
+            </View>
           </View>
         ) : (
           <View style={{gap: 12}}>
-            <Text style={styles.infoLabel}>Currently editable in web version</Text>
-            <Text style={styles.infoValue}>Full profile editing coming soon to mobile.</Text>
+            <View>
+              <Text style={styles.formLabel}>Name</Text>
+              <TextInput style={styles.formInput} value={profileForm.Name} onChangeText={t => setProfileForm({...profileForm, Name: t})} />
+            </View>
+            <View>
+              <Text style={styles.formLabel}>Company</Text>
+              <TextInput style={styles.formInput} value={profileForm.Company} onChangeText={t => setProfileForm({...profileForm, Company: t})} />
+            </View>
+            <View style={{flexDirection: 'row', gap: 12}}>
+              <View style={{flex:1}}>
+                <Text style={styles.formLabel}>Phone</Text>
+                <TextInput style={styles.formInput} value={profileForm.Phone} onChangeText={t => setProfileForm({...profileForm, Phone: t})} keyboardType="phone-pad" />
+              </View>
+              <View style={{flex:1}}>
+                <Text style={styles.formLabel}>City</Text>
+                <TextInput style={styles.formInput} value={profileForm.City} onChangeText={t => setProfileForm({...profileForm, City: t})} />
+              </View>
+            </View>
+            <View>
+              <Text style={styles.formLabel}>District</Text>
+              <TextInput style={styles.formInput} value={profileForm.District} onChangeText={t => setProfileForm({...profileForm, District: t})} />
+            </View>
+            <View>
+              <Text style={styles.formLabel}>Segment (Trade / Non-Trade)</Text>
+              <TextInput style={styles.formInput} value={profileForm.Segment} onChangeText={t => setProfileForm({...profileForm, Segment: t})} />
+            </View>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.actionRowEnd}>
         <TouchableOpacity onPress={() => flipTo(0, null)} style={styles.cancelBtn}><Text style={{color:'#1A1A1A', fontWeight:'600'}}>Cancel</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.saveBtn}><Text style={{color:'#FFF', fontWeight:'600'}}>Save</Text></TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.saveBtn, (savingProfile || savingRewards) && {opacity:0.7}]} 
+          onPress={async () => {
+            if (flipContext === 'profile') {
+              setSavingProfile(true);
+              try {
+                await onSaveProfile(r.UserID, profileForm);
+                flipTo(0, null);
+              } finally {
+                setSavingProfile(false);
+              }
+            } else {
+              setSavingRewards(true);
+              try {
+                await onSaveRewards(r.UserID, rewardsForm);
+                flipTo(0, null);
+              } finally {
+                setSavingRewards(false);
+              }
+            }
+          }}
+          disabled={savingProfile || savingRewards}
+        >
+          <Text style={{color:'#FFF', fontWeight:'600'}}>{(savingProfile || savingRewards) ? 'Saving...' : 'Save'}</Text>
+        </TouchableOpacity>
       </View>
     </Animated.View>
   );
@@ -165,7 +240,7 @@ const RetailerCard = ({ r, user, repName, repId, outst, creditLimit, spendable, 
       {renderFront()}
     </View>
   );
-};
+});
 
 export const RetailersDirectory = ({ compactMode = false }) => {
   const navigation = useNavigation();
@@ -181,6 +256,9 @@ export const RetailersDirectory = ({ compactMode = false }) => {
   const [salesRepsMap, setSalesRepsMap] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState('');
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useRealtime(['users', 'orders'], () => setRefreshKey(k => k + 1));
 
@@ -210,6 +288,7 @@ export const RetailersDirectory = ({ compactMode = false }) => {
         });
         setSalesRepsMap(salesMap);
         setRewardsMap(bulkRewards);
+        setCurrentPage(1);
       } catch (err) {
         error('Failed to load retailers directory.');
       } finally {
@@ -229,6 +308,9 @@ export const RetailersDirectory = ({ compactMode = false }) => {
     const q = searchTerm.toLowerCase();
     return (r.Name?.toLowerCase().includes(q) || r.Company?.toLowerCase().includes(q) || r.UserID?.toLowerCase().includes(q));
   });
+
+  const totalPages = Math.ceil(filteredRetailers.length / itemsPerPage);
+  const paginatedRetailers = filteredRetailers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDeleteCustomer = async (customerId) => {
     Alert.alert("Confirm Delete", "Are you sure you want to permanently delete this customer?", [
@@ -254,10 +336,53 @@ export const RetailersDirectory = ({ compactMode = false }) => {
     }
   };
 
+  const handleSaveProfile = async (customerId, formData) => {
+    try {
+      await sheetsService.updateCustomerProfile(user, customerId, formData);
+      setRetailers(prev => prev.map(r => r.UserID === customerId ? { ...r, ...formData } : r));
+    } catch (err) {
+      error(err.message || 'Failed to update profile');
+      throw err;
+    }
+  };
+
+  const handleSaveRewards = async (customerId, formData) => {
+    try {
+      await sheetsService.updateCustomerRewards(user, customerId, formData);
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      error(err.message || 'Failed to update rewards');
+      throw err;
+    }
+  };
+
   const handleOrder = (r) => {
     const rolePath = user.Role === 'admin' ? 'admin' : (user.Role || '').toLowerCase();
-    navigation.navigate('NewOrder', { forCustomer: JSON.stringify(r) });
+    navigation.navigate(`${rolePath}/new-order`, { forCustomer: JSON.stringify(r) });
   };
+
+  const renderRetailerItem = useCallback(({ item: r }) => {
+    const segment = r.Segment ? r.Segment : (r.NonTradeActivated === true || r.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade');
+    const outst = Number(r.OutstandingAmount) || 0;
+    const creditLimit = Number(r.CreditLimit) || 0;
+    const spendable = Math.max(0, creditLimit - outst);
+    const agg = orderAggregates[r.UserID] || { count: 0, achievedValue: 0 };
+    const isNonTrade = segment === 'Non-Trade';
+    const repId = r.AssignedSalesRep;
+    return (
+      <RetailerCard key={r.UserID}
+        r={r} user={user}
+        repName={repId ? (salesRepsMap[repId] || 'Unknown Rep') : 'Unassigned'} repId={repId}
+        outst={outst} creditLimit={creditLimit} spendable={spendable} segment={segment}
+        ordersCount={agg.count} outstColor={outst === 0 ? '#34C759' : '#F59E0B'}
+        badgeBg={isNonTrade ? '#F3E8FF' : '#E0F2FE'} badgeColor={isNonTrade ? '#9333EA' : '#0284C7'}
+        targetValue={rewardsMap[r.UserID]?.targets?.[1]?.target || 280} achievedValue={agg.achievedValue}
+        onDelete={handleDeleteCustomer} onOrder={handleOrder} handleSaveCreditLimit={handleSaveCreditLimit}
+        availableDistricts={availableDistricts} onSaveProfile={handleSaveProfile} onSaveRewards={handleSaveRewards}
+        rewardsData={rewardsMap[r.UserID]}
+      />
+    );
+  }, [user, orderAggregates, salesRepsMap, rewardsMap, handleDeleteCustomer, handleOrder, handleSaveCreditLimit, availableDistricts, handleSaveProfile, handleSaveRewards]);
 
   if (loading) return <View style={{padding:16}}><CardSkeleton /><CardSkeleton /></View>;
 
@@ -285,56 +410,26 @@ export const RetailersDirectory = ({ compactMode = false }) => {
 
       {compactMode ? (
         <View style={styles.listContainer}>
-          {filteredRetailers.slice(0, 5).map(r => {
-            const segment = r.Segment ? r.Segment : (r.NonTradeActivated === true || r.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade');
-            const outst = Number(r.OutstandingAmount) || 0;
-            const creditLimit = Number(r.CreditLimit) || 0;
-            const spendable = Math.max(0, creditLimit - outst);
-            const agg = orderAggregates[r.UserID] || { count: 0, achievedValue: 0 };
-            const isNonTrade = segment === 'Non-Trade';
-            const repId = r.AssignedSalesRep;
-            return (
-              <RetailerCard 
-                key={r.UserID} r={r} user={user}
-                repName={repId ? (salesRepsMap[repId] || 'Unknown Rep') : 'Unassigned'} repId={repId}
-                outst={outst} creditLimit={creditLimit} spendable={spendable} segment={segment}
-                ordersCount={agg.count} outstColor={outst === 0 ? '#34C759' : '#F59E0B'}
-                badgeBg={isNonTrade ? '#F3E8FF' : '#E0F2FE'} badgeColor={isNonTrade ? '#9333EA' : '#0284C7'}
-                targetValue={rewardsMap[r.UserID]?.targets?.[1]?.target || 280} achievedValue={agg.achievedValue}
-                onDelete={handleDeleteCustomer} onOrder={handleOrder} handleSaveCreditLimit={handleSaveCreditLimit}
-              />
-            );
-          })}
+          {paginatedRetailers.slice(0, 5).map(r => renderRetailerItem({ item: r }))}
         </View>
       ) : (
-        <FlatList
-          data={filteredRetailers}
-          keyExtractor={r => r.UserID}
+        <>
+          <FlatList
+            data={paginatedRetailers}
+            keyExtractor={r => r.UserID}
           contentContainerStyle={styles.listContainer}
           initialNumToRender={5}
           maxToRenderPerBatch={5}
           windowSize={5}
-          renderItem={({ item: r }) => {
-            const segment = r.Segment ? r.Segment : (r.NonTradeActivated === true || r.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade');
-            const outst = Number(r.OutstandingAmount) || 0;
-            const creditLimit = Number(r.CreditLimit) || 0;
-            const spendable = Math.max(0, creditLimit - outst);
-            const agg = orderAggregates[r.UserID] || { count: 0, achievedValue: 0 };
-            const isNonTrade = segment === 'Non-Trade';
-            const repId = r.AssignedSalesRep;
-            return (
-              <RetailerCard 
-                r={r} user={user}
-                repName={repId ? (salesRepsMap[repId] || 'Unknown Rep') : 'Unassigned'} repId={repId}
-                outst={outst} creditLimit={creditLimit} spendable={spendable} segment={segment}
-                ordersCount={agg.count} outstColor={outst === 0 ? '#34C759' : '#F59E0B'}
-                badgeBg={isNonTrade ? '#F3E8FF' : '#E0F2FE'} badgeColor={isNonTrade ? '#9333EA' : '#0284C7'}
-                targetValue={rewardsMap[r.UserID]?.targets?.[1]?.target || 280} achievedValue={agg.achievedValue}
-                onDelete={handleDeleteCustomer} onOrder={handleOrder} handleSaveCreditLimit={handleSaveCreditLimit}
-              />
-            );
-          }}
+          removeClippedSubviews={true}
+          renderItem={renderRetailerItem}
         />
+        {totalPages > 1 && (
+          <View style={{ padding: 16 }}>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          </View>
+        )}
+        </>
       )}
     </View>
   );

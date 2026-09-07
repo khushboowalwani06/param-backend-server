@@ -7,6 +7,7 @@ import { FileUp, X, Search } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { StatusBadge } from '../../components/StatusBadge';
+import { Pagination } from '../../components/Pagination';
 
 export default function AccountantQueue() {
   const { user } = useAuth();
@@ -24,6 +25,9 @@ export default function AccountantQueue() {
   
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useRealtime(['orders', 'accounts'], () => setRefreshKey(k => k + 1));
 
   const fetchOrders = async () => {
@@ -32,6 +36,7 @@ export default function AccountantQueue() {
       const queue = data.filter(o => o.ApprovalStatus === 'Pending Invoice');
       queue.sort((a, b) => new Date(a.DeliveryConfirmedTimestamp || a.OrderTimestamp || 0) - new Date(b.DeliveryConfirmedTimestamp || b.OrderTimestamp || 0));
       setOrders(queue);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -95,6 +100,9 @@ export default function AccountantQueue() {
       o.Name?.toLowerCase().includes(term)
     );
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -160,12 +168,18 @@ export default function AccountantQueue() {
       </View>
 
       <FlatList
-        data={filteredOrders}
+        data={paginatedOrders}
         keyExtractor={item => item.OrdID}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={<Text style={styles.emptyText}>No pending invoices found.</Text>}
       />
+
+      {totalPages > 1 && (
+        <View style={{ padding: 16 }}>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </View>
+      )}
 
       {invoicingOrder && (
         <Modal transparent animationType="fade" visible={!!invoicingOrder} onRequestClose={() => !isSubmitting && setInvoicingOrder(null)}>

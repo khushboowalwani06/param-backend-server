@@ -1,25 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Image, ActivityIndicator, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, ActivityIndicator, Animated, Alert, Image } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useToast } from '../../context/ToastContext';
 import { CheckSquare, XSquare, FileText, UserPlus, Eye, Download, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
 import { ExportButton } from '../../components/ExportButton';
 import { useRealtime } from '../../hooks/useRealtime';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { Pagination } from '../../components/Pagination';
 
 const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove, onReject, actionLoading }) => {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [flippedDoc, setFlippedDoc] = useState(null);
 
-  const flipToBack = (doc) => {
-    setFlippedDoc(doc);
+  const flipToBack = async (doc) => {
+    try {
+      if (doc.data && doc.data.startsWith('data:')) {
+        const isPdf = doc.data.includes('application/pdf');
+        const ext = isPdf ? '.pdf' : '.png';
+        let rawB64 = (doc.data.split(',')[1] || doc.data).replace(/\s+/g, '');
+        try { rawB64 = decodeURIComponent(rawB64); } catch (e) {}
+        const cleanB64 = rawB64;
+        const fileUri = `${FileSystem.cacheDirectory}preview_${Date.now()}${ext}`;
+        await FileSystem.writeAsStringAsync(fileUri, cleanB64, { encoding: 'base64' });
+        setFlippedDoc({ ...doc, data: fileUri });
+      } else {
+        setFlippedDoc(doc);
+      }
+    } catch (err) {
+      console.error('Failed to prepare preview:', err);
+      Alert.alert('Preview Error', err.message || String(err));
+      setFlippedDoc(doc);
+    }
     Animated.spring(flipAnim, {
       toValue: 180,
       friction: 8,
       tension: 10,
-      useNativeDriver: true,
+      useNativeDriver: true
     }).start();
   };
 
@@ -46,16 +64,24 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
 
   const handleDownload = async (base64, label) => {
     try {
-      const isPdf = base64.includes('application/pdf');
+      const isPdf = base64.includes('application/pdf') || base64.endsWith('.pdf');
       const ext = isPdf ? '.pdf' : '.png';
-      const cleanB64 = base64.split(',')[1] || base64;
       const fileUri = `${FileSystem.documentDirectory}${label.replace(/\s+/g, '_')}${ext}`;
-      await FileSystem.writeAsStringAsync(fileUri, cleanB64, { encoding: FileSystem.EncodingType.Base64 });
+      
+      if (base64.startsWith('http')) {
+        await FileSystem.downloadAsync(base64, fileUri);
+      } else {
+        let rawB64 = (base64.split(',')[1] || base64).replace(/\s+/g, '');
+        try { rawB64 = decodeURIComponent(rawB64); } catch (e) {}
+        await FileSystem.writeAsStringAsync(fileUri, rawB64, { encoding: 'base64' });
+      }
+      
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri);
       }
     } catch (err) {
       console.error(err);
+      Alert.alert('Download Error', err.message || String(err));
     }
   };
 
@@ -82,7 +108,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
   return (
     <View style={styles.cardContainer}>
       {/* Front Face */}
-      <Animated.View style={[styles.cardFace, styles.cardFront, frontAnimatedStyle]}>
+      <Animated.View pointerEvents={flippedDoc ? 'none' : 'auto'} style={[styles.cardFace, styles.cardFront, frontAnimatedStyle]}>
         <View style={styles.cardHeader}>
           <View>
             <Text style={styles.userName} numberOfLines={1}>{user.Name}</Text>
@@ -142,7 +168,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
       </Animated.View>
 
       {/* Back Face (Document Viewer) */}
-      <Animated.View style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}>
+      <Animated.View pointerEvents={flippedDoc ? 'auto' : 'none'} style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}>
         {flippedDoc && (
           <View style={{ flex: 1 }}>
             <View style={styles.previewHeader}>
@@ -155,7 +181,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
               </TouchableOpacity>
             </View>
             <View style={styles.previewBody}>
-              <Image source={{ uri: flippedDoc.data }} style={styles.previewImg} resizeMode="contain" />
+              <Image source={{ uri: flippedDoc.data.replace(/\s+/g, '') }} style={styles.previewImg} resizeMode="contain" />
             </View>
           </View>
         )}
@@ -179,6 +205,9 @@ export const PendingRegistrations = () => {
     'Aadhar Card', 'PAN Card', 'GST Certificate', 'Company PAN', 'Bank Cheque', 'Image is blurry/unreadable', 'Document name mismatch'
   ];
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   useRealtime(['users'], () => setRefreshKey(k => k + 1));
@@ -192,6 +221,7 @@ export const PendingRegistrations = () => {
       setLoading(true);
       const allUsers = await sheetsService._fetch('/users?pendingOnly=true');
       setPendingUsers(allUsers);
+      setCurrentPage(1);
     } catch (err) {
       error('Failed to load pending registrations');
     } finally {
@@ -241,6 +271,9 @@ export const PendingRegistrations = () => {
 
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
+  const totalPages = Math.ceil(pendingUsers.length / itemsPerPage);
+  const paginatedUsers = pendingUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerRow}>
@@ -262,7 +295,7 @@ export const PendingRegistrations = () => {
             <Text style={styles.emptySub}>There are no pending registrations at the moment.</Text>
           </View>
         ) : (
-          pendingUsers.map(user => (
+          paginatedUsers.map(user => (
             <RegistrationCard
               key={user.UserID}
               user={user}
@@ -276,6 +309,10 @@ export const PendingRegistrations = () => {
           ))
         )}
       </View>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       {/* Reject Modal */}
       <Modal visible={!!rejectingUser} transparent animationType="fade">

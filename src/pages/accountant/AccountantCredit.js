@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
 import { FileText, CheckCircle, Pencil, X, CreditCard } from 'lucide-react-native';
 import { StatusBadge } from '../../components/StatusBadge';
+import { Pagination } from '../../components/Pagination';
 
 export default function AccountantCredit() {
   const { user } = useAuth();
@@ -21,6 +22,9 @@ export default function AccountantCredit() {
   const [editAmount, setEditAmount] = useState('');
 
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useRealtime(['profiles', 'customers', 'orders', 'accounts'], () => setRefreshKey(k => k + 1));
 
@@ -41,6 +45,7 @@ export default function AccountantCredit() {
       
       ordersWithAccounts.sort((a, b) => new Date(a.PaymentDueDate || 0) - new Date(b.PaymentDueDate || 0));
       setOrders(ordersWithAccounts);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -177,6 +182,9 @@ export default function AccountantCredit() {
     );
   }
 
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const paginatedOrders = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -185,12 +193,18 @@ export default function AccountantCredit() {
       </View>
 
       <FlatList
-        data={orders}
+        data={paginatedOrders}
         keyExtractor={item => item.OrdID}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={<Text style={styles.emptyText}>No active credit records found.</Text>}
       />
+
+      {totalPages > 1 && (
+        <View style={{ padding: 16 }}>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </View>
+      )}
 
       {/* Edit Amount Modal */}
       {editingOrder && (

@@ -5,6 +5,7 @@ import { Package, CheckCircle, XCircle } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
+import { Pagination } from '../../components/Pagination';
 
 export default function CustomerOrders() {
   const { user } = useAuth();
@@ -15,6 +16,9 @@ export default function CustomerOrders() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [confirmOrder, setConfirmOrder] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useRealtime(['orders'], () => setRefreshKey(k => k + 1));
 
   useEffect(() => {
@@ -24,6 +28,7 @@ export default function CustomerOrders() {
         const myOrders = data.filter(o => o.UserID === user.UserID);
         myOrders.sort((a, b) => new Date(b.OrderTimestamp) - new Date(a.OrderTimestamp));
         setOrders(myOrders);
+        setCurrentPage(1);
       } catch (err) {
         console.error(err);
       } finally {
@@ -79,6 +84,9 @@ export default function CustomerOrders() {
     return states;
   };
 
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       
@@ -127,7 +135,7 @@ export default function CustomerOrders() {
         </View>
       ) : (
         <View style={styles.orderList}>
-          {filteredOrders.map(order => {
+          {paginatedOrders.map(order => {
             const progress = getProgressState(order.ApprovalStatus);
             const isRejected = progress.current === 'rejected';
             const isConfirming = confirmOrder === order.OrdID;
@@ -236,6 +244,10 @@ export default function CustomerOrders() {
             );
           })}
         </View>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       )}
     </ScrollView>
   );

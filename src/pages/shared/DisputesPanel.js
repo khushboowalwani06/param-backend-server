@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { notificationEngine } from '../../services/notificationEngine';
 import { AlertCircle, Image as ImageIcon, X } from 'lucide-react-native';
 import { StatusBadge } from '../../components/StatusBadge';
+import { Pagination } from '../../components/Pagination';
 
 const { width } = Dimensions.get('window');
 
@@ -17,6 +18,9 @@ export default function DisputesPanel() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [editingDispute, setEditingDispute] = useState(null);
   const [updateForm, setUpdateForm] = useState({ Status: '', AdminNotes: '' });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const fetchData = async () => {
     try {
@@ -40,6 +44,7 @@ export default function DisputesPanel() {
 
       enriched.sort((a, b) => new Date(b.CreatedAt || 0) - new Date(a.CreatedAt || 0));
       setDisputes(enriched);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,6 +83,9 @@ export default function DisputesPanel() {
     );
   }
 
+  const totalPages = Math.ceil(disputes.length / itemsPerPage);
+  const paginatedDisputes = disputes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -91,7 +99,7 @@ export default function DisputesPanel() {
             <Text style={styles.emptyText}>No disputes found.</Text>
           </View>
         ) : (
-          disputes.map(d => (
+          paginatedDisputes.map(d => (
             <View key={d.DisputeID} style={styles.card}>
               <View style={styles.cardHeader}>
                 <View>
@@ -153,6 +161,10 @@ export default function DisputesPanel() {
           ))
         )}
       </ScrollView>
+
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       {/* Photo Modal */}
       <Modal visible={!!selectedPhoto} transparent animationType="fade">

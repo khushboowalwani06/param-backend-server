@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, TextInput } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import AgingPanel from '../../components/AgingPanel';
 import { Search, RefreshCw, Download, X } from 'lucide-react-native';
+
+const CustomerCard = React.memo(({ dealer, onUpdate }) => (
+  <View style={styles.card}>
+    <Text style={styles.customerName}>{dealer.Name}</Text>
+    <Text style={styles.companyName}>{dealer.Company}</Text>
+    <AgingPanel customer={dealer} onUpdate={onUpdate} />
+  </View>
+));
+
 
 export default function CustomerAging() {
   const { user } = useAuth();
@@ -44,7 +53,15 @@ export default function CustomerAging() {
     );
   });
 
-  if (loading) {
+  const handleUpdate = useCallback(() => {
+    loadCustomers(true);
+  }, []);
+
+  const renderItem = useCallback(({ item: dealer }) => (
+    <CustomerCard dealer={dealer} onUpdate={handleUpdate} />
+  ), [handleUpdate]);
+
+  if (loading && !isRefreshing) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#1A1A1A" />
@@ -117,13 +134,7 @@ export default function CustomerAging() {
             <Text style={styles.emptyText}>No customers found.</Text>
           </View>
         }
-        renderItem={({ item: dealer }) => (
-            <View style={styles.card}>
-              <Text style={styles.customerName}>{dealer.Name}</Text>
-              <Text style={styles.companyName}>{dealer.Company}</Text>
-              <AgingPanel customer={dealer} onUpdate={() => loadCustomers(true)} />
-            </View>
-        )}
+        renderItem={renderItem}
       />
     </View>
   );
