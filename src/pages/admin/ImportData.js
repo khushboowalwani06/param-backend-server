@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import { Upload, Users, Gift, Package, FileText, ShoppingCart, Database } from 'lucide-react-native';
 import { useToast } from '../../context/ToastContext';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as XLSX from 'xlsx';
 import { sheetsService } from '../../services/sheetsService';
 

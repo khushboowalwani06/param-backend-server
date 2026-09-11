@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Modal, Image, Alert } from 'react-native';
 import { FileText, Image as ImageIcon, X, UploadCloud, CheckCircle } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';

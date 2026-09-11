@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { Mail, Building, Phone, Briefcase, Calendar } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
@@ -242,7 +242,7 @@ export const AdminTeam = () => {
                       selectedValue={u.Role}
                       onValueChange={(val) => handleRoleChange(u.UserID, val)}
                       enabled={updatingId !== u.UserID}
-                      style={{ height: 50, opacity: updatingId === u.UserID ? 0.5 : 1 }}
+                      style={{ height: Platform.OS === 'ios' ? 150 : 50, opacity: updatingId === u.UserID ? 0.5 : 1, color: '#1A1A1A' }}
                     >
                       <Picker.Item label="Customer / Retailer" value="customer" />
                       <Picker.Item label="Sales Representative" value="sales" />
@@ -278,7 +278,7 @@ export const AdminTeam = () => {
                       selectedValue={u.AssignedSalesRep || ''}
                       onValueChange={(val) => handleAssignmentChange(u.UserID, val)}
                       enabled={updatingId !== u.UserID}
-                      style={{ height: 50, opacity: updatingId === u.UserID ? 0.5 : 1 }}
+                      style={{ height: Platform.OS === 'ios' ? 150 : 50, opacity: updatingId === u.UserID ? 0.5 : 1, color: '#1A1A1A' }}
                     >
                       <Picker.Item label="-- Unassigned --" value="" />
                       {salesReps.map(rep => <Picker.Item key={rep.UserID} label={rep.Name} value={rep.UserID} />)}
@@ -326,7 +326,7 @@ export const AdminTeam = () => {
             <View style={styles.field}>
               <Text style={styles.label}>Role</Text>
               <View style={styles.pickerContainer}>
-                <Picker selectedValue={createFormData.role} onValueChange={t => setCreateFormData({ ...createFormData, role: t })} style={{ height: 50 }}>
+                <Picker selectedValue={createFormData.role} onValueChange={t => setCreateFormData({ ...createFormData, role: t })} style={{ height: Platform.OS === 'ios' ? 150 : 50, color: '#1A1A1A' }}>
                   <Picker.Item label="Sales Representative" value="sales" />
                   <Picker.Item label="Accountant" value="accountant" />
                   <Picker.Item label="Customer / Dealer" value="customer" />
@@ -344,7 +344,7 @@ export const AdminTeam = () => {
                 <View style={styles.field}>
                   <Text style={styles.label}>District</Text>
                   <View style={styles.pickerContainer}>
-                    <Picker selectedValue={createFormData.district} onValueChange={t => setCreateFormData({ ...createFormData, district: t })} style={{ height: 50 }}>
+                    <Picker selectedValue={createFormData.district} onValueChange={t => setCreateFormData({ ...createFormData, district: t })} style={{ height: Platform.OS === 'ios' ? 150 : 50, color: '#1A1A1A' }}>
                       <Picker.Item label="- Select District -" value="" />
                       {districts.map(d => <Picker.Item key={d} label={d} value={d} />)}
                     </Picker>

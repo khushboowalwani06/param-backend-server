@@ -4,7 +4,7 @@ import { sheetsService } from '../../services/sheetsService';
 import { Plus, Edit2, Trash2, Tag, X, Upload, Save } from 'lucide-react-native';
 import * as XLSX from 'xlsx';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useAuth } from '../../context/AuthContext';
 import { CardSkeleton } from '../../components/Skeleton';
 import { ExportButton } from '../../components/ExportButton';
@@ -23,6 +23,8 @@ export const AdminProducts = () => {
 
   const [newProductName, setNewProductName] = useState('');
   const [newProductGrade, setNewProductGrade] = useState('');
+  const [isAddingGrade, setIsAddingGrade] = useState(false);
+  const [newGradeName, setNewGradeName] = useState('');
 
   const [editProductName, setEditProductName] = useState('');
   const [editBagPrice, setEditBagPrice] = useState('');
@@ -258,23 +260,22 @@ export const AdminProducts = () => {
     }
   };
 
-  const addNewGrade = () => {
-    Alert.prompt(
-      'New Grade',
-      "Enter new Grade name (e.g. 'OPC53'):",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Add', onPress: async (grade) => {
-            if (!grade) return;
-            try {
-              await sheetsService.addZoneRateGrade(grade, activePricingMode);
-              fetchRates();
-            } catch (err) { Alert.alert('Error', 'Failed to add grade'); }
-          }
-        }
-      ]
-    );
+  const submitNewGrade = async () => {
+    if (!newGradeName.trim()) {
+      setIsAddingGrade(false);
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await sheetsService.addZoneRateGrade(newGradeName.trim(), activePricingMode);
+      setNewGradeName('');
+      setIsAddingGrade(false);
+      fetchRates();
+    } catch (err) { 
+      Alert.alert('Error', 'Failed to add grade'); 
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const deleteGrade = (grade) => {
@@ -405,10 +406,28 @@ export const AdminProducts = () => {
                   </View>
                 ))}
                 <View style={{ padding: 12 }}>
-                  <TouchableOpacity style={styles.addGradeBtn} onPress={addNewGrade}>
-                    <Plus size={16} color="#1A1A1A" />
-                    <Text style={styles.addGradeText}>Add New Grade</Text>
-                  </TouchableOpacity>
+                  {isAddingGrade ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TextInput 
+                        style={[styles.input, { flex: 1, maxWidth: 200 }]} 
+                        value={newGradeName} 
+                        onChangeText={setNewGradeName} 
+                        placeholder="Enter Grade (e.g. OPC53)" 
+                        autoFocus 
+                      />
+                      <TouchableOpacity style={[styles.saveBtn, { paddingVertical: 8 }]} onPress={submitNewGrade} disabled={isSubmitting}>
+                        <Text style={styles.saveText}>Save</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ padding: 8 }} onPress={() => { setIsAddingGrade(false); setNewGradeName(''); }}>
+                        <X size={20} color="#8E8E93" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity style={styles.addGradeBtn} onPress={() => setIsAddingGrade(true)}>
+                      <Plus size={16} color="#1A1A1A" />
+                      <Text style={styles.addGradeText}>Add New Grade</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             </ScrollView>

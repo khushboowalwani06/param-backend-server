@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { AlertCircle, Clock, LogOut, UploadCloud, CheckCircle } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { sheetsService } from '../../services/sheetsService';
 
 export default function WaitingPage() {

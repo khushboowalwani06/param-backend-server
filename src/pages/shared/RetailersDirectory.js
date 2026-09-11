@@ -71,6 +71,9 @@ const RetailerCard = React.memo(({ r, user, repName, repId, outst, creditLimit, 
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Address</Text><Text style={[styles.infoValue, {textAlign:'right', flex:1}]}>{r.Address || 'N/A'}</Text></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>PAN & GST</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Documents?.pan || 'N/A'} | {r.Documents?.gst || 'N/A'}</Text></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Email</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Email || r.EmailAddress || 'No Email'}</Text></View>
+        {user?.Role === 'admin' && (
+          <View style={styles.infoRow}><Text style={styles.infoLabel}>Password</Text><Text style={styles.infoValue} selectable={true}>{r.Password || 'N/A'}</Text></View>
+        )}
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Sales Rep</Text><View style={{alignItems:'flex-end'}}><Text style={styles.infoValue}>{repName}</Text>{repId && <Text style={{fontSize:10, color:'#8E8E93'}}>{repId}</Text>}</View></View>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>Total Orders</Text><Text style={[styles.infoValue, {fontWeight:'700'}]}>{ordersCount}</Text></View>
       </View>

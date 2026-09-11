@@ -122,7 +122,27 @@ export const AdminOverview = () => {
     try {
       // Lazy-load the export utility to avoid bundle overhead if unused
       const { exportToExcel } = await import('../../utils/exportToExcel');
-      await exportToExcel(filteredOrders, 'Admin_Overview_Report', 'Orders');
+
+      // Sort by priority status for the report
+      const priorityWeights = {
+        'Overdue': 1,
+        'Pending Admin Approval': 2,
+        'Pending Sales Approval': 3,
+        'Ready for Dispatch': 4,
+        'Dispatch': 5,
+        'Transit': 6,
+        'Payment Pending': 7,
+        'Delivered': 8,
+        'Closed': 9,
+      };
+
+      const sortedData = [...filteredOrders].sort((a, b) => {
+        const weightA = priorityWeights[a.ApprovalStatus] || 99;
+        const weightB = priorityWeights[b.ApprovalStatus] || 99;
+        return weightA - weightB;
+      });
+
+      await exportToExcel(sortedData, 'Admin_Overview_Report', 'Orders');
       success("Report exported successfully!");
     } catch (err) {
       console.error(err);

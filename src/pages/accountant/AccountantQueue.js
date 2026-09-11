@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
 import { FileUp, X, Search } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Pagination } from '../../components/Pagination';
 

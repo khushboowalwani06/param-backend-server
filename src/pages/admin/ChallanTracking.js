@@ -110,7 +110,7 @@ export const ChallanTracking = () => {
                 <Picker
                   selectedValue={formData.UserID}
                   onValueChange={(val) => handleChange('UserID', val)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: '#1A1A1A' }]}
                 >
                   <Picker.Item label="Select Dealer" value="" />
                   {dealers.map(d => (
@@ -139,7 +139,7 @@ export const ChallanTracking = () => {
                 <Picker
                   selectedValue={formData.Depot}
                   onValueChange={(val) => handleChange('Depot', val)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: '#1A1A1A' }]}
                 >
                   <Picker.Item label="Main Godown" value="Main Godown" />
                   <Picker.Item label="Kathwada" value="Kathwada" />
@@ -155,7 +155,7 @@ export const ChallanTracking = () => {
                 <Picker
                   selectedValue={formData.Grade}
                   onValueChange={(val) => handleChange('Grade', val)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: '#1A1A1A' }]}
                 >
                   <Picker.Item label="OPC" value="OPC" />
                   <Picker.Item label="BPC" value="BPC" />

@@ -123,7 +123,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
           <View style={styles.infoRow}><Text style={styles.infoLabel}>GSTIN</Text><Text style={styles.infoVal} numberOfLines={1}>{user.BPID || 'N/A'}</Text></View>
         </View>
 
-        <View style={styles.docsArea}>
+        <ScrollView style={styles.docsArea} nestedScrollEnabled={true}>
           <View style={styles.docsTitleRow}>
             <FileText size={16} color="#1A1A1A" />
             <Text style={styles.docsTitle}>Attached Documents</Text>
@@ -145,7 +145,7 @@ const RegistrationCard = ({ user, isDocLoading, userDocs, onLoadDocs, onApprove,
               <Text style={styles.loadDocsText}>Load Documents</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </ScrollView>
 
         <View style={styles.cardActions}>
           <TouchableOpacity

@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useRoute } from '@react-navigation/native';
 import { AlertCircle, X, ImageIcon, UploadCloud } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';

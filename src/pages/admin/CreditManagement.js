@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -50,6 +50,11 @@ export const CreditManagement = () => {
       Alert.alert('Error', 'Credit limit cannot be negative.');
       loadCustomers();
       return;
+    }
+
+    const currentCustomer = customers.find(c => c.UserID === customerId);
+    if (currentCustomer && currentCustomer[field] === value) {
+      return; // Value hasn't changed, ignore
     }
 
     if (updatingIds.has(customerId)) return;
@@ -117,7 +122,7 @@ export const CreditManagement = () => {
 
       <View style={styles.content}>
         {paginatedCustomers.map(c => {
-          const isBlocked = isTrue(c.BlockedStatus) && !isTrue(c.ManualUnlock);
+          const isBlocked = (isTrue(c.BlockedStatus) || Number(c.Bkt21_Above) > 0) && !isTrue(c.ManualUnlock);
           const isUpdating = updatingIds.has(c.UserID);
 
           return (
@@ -141,9 +146,9 @@ export const CreditManagement = () => {
                   <Text style={styles.label}>Segment</Text>
                   <View style={styles.pickerWrapper}>
                     <Picker
-                      selectedValue={c.Segment || 'Non-Trade'}
+                      selectedValue={c.Segment || 'Trade'}
                       onValueChange={(val) => handleUpdate(c.UserID, 'Segment', val)}
-                      enabled={!isUpdating && isTrue(c.NonTradeActivated)}
+                      enabled={!isUpdating}
                       style={styles.picker}
                     >
                       <Picker.Item label="Trade" value="Trade" />
@@ -246,8 +251,8 @@ const styles = StyleSheet.create({
   gridItem: { width: '45%' },
   label: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, padding: 10, fontSize: 14, backgroundColor: '#F8F9FA' },
-  pickerWrapper: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, backgroundColor: '#F8F9FA', overflow: 'hidden', height: 40, justifyContent: 'center' },
-  picker: { height: 40 },
+  pickerWrapper: { borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 8, backgroundColor: '#F8F9FA', overflow: 'hidden', justifyContent: 'center' },
+  picker: { height: Platform.OS === 'ios' ? 150 : 50, color: '#1A1A1A' },
   outAmt: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginTop: 8 },
 
   actions: { marginTop: 16, alignItems: 'flex-end' },
