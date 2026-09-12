@@ -42,6 +42,10 @@ export default function DisputesPanel() {
         };
       });
 
+      if (user?.Role === 'sales') {
+        enriched = enriched.filter(d => d.AssignedSalesRep === user.UserID);
+      }
+
       enriched.sort((a, b) => new Date(b.CreatedAt || 0) - new Date(a.CreatedAt || 0));
       setDisputes(enriched);
       setCurrentPage(1);

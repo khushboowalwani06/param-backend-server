@@ -7,21 +7,39 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { SearchFilter } from '../../components/SearchFilter';
 import { ExportButton } from '../../components/ExportButton';
 import { EditOrderModal } from '../../components/EditOrderModal';
-import { Check, Calendar, User, History, ChevronUp, ChevronDown, Target } from 'lucide-react-native';
-import { isThisMonth } from 'date-fns';
+import { Check, Calendar, User, History, ChevronUp, ChevronDown, Target, AlertTriangle, Save } from 'lucide-react-native';
+import { isThisMonth, differenceInHours } from 'date-fns';
+import { DateRangeFilter } from '../../components/DateRangeFilter';
+import { OnDemandAudio } from '../../components/OnDemandAudio';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Pagination } from '../../components/Pagination';
-const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit }) => {
+const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit, onSavePrice }) => {
+  const [editedPrice, setEditedPrice] = React.useState(order.EstimateAmt?.toString() || '');
+  const [isSavingPrice, setIsSavingPrice] = React.useState(false);
+  const isAging = differenceInHours(new Date(), new Date(order.OrderTimestamp)) > 24;
+
+  const handleSavePrice = async () => {
+    setIsSavingPrice(true);
+    await onSavePrice(order.OrdID, editedPrice);
+    setIsSavingPrice(false);
+  };
+
+  const hasAudio = order.AudioData || (order.Notes && order.Notes.includes('[Audio Note Attached]'));
+
   return (
     <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardNumber}>{(index + 1).toString().padStart(2, '0')}.</Text>
+      <View style={[styles.cardHeader, isAging && styles.cardHeaderAging]}>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          <Text style={styles.cardNumber}>{(index + 1).toString().padStart(2, '0')}.</Text>
+          {isAging && <AlertTriangle size={16} color="#DC2626" />}
+        </View>
         <StatusBadge status={order.ApprovalStatus} />
       </View>
 
       <View style={styles.headline}>
         <View style={styles.reqBadge}><Text style={styles.reqBadgeText}>ORDER REQUEST</Text></View>
         <Text style={styles.orderId}>{order.OrdID}</Text>
+        {isAging && <Text style={styles.agingText}>Waiting >24h</Text>}
       </View>
 
       <View style={styles.clientInfo}>
@@ -41,22 +59,43 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
           <Text style={styles.sectionLabel}>QUANTITY</Text>
           <Text style={styles.gridVal}>{order.EstimateQty} {order.Unit || 'tons'}</Text>
         </View>
-        <View style={styles.gridItem}>
-          <Text style={styles.sectionLabel}>EST. AMOUNT</Text>
-          <Text style={styles.gridVal}>₹{Number(order.EstimateAmt || 0).toLocaleString('en-IN')}</Text>
-        </View>
         {order.City ? (
-          <View style={styles.gridItem}>
+          <View style={[styles.gridItem, { width: '100%', marginTop: 8 }]}>
             <Text style={styles.sectionLabel}>DESTINATION</Text>
             <Text style={styles.gridVal} numberOfLines={1}>{order.City}</Text>
           </View>
         ) : null}
+        <View style={[styles.gridItem, { width: '100%', marginTop: 8 }]}>
+          <Text style={styles.sectionLabel}>EST. AMOUNT</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4}}>
+            <Text style={{fontSize: 16, fontWeight: '600', color: '#0F172A'}}>₹</Text>
+            <TextInput
+              style={styles.priceInput}
+              value={editedPrice}
+              onChangeText={setEditedPrice}
+              keyboardType="numeric"
+            />
+            {editedPrice !== order.EstimateAmt?.toString() && (
+              <TouchableOpacity style={styles.savePriceBtn} onPress={handleSavePrice} disabled={isSavingPrice}>
+                {isSavingPrice ? <ActivityIndicator size="small" color="#FFF" /> : <Save size={14} color="#FFF" />}
+                <Text style={styles.savePriceText}>SAVE</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
 
-      {order.Notes ? (
+      {(order.Notes || hasAudio) ? (
         <View style={styles.notesBox}>
           <Text style={styles.sectionLabel}>NOTES</Text>
-          <Text style={styles.notesText}>"{order.Notes.replace(' [Audio Note Attached]', '')}"</Text>
+          {order.Notes && order.Notes.replace(' [Audio Note Attached]', '').trim() ? (
+            <Text style={styles.notesText}>"{order.Notes.replace(' [Audio Note Attached]', '')}"</Text>
+          ) : null}
+          {hasAudio && (
+            <View style={{marginTop: 8}}>
+              <OnDemandAudio audioUrl={order.AudioData} />
+            </View>
+          )}
         </View>
       ) : null}
 
@@ -99,10 +138,11 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
       </View>
     </View>
   );
-};
+}
 
 export default function SalesQueue() {
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState('queue');
   const [orders, setOrders] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +150,7 @@ export default function SalesQueue() {
   const [expandedOrders, setExpandedOrders] = useState({});
   const [customerHistory, setCustomerHistory] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   
   const [monthlyVolume, setMonthlyVolume] = useState(0);
   const [dailyVisits, setDailyVisits] = useState(0);
@@ -248,14 +289,43 @@ export default function SalesQueue() {
     }
   };
 
+  const handleSavePrice = async (ordId, newPrice) => {
+    try {
+      await sheetsService.updateOrderPrice(user, ordId, newPrice);
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const filteredOrders = orders.filter(o => {
-    if (!searchQuery) return true;
-    const term = searchQuery.toLowerCase();
-    return o.OrdID?.toLowerCase().includes(term) || o.Company?.toLowerCase().includes(term);
+    if (searchQuery) {
+      const term = searchQuery.toLowerCase();
+      if (!o.OrdID?.toLowerCase().includes(term) && !o.Company?.toLowerCase().includes(term)) {
+        return false;
+      }
+    }
+    if (dateRange.startDate) {
+      if (new Date(o.OrderTimestamp) < new Date(dateRange.startDate)) return false;
+    }
+    if (dateRange.endDate) {
+      const end = new Date(dateRange.endDate);
+      end.setHours(23, 59, 59, 999);
+      if (new Date(o.OrderTimestamp) > end) return false;
+    }
+    return true;
   });
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const filteredDealers = dealers.filter(d => {
+    if (!searchQuery) return true;
+    const term = searchQuery.toLowerCase();
+    return d.Company?.toLowerCase().includes(term) || d.Name?.toLowerCase().includes(term);
+  });
+  const dealersTotalPages = Math.ceil(filteredDealers.length / itemsPerPage);
+  const paginatedDealers = filteredDealers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   if (loading) {
     return (
@@ -295,39 +365,103 @@ export default function SalesQueue() {
           </View>
         </View>
 
-        <View style={styles.tools}>
-          <View style={{ flex: 1, minWidth: 200 }}>
-            <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search orders..." />
-          </View>
-          <ExportButton data={filteredOrders} filename="sales_queue" />
+        <View style={styles.viewToggles}>
+          <TouchableOpacity 
+            style={[styles.toggleBtn, viewMode === 'queue' && styles.toggleBtnActive]}
+            onPress={() => { setViewMode('queue'); setCurrentPage(1); setSearchQuery(''); }}
+          >
+            <Text style={[styles.toggleBtnText, viewMode === 'queue' && styles.toggleBtnTextActive]}>Pending Approvals</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.toggleBtn, viewMode === 'balances' && styles.toggleBtnActive]}
+            onPress={() => { setViewMode('balances'); setCurrentPage(1); setSearchQuery(''); }}
+          >
+            <Text style={[styles.toggleBtnText, viewMode === 'balances' && styles.toggleBtnTextActive]}>Outstanding Balances</Text>
+          </TouchableOpacity>
         </View>
 
-        {filteredOrders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Check size={48} color="#94A3B8" />
-            <Text style={styles.emptyTitle}>Queue is Clear!</Text>
-            <Text style={styles.emptySub}>No orders currently awaiting your approval.</Text>
-          </View>
+        {viewMode === 'queue' ? (
+          <>
+            <View style={styles.tools}>
+              <View style={{ flex: 1, minWidth: 200 }}>
+                <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search orders..." />
+              </View>
+              <DateRangeFilter 
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+                onDateChange={setDateRange}
+                onClear={() => setDateRange({ startDate: '', endDate: '' })}
+              />
+              <ExportButton data={filteredOrders} filename="sales_queue" />
+            </View>
+
+            {filteredOrders.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Check size={48} color="#94A3B8" />
+                <Text style={styles.emptyTitle}>Queue is Clear!</Text>
+                <Text style={styles.emptySub}>No orders currently awaiting your approval.</Text>
+              </View>
+            ) : (
+              paginatedOrders.map((order, idx) => (
+                <QueueCard
+                  key={order.OrdID}
+                  order={order}
+                  index={idx}
+                  isExpanded={expandedOrders[order.OrdID]}
+                  onToggleExpand={() => handleToggleExpand(order)}
+                  hist={customerHistory[order.OrdID]}
+                  isSubmitting={submittingIds.has(order.OrdID)}
+                  onApprove={() => handleApprove(order.OrdID)}
+                  onReject={() => setRejectingOrder(order.OrdID)}
+                  onEdit={() => setEditingOrder(order)}
+                  onSavePrice={handleSavePrice}
+                />
+              ))
+            )}
+          </>
         ) : (
-          paginatedOrders.map((order, idx) => (
-            <QueueCard
-              key={order.OrdID}
-              order={order}
-              index={idx}
-              isExpanded={expandedOrders[order.OrdID]}
-              onToggleExpand={() => handleToggleExpand(order)}
-              hist={customerHistory[order.OrdID]}
-              isSubmitting={submittingIds.has(order.OrdID)}
-              onApprove={() => handleApprove(order.OrdID)}
-              onReject={() => setRejectingOrder(order.OrdID)}
-              onEdit={() => setEditingOrder(order)}
-            />
-          ))
+          <>
+            <View style={styles.tools}>
+              <View style={{ flex: 1, minWidth: 200 }}>
+                <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search dealers..." />
+              </View>
+              <ExportButton data={filteredDealers} filename="dealers_balances" />
+            </View>
+
+            <View style={styles.dealersList}>
+              <View style={styles.dealerHeaderRow}>
+                <Text style={[styles.dealerColText, {flex: 2, fontWeight: '700'}]}>Dealer</Text>
+                <Text style={[styles.dealerColText, {flex: 1, fontWeight: '700', textAlign: 'right'}]}>Limit</Text>
+                <Text style={[styles.dealerColText, {flex: 1.4, fontWeight: '700', textAlign: 'right', fontSize: 12}]} adjustsFontSizeToFit numberOfLines={1}>Outstanding</Text>
+              </View>
+              {paginatedDealers.map(dealer => {
+                const limit = Number(dealer.CreditLimit || 0);
+                const outst = Number(dealer.OutstandingAmount || 0);
+                const isOver = outst > limit;
+                return (
+                  <View key={dealer.UserID} style={[styles.dealerRow, isOver && styles.dealerRowOverLimit]}>
+                    <View style={{flex: 2, paddingRight: 4}}>
+                      <Text style={styles.dealerCompanyName}>{dealer.Company}</Text>
+                      <Text style={styles.dealerName}>{dealer.Name}</Text>
+                    </View>
+                    <Text style={[styles.dealerColText, {flex: 1, textAlign: 'right'}]} adjustsFontSizeToFit numberOfLines={1}>₹{limit.toLocaleString('en-IN')}</Text>
+                    <Text style={[styles.dealerColText, {flex: 1.4, fontWeight: '700', textAlign: 'right'}, isOver && {color: '#DC2626'}]} adjustsFontSizeToFit numberOfLines={1}>
+                      ₹{outst.toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </>
         )}
       </ScrollView>
 
-      {totalPages > 1 && (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {(viewMode === 'queue' ? totalPages : dealersTotalPages) > 1 && (
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={viewMode === 'queue' ? totalPages : dealersTotalPages} 
+          onPageChange={setCurrentPage} 
+        />
       )}
 
       {/* Reject Modal */}
@@ -372,6 +506,107 @@ export default function SalesQueue() {
 }
 
 const styles = StyleSheet.create({
+  viewToggles: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    padding: 4,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  toggleBtnTextActive: {
+    color: '#0F172A',
+  },
+  priceInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: '#0F172A',
+    backgroundColor: '#FFF',
+  },
+  savePriceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 4,
+    gap: 4,
+  },
+  savePriceText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  cardHeaderAging: {
+    backgroundColor: '#FEF2F2',
+  },
+  agingText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  dealersList: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  dealerHeaderRow: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  dealerColText: {
+    fontSize: 14,
+    color: '#475569',
+  },
+  dealerRow: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    alignItems: 'center',
+  },
+  dealerRowOverLimit: {
+    backgroundColor: '#FEF2F2',
+  },
+  dealerCompanyName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  dealerName: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
@@ -438,6 +673,8 @@ const styles = StyleSheet.create({
   },
   tools: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 12,
     marginBottom: 20,
     zIndex: 10,

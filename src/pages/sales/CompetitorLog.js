@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { User, FileText, Eye, X, IndianRupee, Camera, Save } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
+import { ExportButton } from '../../components/ExportButton';
 
 export default function CompetitorLog() {
   const { user } = useAuth();
@@ -29,6 +31,26 @@ export default function CompetitorLog() {
       setLoading(false);
     }
   }, [user]);
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        setFormData(prev => ({ 
+          ...prev, 
+          photo_data: `data:image/jpeg;base64,${result.assets[0].base64}` 
+        }));
+      }
+    } catch (error) {
+      alert('Error picking image: ' + error.message);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.competitorName || !formData.ratePerBag) {
@@ -69,6 +91,7 @@ export default function CompetitorLog() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Competitor Intel Feed</Text>
+          <ExportButton data={intelFeed} filename="competitor_intel" />
         </View>
 
         <ScrollView style={styles.feedContainer}>
@@ -143,6 +166,20 @@ export default function CompetitorLog() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
       <View style={styles.formCard}>
         <Text style={styles.title}>Log Competitor Intel</Text>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Photo Capture</Text>
+          <TouchableOpacity style={styles.photoCaptureBox} onPress={pickImage}>
+            {formData.photo_data ? (
+              <Image source={{ uri: formData.photo_data }} style={styles.previewImage} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Camera size={32} color="#64748B" />
+                <Text style={styles.photoPlaceholderText}>Tap to upload photo</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
         
         <View style={styles.formGroup}>
           <Text style={styles.label}>Competitor Brand Name</Text>
@@ -222,12 +259,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 16,
   },
   feedContainer: {
     padding: 16,
@@ -353,6 +392,32 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     marginBottom: 20,
+  },
+  photoCaptureBox: {
+    height: 150,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#F8FAFC',
+    marginBottom: 20,
+  },
+  photoPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoPlaceholderText: {
+    marginTop: 8,
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   label: {
     fontSize: 14,

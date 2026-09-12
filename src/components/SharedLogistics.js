@@ -79,6 +79,28 @@ export default function SharedLogistics() {
     }
   };
 
+  const handleCancel = (order) => {
+    Alert.alert(
+      "Cancel Order",
+      `Are you sure you want to cancel order ${order.OrdID}?`,
+      [
+        { text: "No", style: "cancel" },
+        { 
+          text: "Yes", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await sheetsService.updateOrderStatus(user, order.OrdID, 'Cancelled');
+              fetchOrders();
+            } catch (err) {
+              Alert.alert('Error', err.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleSavePrice = async (ordId) => {
     try {
       await sheetsService.updateOrderPrice(user, ordId, Number(editingPriceValue));
@@ -162,6 +184,14 @@ export default function SharedLogistics() {
             <Text style={[styles.btnText, { color: '#FFF' }]}>Mark Delivered</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity 
+          style={[styles.btn, { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#DC2626' }]}
+          onPress={() => handleCancel(order)}
+        >
+          <X size={16} color="#DC2626" />
+          <Text style={[styles.btnText, { color: '#DC2626' }]}>Cancel Order</Text>
+        </TouchableOpacity>
       </View>
     );
   };

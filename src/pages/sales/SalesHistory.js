@@ -7,13 +7,17 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { SearchFilter } from '../../components/SearchFilter';
 import { ExportButton } from '../../components/ExportButton';
 import { Pagination } from '../../components/Pagination';
-import DateRangeFilter from '../../components/DateRangeFilter';
+import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { Archive, Search, Filter, Download, Edit3, Check, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
+import { OnDemandAudio } from '../../components/OnDemandAudio';
 
-const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, editingPriceValue, setEditingPriceValue }) => {
+const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, editingPriceValue, setEditingPriceValue, onCancel }) => {
   const isEditing = editingPriceId === order.OrdID;
+  const canEdit = !['Delivered', 'Cancelled', 'Sales Rejected', 'Admin Rejected'].includes(order.ApprovalStatus);
+  const canCancel = !['Delivered', 'Cancelled', 'Sales Rejected', 'Admin Rejected'].includes(order.ApprovalStatus);
+  const hasAudio = order.AudioData || (order.Notes && order.Notes.includes('[Audio Note Attached]'));
 
   return (
     <View style={styles.card}>
@@ -62,12 +66,28 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
           ) : (
             <View style={styles.priceRow}>
               <Text style={styles.valueText}>₹{(Number(order.EstimateAmt) || 0).toLocaleString()}</Text>
-              <TouchableOpacity onPress={() => { setEditingPriceId(order.OrdID); setEditingPriceValue(order.EstimateAmt); }} style={styles.editIconBtn}>
-                <Edit3 size={14} color="#8E8E93" />
-              </TouchableOpacity>
+              {canEdit && (
+                <TouchableOpacity onPress={() => { setEditingPriceId(order.OrdID); setEditingPriceValue(order.EstimateAmt?.toString() || ''); }} style={styles.editIconBtn}>
+                  <Edit3 size={14} color="#8E8E93" />
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
+
+        {(order.Notes || hasAudio) ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>NOTES</Text>
+            {order.Notes && order.Notes.replace(' [Audio Note Attached]', '').trim() ? (
+              <Text style={styles.subText}>"{order.Notes.replace(' [Audio Note Attached]', '')}"</Text>
+            ) : null}
+            {hasAudio && (
+              <View style={{marginTop: 8}}>
+                <OnDemandAudio audioUrl={order.AudioData} />
+              </View>
+            )}
+          </View>
+        ) : null}
 
         {order.RejectionReason ? (
           <View style={styles.rejectReasonBox}>
@@ -76,6 +96,14 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
           </View>
         ) : null}
       </View>
+
+      {canCancel && (
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={() => onCancel(order.OrdID)}>
+            <Text style={styles.cancelBtnText}>CANCEL ORDER</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -130,6 +158,28 @@ export default function SalesHistory() {
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  const handleCancel = (ordId) => {
+    Alert.alert(
+      "Cancel Order",
+      `Are you sure you want to cancel order ${ordId}?`,
+      [
+        { text: "No", style: "cancel" },
+        { 
+          text: "Yes", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await sheetsService.updateOrderStatus(user, ordId, 'Cancelled');
+              fetchOrders();
+            } catch (err) {
+              alert(err.message);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const uniqueProducts = ['All', ...new Set(orders.map(o => o.Product).filter(Boolean))];
@@ -214,6 +264,7 @@ export default function SalesHistory() {
               setEditingPriceId={setEditingPriceId}
               editingPriceValue={editingPriceValue}
               setEditingPriceValue={setEditingPriceValue}
+              onCancel={handleCancel}
             />
           ))
         )}
@@ -271,6 +322,24 @@ export default function SalesHistory() {
 }
 
 const styles = StyleSheet.create({
+  actions: {
+    borderTopWidth: 1,
+    borderTopColor: '#F2F2F7',
+    flexDirection: 'row',
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FCFCFC',
+  },
+  cancelBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#DC2626',
+    letterSpacing: 0.5,
+  },
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
@@ -294,6 +363,8 @@ const styles = StyleSheet.create({
   },
   tools: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 12,
     marginBottom: 20,
     zIndex: 10,

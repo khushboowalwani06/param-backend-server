@@ -57,7 +57,7 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
           ) : (
             <View style={styles.priceRow}>
               <Text style={styles.valueText}>₹{(Number(order.EstimateAmt) || 0).toLocaleString()}</Text>
-              <TouchableOpacity onPress={() => { setEditingPriceId(order.OrdID); setEditingPriceValue(order.EstimateAmt); }} style={styles.editIconBtn}>
+              <TouchableOpacity onPress={() => { setEditingPriceId(order.OrdID); setEditingPriceValue(order.EstimateAmt?.toString() || ''); }} style={styles.editIconBtn}>
                 <Edit3 size={14} color="#8E8E93" />
               </TouchableOpacity>
             </View>
