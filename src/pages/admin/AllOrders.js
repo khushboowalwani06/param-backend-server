@@ -12,88 +12,63 @@ import { Edit2 } from 'lucide-react-native';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { Pagination } from '../../components/Pagination';
 
-const OrderCard = ({ order, users, isEditing, onEditStart, onEditCancel, onUpdate }) => {
-  const flipAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.spring(flipAnim, {
-      toValue: isEditing ? 180 : 0,
-      friction: 8,
-      tension: 10,
-      useNativeDriver: true,
-    }).start();
-  }, [isEditing]);
-
-  const frontInterpolate = flipAnim.interpolate({ inputRange: [0, 180], outputRange: ['0deg', '180deg'] });
-  const backInterpolate = flipAnim.interpolate({ inputRange: [0, 180], outputRange: ['180deg', '360deg'] });
-
+const OrderCard = ({ order, users, onEditStart }) => {
   const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
 
   const u = users.find(usr => usr.UserID === order.UserID);
   const userSegment = u ? (u.Segment ? u.Segment : (u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade')) : 'Trade';
   const isNonTrade = userSegment === 'Non-Trade';
 
-  const renderFront = () => (
-    <Animated.View pointerEvents={isEditing ? 'none' : 'auto'} style={[styles.cardFace, { transform: [{ rotateY: frontInterpolate }] }]}>
-      <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.orderId}>{order.OrdID}</Text>
-          <Text style={styles.orderDate}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
-        </View>
-        <StatusBadge status={order.ApprovalStatus} />
-      </View>
-
-      <View style={styles.cardBody}>
-        <View style={styles.infoBlock}>
-          <Text style={styles.infoLabel}>CUSTOMER</Text>
-          <Text style={styles.infoValue} numberOfLines={1}>{order.Name} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({order.Company})</Text></Text>
-        </View>
-
-        <View style={styles.infoBlock}>
-          <Text style={styles.infoLabel}>PRODUCT</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{order.Product}</Text>
-            <View style={[styles.segmentBadge, isNonTrade && styles.segmentBadgeNonTrade]}>
-              <Text style={[styles.segmentText, isNonTrade && styles.segmentTextNonTrade]}>{userSegment}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.grid2}>
-          <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>QUANTITY</Text>
-            <Text style={[styles.infoValue, { fontSize: 16 }]}>{order.EstimateQty} {order.Unit}</Text>
-          </View>
-          <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>UNIT PRICE</Text>
-            <Text style={[styles.infoValue, { fontSize: 16 }]}>{formatCurrency(order.UnitPrice || 0)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.amtBox}>
-          <Text style={styles.infoLabel}>ESTIMATE AMOUNT</Text>
-          <Text style={styles.amtValue}>{formatCurrency(order.EstimateAmt || 0)}</Text>
-        </View>
-
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity onPress={onEditStart} style={styles.editBtn}>
-          <Edit2 size={16} color="#475569" />
-          <Text style={styles.editBtnText}>Edit Order</Text>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
-  );
-
-  const renderBack = () => (
-    <Animated.View pointerEvents={isEditing ? 'auto' : 'none'} style={[styles.cardFace, styles.cardFaceBack, { transform: [{ rotateY: backInterpolate }] }]}>
-      <EditOrderModal order={order} inline={true} onClose={onEditCancel} onUpdate={onUpdate} />
-    </Animated.View>
-  );
-
   return (
     <View style={styles.cardContainer}>
-      {renderBack()}
-      {renderFront()}
+      <View style={styles.cardFace}>
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.orderId}>{order.OrdID}</Text>
+            <Text style={styles.orderDate}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
+          </View>
+          <StatusBadge status={order.ApprovalStatus} />
+        </View>
+
+        <View style={styles.cardBody}>
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>CUSTOMER</Text>
+            <Text style={styles.infoValue} numberOfLines={1}>{order.Name} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({order.Company})</Text></Text>
+          </View>
+
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>PRODUCT</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{order.Product}</Text>
+              <View style={[styles.segmentBadge, isNonTrade && styles.segmentBadgeNonTrade]}>
+                <Text style={[styles.segmentBadgeText, isNonTrade && styles.segmentBadgeTextNonTrade]}>{userSegment}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.grid2}>
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoLabel}>QUANTITY</Text>
+              <Text style={[styles.infoValue, { fontSize: 16 }]}>{order.EstimateQty} {order.Unit}</Text>
+            </View>
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoLabel}>UNIT PRICE</Text>
+              <Text style={[styles.infoValue, { fontSize: 16 }]}>{formatCurrency(order.UnitPrice || 0)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.amtBox}>
+            <Text style={styles.infoLabel}>ESTIMATE AMOUNT</Text>
+            <Text style={styles.amtValue}>{formatCurrency(order.EstimateAmt || 0)}</Text>
+          </View>
+
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity onPress={onEditStart} style={styles.editBtn}>
+            <Edit2 size={16} color="#475569" />
+            <Text style={styles.editBtnText}>Edit Order</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
@@ -159,12 +134,13 @@ export const AllOrders = () => {
       }
     }
 
+    if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      o.OrdID?.toLowerCase().includes(term) ||
-      o.Company?.toLowerCase().includes(term) ||
-      o.Name?.toLowerCase().includes(term) ||
-      o.Product?.toLowerCase().includes(term)
+      String(o.OrdID || '').toLowerCase().includes(term) ||
+      String(o.Company || '').toLowerCase().includes(term) ||
+      String(o.Name || '').toLowerCase().includes(term) ||
+      String(o.Product || '').toLowerCase().includes(term)
     );
   });
 
@@ -214,8 +190,6 @@ export const AllOrders = () => {
             users={users}
             isEditing={editingOrder?.OrdID === order.OrdID}
             onEditStart={() => setEditingOrder(order)}
-            onEditCancel={() => setEditingOrder(null)}
-            onUpdate={() => setRefreshKey(k => k + 1)}
           />
         ))}
 
@@ -228,6 +202,19 @@ export const AllOrders = () => {
 
       {totalPages > 1 && (
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
+
+      {editingOrder && (
+        <EditOrderModal
+          order={editingOrder}
+          onClose={() => setEditingOrder(null)}
+          onUpdate={() => {
+            setEditingOrder(null);
+            setRefreshKey(k => k + 1);
+          }}
+          inline={false}
+          visible={true}
+        />
       )}
     </View>
   );
@@ -247,8 +234,7 @@ const styles = StyleSheet.create({
   listContent: { padding: 16, gap: 16, paddingBottom: 40 },
 
   cardContainer: { width: '100%' },
-  cardFace: { width: '100%', backfaceVisibility: 'hidden', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', elevation: 2 },
-  cardFaceBack: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#F8F9FA' },
+  cardFace: { width: '100%', backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', elevation: 2 },
   cardHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   orderId: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
   orderDate: { fontSize: 12, color: '#8E8E93', marginTop: 4 },
@@ -258,8 +244,8 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
   segmentBadge: { backgroundColor: '#E0F2FE', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
   segmentBadgeNonTrade: { backgroundColor: '#F3E8FF' },
-  segmentText: { fontSize: 10, fontWeight: '600', color: '#0284C7' },
-  segmentTextNonTrade: { color: '#9333EA' },
+  segmentBadgeText: { fontSize: 10, fontWeight: '600', color: '#0284C7' },
+  segmentBadgeTextNonTrade: { color: '#9333EA' },
   grid2: { flexDirection: 'row', gap: 16 },
   amtBox: { backgroundColor: '#F8F9FA', padding: 16, borderRadius: 12, marginTop: 8 },
   amtValue: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },

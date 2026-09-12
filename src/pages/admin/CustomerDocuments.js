@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, ActivityIndicator, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { sheetsService } from '../../services/sheetsService';
 import { useToast } from '../../context/ToastContext';
 import { CheckSquare, FileText, UserPlus, Eye, Download, X } from 'lucide-react-native';
@@ -149,15 +150,18 @@ export const CustomerDocuments = () => {
 
   const handlePreview = async (doc) => {
     try {
-      if (doc.data && doc.data.startsWith('data:')) {
-        const isPdf = doc.data.includes('application/pdf');
-        const ext = isPdf ? '.pdf' : '.png';
-        let rawB64 = (doc.data.split(',')[1] || doc.data).replace(/\s+/g, '');
-        try { rawB64 = decodeURIComponent(rawB64); } catch (e) {}
-        const cleanB64 = rawB64;
-        const fileUri = `${FileSystem.cacheDirectory}preview_${Date.now()}${ext}`;
-        await FileSystem.writeAsStringAsync(fileUri, cleanB64, { encoding: 'base64' });
-        setPreviewDoc({ ...doc, data: fileUri });
+      console.log("PREVIEW DATA PRE-FIX: ", doc.data ? doc.data.substring(0, 100) : "NULL");
+      if (doc.data) {
+        let uri = doc.data;
+        // If it is a raw base64 string without any prefix, attach the prefix
+        if (!uri.startsWith('http') && !uri.startsWith('file://') && !uri.startsWith('data:')) {
+          uri = `data:image/png;base64,${uri}`;
+        }
+        // If it is a data URI, ensure there's no whitespace that breaks the Image component
+        if (uri.startsWith('data:')) {
+          uri = uri.replace(/\s+/g, '');
+        }
+        setPreviewDoc({ ...doc, data: uri });
       } else {
         setPreviewDoc(doc);
       }
@@ -235,7 +239,7 @@ export const CustomerDocuments = () => {
           </View>
           <View style={styles.previewBody}>
             {previewDoc && (
-              <Image source={{ uri: previewDoc.data.replace(/\s+/g, '') }} style={styles.previewImg} resizeMode="contain" />
+              <Image source={{ uri: previewDoc.data.replace(/\s+/g, '') }} style={styles.previewImg} contentFit="contain" />
             )}
           </View>
         </View>

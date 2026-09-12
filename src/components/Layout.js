@@ -105,15 +105,17 @@ export default function Layout() {
 
       {isSales && (
         <>
-          <Drawer.Screen name="sales/queue" component={SalesQueue} options={{ drawerLabel: 'Pending Approval', title: 'Pending Approval' }} />
-          <Drawer.Screen name="sales/visits" component={SalesVisits} options={{ drawerLabel: 'My Visits', title: 'My Visits' }} />
-          <Drawer.Screen name="sales/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Retailers Directory', title: 'Retailers Directory' }} />
-          <Drawer.Screen name="sales/awaiting" component={SalesAwaiting} options={{ drawerLabel: 'Awaiting Admin', title: 'Awaiting Admin' }} />
-          <Drawer.Screen name="sales/logistics" component={SharedLogistics} options={{ drawerLabel: 'Logistics', title: 'Logistics' }} />
-          <Drawer.Screen name="sales/history" component={SalesHistory} options={{ drawerLabel: 'History', title: 'History' }} />
+          <Drawer.Screen name="sales/queue" component={SalesQueue} options={{ drawerLabel: 'Sales Queue', title: 'Sales Queue' }} />
+          <Drawer.Screen name="sales/history" component={SalesHistory} options={{ drawerLabel: 'Sales Registry', title: 'Sales Registry' }} />
+          <Drawer.Screen name="sales/visits" component={SalesVisits} options={{ drawerLabel: 'Log Visit', title: 'Log Visit' }} />
           <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: 'Competitor Intel', title: 'Competitor Intel' }} />
+          <Drawer.Screen name="sales/awaiting" component={SalesAwaiting} options={{ drawerLabel: 'Dispatch Queue', title: 'Dispatch Queue' }} />
+          <Drawer.Screen name="sales/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Customers', title: 'Customers' }} />
+          <Drawer.Screen name="sales/disputes" component={DisputesPanel} options={{ drawerLabel: 'Issues', title: 'Issues' }} />
+          
+          {/* Unmentioned but existing roles */}
+          <Drawer.Screen name="sales/logistics" component={SharedLogistics} options={{ drawerLabel: 'Logistics', title: 'Logistics' }} />
           <Drawer.Screen name="sales/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
-          <Drawer.Screen name="sales/disputes" component={DisputesPanel} options={{ drawerLabel: 'Reported Issues', title: 'Reported Issues' }} />
           <Drawer.Screen name="sales/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: 'Place Order' }} />
         </>
       )}

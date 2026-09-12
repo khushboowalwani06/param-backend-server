@@ -205,10 +205,10 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   inlineContainer: {
+    flex: 1,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderColor: '#e2e8f0',
-    marginTop: 20,
     paddingTop: 16,
   },
   header: {

@@ -52,9 +52,9 @@ export const OutstandingNotes = () => {
               {paginatedNotes.map(note => (
                 <View key={note.adjustment_id} style={styles.noteItem}>
                   <View style={styles.noteHeader}>
-                    <Text style={styles.noteDate}>{new Date(note.created_at).toLocaleString()}</Text>
-                    <Text style={[styles.noteAmt, { color: note.amount > 0 ? '#DC2626' : '#16A34A' }]}>
-                      {note.amount > 0 ? '+' : ''}₹{note.amount.toLocaleString()}
+                    <Text style={styles.noteDate}>{note.created_at ? new Date(note.created_at).toLocaleString() : 'N/A'}</Text>
+                    <Text style={[styles.noteAmt, { color: Number(note.amount) > 0 ? '#DC2626' : '#16A34A' }]}>
+                      {Number(note.amount) > 0 ? '+' : ''}₹{Number(note.amount).toLocaleString('en-IN')}
                     </Text>
                   </View>
                   <View style={styles.noteCustInfo}>
