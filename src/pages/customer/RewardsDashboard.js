@@ -58,13 +58,13 @@ export default function RewardsDashboard() {
           });
 
           const liveBags = campaignOrders.reduce((total, o) => {
-            if (!o.ApprovalStatus || o.ApprovalStatus.includes('Rejected') || o.ApprovalStatus === 'Draft') return total;
+            if (!['Delivered', 'Closed'].includes(o.ApprovalStatus)) return total;
             const qty = Number(o.EstimateQty) || 0;
             return total + (o.Unit === 'Tons' ? qty * 20 : qty);
           }, 0);
           
           const liveTons = campaignOrders.reduce((total, o) => {
-            if (!o.ApprovalStatus || o.ApprovalStatus.includes('Rejected') || o.ApprovalStatus === 'Draft') return total;
+            if (!['Delivered', 'Closed'].includes(o.ApprovalStatus)) return total;
             const qty = Number(o.EstimateQty) || 0;
             return total + (o.Unit === 'Bags' ? qty / 20 : qty);
           }, 0);

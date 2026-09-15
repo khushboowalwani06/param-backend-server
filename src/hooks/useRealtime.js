@@ -14,21 +14,21 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000/api';
 async function connectSSE() {
   if (globalEventSource) return;
   const token = await AsyncStorage.getItem('jwtToken');
-  
+
   globalEventSource = new EventSource(`${API_BASE}/realtime?token=${token}`);
-  
+
   globalEventSource.addEventListener('message', (e) => {
     try {
       if (!e.data) return;
       const data = JSON.parse(e.data);
       pendingPayloads.push(data);
-      
+
       if (!debounceTimer) {
         debounceTimer = setTimeout(() => {
           const payloadsToUpdate = [...pendingPayloads];
           pendingPayloads = [];
           debounceTimer = null;
-          
+
           subscribers.forEach(sub => {
             const relevantPayloads = payloadsToUpdate.filter(p => sub.tables.includes(p.table));
             if (relevantPayloads.length > 0) {
@@ -37,7 +37,7 @@ async function connectSSE() {
           });
         }, 500);
       }
-    } catch(err) {
+    } catch (err) {
       console.error('Failed to parse SSE message', err);
     }
   });
@@ -60,17 +60,17 @@ export function useRealtime(tables, onUpdate) {
   }, [onUpdate]);
 
   const tableDeps = tables ? tables.join(',') : '';
-  
+
   useEffect(() => {
     if (!tables || tables.length === 0) return;
-    
-    const sub = { 
-      tables, 
+
+    const sub = {
+      tables,
       callback: (payload) => {
         if (onUpdateRef.current) onUpdateRef.current(payload);
       }
     };
-    
+
     subscribers.add(sub);
     connectSSE();
 

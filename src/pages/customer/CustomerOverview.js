@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { differenceInDays, format, subDays } from 'date-fns';
-import { Download, ArrowRight, CheckCircle2, Circle } from 'lucide-react-native';
+import { Download, ArrowRight, CheckCircle2, Circle, Calendar, User, Phone, Mail } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -17,6 +17,8 @@ export default function CustomerOverview() {
   const [salesRepName, setSalesRepName] = useState('');
   const [adminName, setAdminName] = useState('System Admin');
   const [chartDays, setChartDays] = useState(7);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null);
   const [rewards, setRewards] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [realtimeUser, setRealtimeUser] = useState(user);
@@ -139,11 +141,13 @@ export default function CustomerOverview() {
       <View style={styles.header}>
         <Text style={styles.greeting}>Hi, {user?.Name || 'Customer'}!</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.downloadBtn} onPress={handleDownload}>
-            <Download size={16} color="#1A1A1A" />
-            <Text style={styles.downloadText}>Download</Text>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowDatePicker(true)}>
+            <Calendar size={16} color="#1A1A1A" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.placeOrderBtn} onPress={() => navigation.navigate('customer/new-order')}>
+          <TouchableOpacity style={styles.iconBtn} onPress={handleDownload}>
+            <Download size={16} color="#1A1A1A" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.placeOrderBtn} onPress={() => navigation.navigate('customer/order')}>
             <Text style={styles.placeOrderText}>Place Order</Text>
             <ArrowRight size={16} color="#FFF" />
           </TouchableOpacity>
@@ -186,13 +190,23 @@ export default function CustomerOverview() {
             const hTons = (d.tons / maxVolume) * 100;
             const hBags = (d.bags / maxVolume) * 100;
             return (
-              <View key={i} style={styles.chartCol}>
+              <TouchableOpacity 
+                key={i} 
+                style={styles.chartCol}
+                onPress={() => setActiveTooltip(activeTooltip === i ? null : i)}
+                activeOpacity={0.8}
+              >
+                {activeTooltip === i && (
+                  <View style={styles.tooltip}>
+                    <Text style={styles.tooltipText}>{d.tons}T, {d.bags}B</Text>
+                  </View>
+                )}
                 <View style={styles.barsArea}>
                   <View style={[styles.bar, styles.barTons, { height: `${hTons}%` }]} />
                   <View style={[styles.bar, styles.barBags, { height: `${hBags}%` }]} />
                 </View>
                 <Text style={styles.chartLabel}>{d.label}</Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -242,6 +256,37 @@ export default function CustomerOverview() {
         </TouchableOpacity>
       </View>
 
+      {/* Support Contacts */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Support Contacts</Text>
+        
+        <View style={styles.contactRow}>
+          <View style={styles.contactIconBg}>
+            <User size={18} color="#1A1A1A" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contactTitle}>{salesRepName || 'Not Assigned'}</Text>
+            <Text style={styles.contactSub}>Sales Representative</Text>
+          </View>
+          <TouchableOpacity style={styles.contactActionBtn}>
+            <Phone size={16} color="#1A1A1A" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.contactRow}>
+          <View style={styles.contactIconBg}>
+            <User size={18} color="#1A1A1A" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contactTitle}>{adminName}</Text>
+            <Text style={styles.contactSub}>System Admin</Text>
+          </View>
+          <TouchableOpacity style={styles.contactActionBtn}>
+            <Mail size={16} color="#1A1A1A" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Rewards Progress */}
       <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('customer/rewards')}>
         <Text style={styles.cardTitle}>Rewards Progress</Text>
@@ -267,6 +312,29 @@ export default function CustomerOverview() {
         </View>
       </TouchableOpacity>
       
+      {/* Date Filter Modal */}
+      <Modal visible={showDatePicker} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Date Range</Text>
+            {[3, 7, 10, 30].map(days => (
+              <TouchableOpacity 
+                key={days} 
+                style={[styles.modalOption, chartDays === days && styles.modalOptionActive]} 
+                onPress={() => { setChartDays(days); setShowDatePicker(false); }}
+              >
+                <Text style={[styles.modalOptionText, chartDays === days && styles.modalOptionTextActive]}>
+                  Past {days} Days
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowDatePicker(false)}>
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -278,6 +346,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: 20 },
   greeting: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 12 },
   headerActions: { flexDirection: 'row', gap: 12 },
+  iconBtn: { padding: 12, backgroundColor: '#F2F2F7', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   downloadBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F2F7', padding: 12, borderRadius: 12, gap: 8 },
   downloadText: { color: '#1A1A1A', fontWeight: '600' },
   placeOrderBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1A1A1A', padding: 12, borderRadius: 12, gap: 8 },
@@ -315,4 +384,20 @@ const styles = StyleSheet.create({
   actionSub: { fontSize: 12, color: '#8E8E93' },
   actionCount: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   progressLabel: { fontSize: 12, color: '#8E8E93', fontWeight: '600', marginBottom: 4 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '80%', backgroundColor: '#FFF', borderRadius: 24, padding: 24 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 16, textAlign: 'center' },
+  modalOption: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', alignItems: 'center' },
+  modalOptionActive: { backgroundColor: '#F9F9F9' },
+  modalOptionText: { fontSize: 16, color: '#1A1A1A' },
+  modalOptionTextActive: { fontWeight: '700' },
+  modalCloseBtn: { marginTop: 16, paddingVertical: 12, alignItems: 'center' },
+  modalCloseText: { fontSize: 16, color: '#FF3B30', fontWeight: '600' },
+  tooltip: { position: 'absolute', top: -30, backgroundColor: '#1A1A1A', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, zIndex: 10 },
+  tooltipText: { color: '#FFF', fontSize: 10, fontWeight: '600' },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  contactIconBg: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  contactTitle: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  contactSub: { fontSize: 12, color: '#8E8E93' },
+  contactActionBtn: { padding: 10, backgroundColor: '#F2F2F7', borderRadius: 12 },
 });

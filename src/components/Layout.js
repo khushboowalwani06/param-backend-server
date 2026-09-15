@@ -39,6 +39,7 @@ import PlaceOrder from '../pages/customer/PlaceOrder';
 import CustomerInvoices from '../pages/customer/CustomerInvoices';
 import DisputeForm from '../pages/customer/DisputeForm';
 import RewardsDashboard from '../pages/customer/RewardsDashboard';
+import CustomerProfile from '../pages/customer/CustomerProfile';
 
 const Drawer = createDrawerNavigator();
 
@@ -123,11 +124,13 @@ export default function Layout() {
       {isCustomer && (
         <>
           <Drawer.Screen name="customer/overview" component={CustomerOverview} options={{ drawerLabel: 'Dashboard', title: 'Dashboard' }} />
-          <Drawer.Screen name="customer/new-order" component={PlaceOrder} options={{ drawerLabel: 'Place Order', title: 'Place Order' }} />
+          <Drawer.Screen name="customer/order" component={PlaceOrder} options={{ drawerLabel: 'New Order', title: 'New Order' }} />
           <Drawer.Screen name="customer/orders" component={CustomerOrders} options={{ drawerLabel: 'My Orders', title: 'My Orders' }} />
           <Drawer.Screen name="customer/invoices" component={CustomerInvoices} options={{ drawerLabel: 'Invoices & Payments', title: 'Invoices & Payments' }} />
           <Drawer.Screen name="customer/disputes" component={DisputeForm} options={{ drawerLabel: 'Report Issue', title: 'Report Issue' }} />
-          <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: 'Rewards', title: 'Rewards' }} />
+          <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: 'Rewards & Targets', title: 'Rewards & Targets' }} />
+          <Drawer.Screen name="customer/aging" component={CustomerAging} options={{ drawerLabel: 'Aging Report', title: 'Aging Report' }} />
+          <Drawer.Screen name="customer/profile" component={CustomerProfile} options={{ drawerLabel: 'Profile', title: 'Profile' }} />
         </>
       )}
 

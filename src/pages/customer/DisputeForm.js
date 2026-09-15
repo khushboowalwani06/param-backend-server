@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Image, Modal, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRoute } from '@react-navigation/native';
-import { AlertCircle, X, ImageIcon, UploadCloud } from 'lucide-react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import { AlertCircle, X, ImageIcon, UploadCloud, Calendar as CalendarIcon } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -23,6 +23,7 @@ export default function DisputeForm() {
     OrdID: initialOrderId,
     IssueType: 'Missing Bags',
     DamagedQuantity: '',
+    OtherIssueDescription: '',
     PhotoURL: ''
   });
 
@@ -30,6 +31,9 @@ export default function DisputeForm() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [showDatePicker, setShowDatePicker] = useState({ visible: false, type: 'start' });
   
   useRealtime(['orders', 'issues'], () => setRefreshKey(k => k + 1));
 
@@ -67,27 +71,35 @@ export default function DisputeForm() {
 
   const handleFileUpload = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: false,
+        quality: 0.8,
+        base64: true,
+      });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-        if (file.size && file.size > 5 * 1024 * 1024) {
-          return Alert.alert('Error', 'File is too large. Please upload an image under 5MB.');
-        }
-        const base64 = await FileSystem.readAsStringAsync(file.uri, { encoding: FileSystem.EncodingType.Base64 });
         const mimeType = file.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-        setFormData({ ...formData, PhotoURL: `data:${mimeType};base64,${base64}` });
+        setFormData({ ...formData, PhotoURL: `data:${mimeType};base64,${file.base64}` });
       }
     } catch (err) {
-      Alert.alert('Error', 'Failed to read file');
+      Alert.alert('Error', 'Failed to pick image');
     }
   };
 
   const handleSubmit = async () => {
     try {
       if (!formData.OrdID) throw new Error('Please select an order for this dispute.');
-      if (['Missing Bags', 'Damaged Bags'].includes(formData.IssueType)) {
+      let finalIssueType = formData.IssueType;
+      if (formData.IssueType === 'Other') {
+        if (!formData.OtherIssueDescription.trim()) {
+          throw new Error('Please describe the issue when "Other" is selected.');
+        }
+        finalIssueType = `Other - ${formData.OtherIssueDescription}`;
+      }
+
+      if (['Missing Bags', 'Torn Bags', 'Water-Damaged Bags'].includes(formData.IssueType)) {
         if (!formData.DamagedQuantity || Number(formData.DamagedQuantity) <= 0) {
-          throw new Error('Please enter a valid quantity for missing/damaged bags.');
+          throw new Error('Please enter a valid quantity for this issue type.');
         }
       }
       if (!formData.PhotoURL) {
@@ -97,11 +109,12 @@ export default function DisputeForm() {
       setLoading(true);
       await sheetsService.reportDispute({
         ...formData,
+        IssueType: finalIssueType,
         UserID: user.UserID
       });
       
       Alert.alert('Success', 'Dispute reported successfully.');
-      setFormData({ OrdID: '', IssueType: 'Missing Bags', DamagedQuantity: '', PhotoURL: '' });
+      setFormData({ OrdID: '', IssueType: 'Missing Bags', DamagedQuantity: '', OtherIssueDescription: '', PhotoURL: '' });
       setActiveTab('history'); // auto switch to history to show it
     } catch (err) {
       Alert.alert('Error', err.message || 'Failed to report dispute');
@@ -111,6 +124,17 @@ export default function DisputeForm() {
   };
 
   const deliveredOrders = orders.filter(o => ['Delivered', 'Closed'].includes(o.ApprovalStatus));
+
+  const filteredDisputes = pastDisputes.filter(d => {
+    const dDate = new Date(d.CreatedAt || Date.now());
+    if (dateRange.start && dDate < dateRange.start) return false;
+    if (dateRange.end) {
+      const endOfDay = new Date(dateRange.end);
+      endOfDay.setHours(23, 59, 59, 999);
+      if (dDate > endOfDay) return false;
+    }
+    return true;
+  });
 
   return (
     <View style={styles.container}>
@@ -160,6 +184,19 @@ export default function DisputeForm() {
               </Picker>
             </View>
 
+            {formData.IssueType === 'Other' && (
+              <>
+                <Text style={styles.inputLabel}>Describe the Issue</Text>
+                <TextInput 
+                  style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
+                  value={formData.OtherIssueDescription} 
+                  onChangeText={(val) => setFormData({...formData, OtherIssueDescription: val})} 
+                  placeholder="Explain the problem in detail..."
+                  multiline
+                />
+              </>
+            )}
+
             <Text style={styles.inputLabel}>Affected Quantity (Bags/Units)</Text>
             <TextInput 
               style={styles.input} 
@@ -192,12 +229,30 @@ export default function DisputeForm() {
 
         {activeTab === 'history' && (
           <View style={styles.historyContainer}>
+            
+            <View style={styles.dateFilterContainer}>
+              <TouchableOpacity style={styles.dateBtn} onPress={() => setShowDatePicker({ visible: true, type: 'start' })}>
+                <CalendarIcon size={16} color="#8E8E93" />
+                <Text style={styles.dateBtnText}>{dateRange.start ? dateRange.start.toLocaleDateString() : 'Start Date'}</Text>
+              </TouchableOpacity>
+              <Text style={styles.dateTo}>to</Text>
+              <TouchableOpacity style={styles.dateBtn} onPress={() => setShowDatePicker({ visible: true, type: 'end' })}>
+                <CalendarIcon size={16} color="#8E8E93" />
+                <Text style={styles.dateBtnText}>{dateRange.end ? dateRange.end.toLocaleDateString() : 'End Date'}</Text>
+              </TouchableOpacity>
+              {(dateRange.start || dateRange.end) && (
+                <TouchableOpacity onPress={() => setDateRange({ start: null, end: null })}>
+                  <X size={20} color="#DC2626" />
+                </TouchableOpacity>
+              )}
+            </View>
+
             {historyLoading ? (
               <ActivityIndicator size="large" color="#1A1A1A" style={{ marginTop: 40 }} />
-            ) : pastDisputes.length === 0 ? (
-              <Text style={styles.emptyText}>You haven't reported any issues yet.</Text>
+            ) : filteredDisputes.length === 0 ? (
+              <Text style={styles.emptyText}>No reports found for this period.</Text>
             ) : (
-              pastDisputes.map(d => (
+              filteredDisputes.map(d => (
                 <View key={d.DisputeID} style={styles.historyCard}>
                   <View style={styles.historyHeader}>
                     <View style={{ flex: 1, paddingRight: 8 }}>
@@ -282,6 +337,21 @@ export default function DisputeForm() {
           </View>
         </View>
       </Modal>
+      
+      {showDatePicker.visible && (
+        <DateTimePicker
+          value={dateRange[showDatePicker.type] || new Date()}
+          mode="date"
+          display="default"
+          onValueChange={(selectedDate) => {
+            setShowDatePicker({ visible: false, type: 'start' });
+            if (selectedDate) {
+              setDateRange(prev => ({ ...prev, [showDatePicker.type]: selectedDate }));
+            }
+          }}
+          onDismiss={() => setShowDatePicker({ visible: false, type: 'start' })}
+        />
+      )}
     </View>
   );
 }
@@ -317,6 +387,11 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
   historyContainer: { gap: 16 },
+  dateFilterContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, paddingHorizontal: 4 },
+  dateBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', padding: 12, borderRadius: 8 },
+  dateBtnText: { fontSize: 14, color: '#1A1A1A', fontWeight: '500' },
+  dateTo: { color: '#8E8E93', fontSize: 14 },
+  
   emptyText: { textAlign: 'center', color: '#8E8E93', fontSize: 16, marginTop: 40 },
   
   historyCard: { backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', padding: 16 },

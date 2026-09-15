@@ -1,11 +1,178 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Package, CheckCircle, XCircle } from 'lucide-react-native';
+import { Package, CheckCircle, XCircle, Calendar as CalendarIcon, X } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
 import { Pagination } from '../../components/Pagination';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+const getProgressState = (status) => {
+  const states = { sales: false, admin: false, dispatch: false, delivered: false, invoiced: false, current: '' };
+  if (!status || status === 'Draft') return states;
+  const s = String(status).toLowerCase();
+  
+  if (s.includes('reject')) { states.current = 'rejected'; return states; }
+  states.sales = true;
+  
+  if (s.includes('admin') || (s.includes('approve') && !s.includes('dispatch'))) {
+    states.sales = true; states.current = 'admin';
+  } 
+  if (s.includes('dispatch') || s.includes('transit') || s.includes('ready')) {
+    states.admin = true; states.dispatch = true; states.current = 'dispatch';
+  } 
+  if (s.includes('deliver')) {
+    states.admin = true; states.dispatch = true; states.delivered = true; states.current = 'delivered';
+  } 
+  if (s.includes('invoice') || s.includes('close') || s.includes('payment')) {
+    states.admin = true; states.dispatch = true; states.delivered = true; states.invoiced = true; states.current = 'invoiced';
+  } 
+  if (!states.current) states.current = 'sales';
+  return states;
+};
+
+const OrderCardItem = ({ order, user, navigation, onRefresh }) => {
+  const progress = getProgressState(order.ApprovalStatus);
+  const isRejected = progress.current === 'rejected';
+  
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const flipCard = (toFlipped) => {
+    setIsFlipped(toFlipped);
+    Animated.spring(flipAnim, {
+      toValue: toFlipped ? 180 : 0,
+      friction: 8,
+      tension: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const frontOpacity = flipAnim.interpolate({ inputRange: [0, 89, 90, 180], outputRange: [1, 1, 0, 0] });
+  const backOpacity = flipAnim.interpolate({ inputRange: [0, 89, 90, 180], outputRange: [0, 0, 1, 1] });
+  const frontTransform = [{ rotateY: flipAnim.interpolate({ inputRange: [0, 180], outputRange: ['0deg', '180deg'] }) }];
+  const backTransform = [{ rotateY: flipAnim.interpolate({ inputRange: [0, 180], outputRange: ['180deg', '360deg'] }) }];
+
+  return (
+    <View style={styles.cardContainer}>
+      {/* Front of Card */}
+      <Animated.View style={[styles.orderCard, styles.cardFace, { opacity: frontOpacity, transform: frontTransform, zIndex: isFlipped ? 0 : 1 }]}>
+        <View style={styles.orderHeader}>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text style={styles.orderId} numberOfLines={1}>{order.OrdID}</Text>
+            <Text style={styles.orderDate}>{new Date(order.OrderTimestamp).toLocaleDateString()}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.orderAmt}>₹{order.EstimateAmt?.toLocaleString()}</Text>
+            <Text style={styles.orderQty}>{order.EstimateQty} {order.Unit || 'Tons'}</Text>
+          </View>
+        </View>
+
+        {isRejected ? (
+          <View style={styles.rejectBox}>
+            <View style={styles.rejectRow}>
+              <XCircle size={16} color="#DC2626" />
+              <Text style={styles.rejectText}>Order Rejected</Text>
+            </View>
+            {!!order.RejectionReason && (
+              <View style={styles.rejectReasonBox}>
+                <Text style={styles.rejectReasonText}>Reason: {order.RejectionReason}</Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.trackerContainer}>
+            <View style={styles.trackerLineBg}>
+              <View style={[styles.trackerLineFill, { 
+                width: progress.invoiced ? '100%' : progress.delivered ? '75%' : progress.dispatch ? '50%' : progress.admin ? '25%' : '0%' 
+              }]} />
+            </View>
+            <View style={styles.trackerNodes}>
+              <View style={styles.node}>
+                <View style={[styles.dot, progress.sales && styles.dotActive]} />
+                <Text style={[styles.nodeLabel, progress.sales && styles.nodeLabelActive]}>Under Process</Text>
+              </View>
+              <View style={styles.node}>
+                <View style={[styles.dot, progress.admin && styles.dotActive]} />
+                <Text style={[styles.nodeLabel, progress.admin && styles.nodeLabelActive]}>Loading</Text>
+              </View>
+              <View style={styles.node}>
+                <View style={[styles.dot, progress.dispatch && styles.dotActive]} />
+                <Text style={[styles.nodeLabel, progress.dispatch && styles.nodeLabelActive]}>Transit</Text>
+              </View>
+              <View style={styles.node}>
+                <View style={[styles.dot, progress.delivered && styles.dotActive]} />
+                <Text style={[styles.nodeLabel, progress.delivered && styles.nodeLabelActive]}>Delivered</Text>
+              </View>
+              <View style={styles.node}>
+                <View style={[styles.dot, progress.invoiced && styles.dotActive]} />
+                <Text style={[styles.nodeLabel, progress.invoiced && styles.nodeLabelActive]}>Invoice</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.orderFooter}>
+          <View style={[styles.productRow, { flex: 1, paddingRight: 8 }]}>
+            <Package size={14} color="#8E8E93" />
+            <Text style={styles.productText} numberOfLines={1}>{order.Product}</Text>
+          </View>
+          <View style={styles.footerActions}>
+            {order.ApprovalStatus === 'Delivered' && (
+              <TouchableOpacity style={styles.verifyBtn} onPress={() => flipCard(true)}>
+                <CheckCircle size={12} color="#FFF" />
+                <Text style={styles.verifyBtnText}>Confirm Receipt</Text>
+              </TouchableOpacity>
+            )}
+            <View style={styles.statusPill}>
+              <Text style={styles.statusText}>{order.ApprovalStatus}</Text>
+            </View>
+          </View>
+        </View>
+      </Animated.View>
+
+      {/* Back of Card (Verification View) */}
+      <Animated.View style={[styles.orderCard, styles.cardFace, styles.cardBack, { opacity: backOpacity, transform: backTransform, zIndex: isFlipped ? 1 : 0 }]}>
+        <View style={styles.confirmView}>
+          <CheckCircle size={40} color="#34C759" />
+          <Text style={styles.confirmTitle}>Verify Delivery</Text>
+          <Text style={styles.confirmSub}>Please confirm you have received order {order.OrdID}.</Text>
+          
+          <View style={styles.confirmActions}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => flipCard(false)}>
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.issueBtn} 
+              onPress={() => {
+                flipCard(false);
+                navigation.navigate('customer/disputes'); 
+              }}
+            >
+              <Text style={styles.issueBtnText}>Raise Issue</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.completeBtn}
+            onPress={async () => {
+              try {
+                await sheetsService.updateOrderStatus(user, order.OrdID, 'Pending Invoice');
+                onRefresh();
+                flipCard(false);
+              } catch (err) {
+                alert('Failed to mark complete');
+              }
+            }}
+          >
+            <Text style={styles.completeBtnText}>Mark Complete</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
 
 export default function CustomerOrders() {
   const { user } = useAuth();
@@ -14,10 +181,15 @@ export default function CustomerOrders() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [confirmOrder, setConfirmOrder] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  // Date Range State
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [showStart, setShowStart] = useState(false);
+  const [showEnd, setShowEnd] = useState(false);
 
   useRealtime(['orders'], () => setRefreshKey(k => k + 1));
 
@@ -53,39 +225,36 @@ export default function CustomerOrders() {
   const deliveredCount = orders.filter(o => ['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed'].includes(o.ApprovalStatus)).length;
 
   const filteredOrders = orders.filter(o => {
-    if (activeFilter === 'PENDING') return o.ApprovalStatus === 'Pending Sales Approval' || o.ApprovalStatus === 'Pending Admin Approval';
-    if (activeFilter === 'DISPATCHED') return o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit') || o.ApprovalStatus.includes('Ready');
-    if (activeFilter === 'DELIVERED') return ['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed'].includes(o.ApprovalStatus);
-    if (activeFilter === 'REJECTED') return o.ApprovalStatus.includes('Rejected');
+    if (activeFilter === 'PENDING') {
+      if (o.ApprovalStatus !== 'Pending Sales Approval' && o.ApprovalStatus !== 'Pending Admin Approval') return false;
+    } else if (activeFilter === 'DISPATCHED') {
+      if (!o.ApprovalStatus.includes('Dispatch') && !o.ApprovalStatus.includes('Transit') && !o.ApprovalStatus.includes('Ready')) return false;
+    } else if (activeFilter === 'DELIVERED') {
+      if (!['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed'].includes(o.ApprovalStatus)) return false;
+    } else if (activeFilter === 'REJECTED') {
+      if (!o.ApprovalStatus.includes('Rejected')) return false;
+    }
+
+    // Date range logic
+    if (startDate || endDate) {
+      const orderDate = new Date(o.OrderTimestamp);
+      if (startDate && orderDate < startDate) return false;
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (orderDate > end) return false;
+      }
+    }
     return true;
   });
 
-  const getProgressState = (status) => {
-    const states = { sales: false, admin: false, dispatch: false, delivered: false, invoiced: false, current: '' };
-    if (!status || status === 'Draft') return states;
-    const s = String(status).toLowerCase();
-    
-    if (s.includes('reject')) { states.current = 'rejected'; return states; }
-    states.sales = true;
-    
-    if (s.includes('admin') || (s.includes('approve') && !s.includes('dispatch'))) {
-      states.sales = true; states.current = 'admin';
-    } 
-    if (s.includes('dispatch') || s.includes('transit') || s.includes('ready')) {
-      states.admin = true; states.dispatch = true; states.current = 'dispatch';
-    } 
-    if (s.includes('deliver')) {
-      states.admin = true; states.dispatch = true; states.delivered = true; states.current = 'delivered';
-    } 
-    if (s.includes('invoice') || s.includes('close') || s.includes('payment')) {
-      states.admin = true; states.dispatch = true; states.delivered = true; states.invoiced = true; states.current = 'invoiced';
-    } 
-    if (!states.current) states.current = 'sales';
-    return states;
-  };
-
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const clearDates = () => {
+    setStartDate(null);
+    setEndDate(null);
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -110,6 +279,53 @@ export default function CustomerOrders() {
         </View>
       </View>
 
+      {/* Date Range Filter */}
+      <View style={styles.dateFilterContainer}>
+        <Text style={styles.filterSectionTitle}>Filter by Date</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowStart(true)}>
+            <CalendarIcon size={14} color="#64748B" />
+            <Text style={styles.dateBtnText}>{startDate ? startDate.toLocaleDateString() : 'Start Date'}</Text>
+          </TouchableOpacity>
+          <Text style={styles.dateTo}>to</Text>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowEnd(true)}>
+            <CalendarIcon size={14} color="#64748B" />
+            <Text style={styles.dateBtnText}>{endDate ? endDate.toLocaleDateString() : 'End Date'}</Text>
+          </TouchableOpacity>
+          {(startDate || endDate) && (
+            <TouchableOpacity style={styles.clearDateBtn} onPress={clearDates}>
+              <X size={16} color="#DC2626" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {showStart && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display="default"
+          onValueChange={(event, selectedDate) => {
+            setShowStart(false);
+            if (selectedDate) setStartDate(selectedDate);
+          }}
+          onDismiss={() => setShowStart(false)}
+        />
+      )}
+      {showEnd && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display="default"
+          minimumDate={startDate || undefined}
+          onValueChange={(event, selectedDate) => {
+            setShowEnd(false);
+            if (selectedDate) setEndDate(selectedDate);
+          }}
+          onDismiss={() => setShowEnd(false)}
+        />
+      )}
+
       {/* Filters */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={{ paddingRight: 16 }}>
         {['ALL', 'PENDING', 'DISPATCHED', 'DELIVERED', 'REJECTED'].map(filter => (
@@ -128,121 +344,22 @@ export default function CustomerOrders() {
         <View style={styles.emptyState}>
           <Package size={48} color="#C7C7CC" />
           <Text style={styles.emptyTitle}>No Orders Found</Text>
-          <Text style={styles.emptySub}>You don't have any orders matching this status.</Text>
-          <TouchableOpacity style={styles.emptyBtn} onPress={() => navigation.navigate('customer/new-order')}>
+          <Text style={styles.emptySub}>You don't have any orders matching these filters.</Text>
+          <TouchableOpacity style={styles.emptyBtn} onPress={() => navigation.navigate('customer/order')}>
             <Text style={styles.emptyBtnText}>Place New Order</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.orderList}>
-          {paginatedOrders.map(order => {
-            const progress = getProgressState(order.ApprovalStatus);
-            const isRejected = progress.current === 'rejected';
-            const isConfirming = confirmOrder === order.OrdID;
-
-            return (
-              <View key={order.OrdID} style={styles.orderCard}>
-                
-                {isConfirming ? (
-                  <View style={styles.confirmView}>
-                    <CheckCircle size={40} color="#34C759" />
-                    <Text style={styles.confirmTitle}>Verify Delivery</Text>
-                    <Text style={styles.confirmSub}>Please confirm you have received order {order.OrdID}.</Text>
-                    
-                    <View style={styles.confirmActions}>
-                      <TouchableOpacity style={styles.cancelBtn} onPress={() => setConfirmOrder(null)}>
-                        <Text style={styles.cancelBtnText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={styles.issueBtn} 
-                        onPress={() => {
-                          setConfirmOrder(null);
-                          navigation.navigate('customer/disputes'); // Needs param in a real router context
-                        }}
-                      >
-                        <Text style={styles.issueBtnText}>Raise Issue</Text>
-                      </TouchableOpacity>
-                    </View>
-                    
-                    <TouchableOpacity 
-                      style={styles.completeBtn}
-                      onPress={async () => {
-                        try {
-                          await sheetsService.updateOrderStatus(user, order.OrdID, 'Pending Invoice');
-                          setRefreshKey(k => k + 1);
-                          setConfirmOrder(null);
-                        } catch (err) {
-                          alert('Failed to mark complete');
-                        }
-                      }}
-                    >
-                      <Text style={styles.completeBtnText}>Mark Complete</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.orderHeader}>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={styles.orderId} numberOfLines={1}>{order.OrdID}</Text>
-                        <Text style={styles.orderDate}>{new Date(order.OrderTimestamp).toLocaleDateString()}</Text>
-                      </View>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.orderAmt}>₹{order.EstimateAmt?.toLocaleString()}</Text>
-                        <Text style={styles.orderQty}>{order.EstimateQty} {order.Unit || 'Tons'}</Text>
-                      </View>
-                    </View>
-
-                    {isRejected ? (
-                      <View style={styles.rejectBox}>
-                        <View style={styles.rejectRow}>
-                          <XCircle size={16} color="#DC2626" />
-                          <Text style={styles.rejectText}>Order Rejected</Text>
-                        </View>
-                        {!!order.RejectionReason && (
-                          <View style={styles.rejectReasonBox}>
-                            <Text style={styles.rejectReasonText}>Reason: {order.RejectionReason}</Text>
-                          </View>
-                        )}
-                      </View>
-                    ) : (
-                      <View style={styles.trackerContainer}>
-                        <View style={styles.trackerLineBg}>
-                          <View style={[styles.trackerLineFill, { 
-                            width: progress.invoiced ? '100%' : progress.delivered ? '75%' : progress.dispatch ? '50%' : progress.admin ? '25%' : '0%' 
-                          }]} />
-                        </View>
-                        <View style={styles.trackerNodes}>
-                          <View style={styles.node}><View style={[styles.dot, progress.sales && styles.dotActive]} /></View>
-                          <View style={styles.node}><View style={[styles.dot, progress.admin && styles.dotActive]} /></View>
-                          <View style={styles.node}><View style={[styles.dot, progress.dispatch && styles.dotActive]} /></View>
-                          <View style={styles.node}><View style={[styles.dot, progress.delivered && styles.dotActive]} /></View>
-                          <View style={styles.node}><View style={[styles.dot, progress.invoiced && styles.dotActive]} /></View>
-                        </View>
-                      </View>
-                    )}
-
-                    <View style={styles.orderFooter}>
-                      <View style={[styles.productRow, { flex: 1, paddingRight: 8 }]}>
-                        <Package size={14} color="#8E8E93" />
-                        <Text style={styles.productText} numberOfLines={1}>{order.Product}</Text>
-                      </View>
-                      <View style={styles.footerActions}>
-                        {order.ApprovalStatus === 'Delivered' && (
-                          <TouchableOpacity style={styles.verifyBtn} onPress={() => setConfirmOrder(order.OrdID)}>
-                            <CheckCircle size={12} color="#FFF" />
-                            <Text style={styles.verifyBtnText}>Confirm Receipt</Text>
-                          </TouchableOpacity>
-                        )}
-                        <View style={styles.statusPill}>
-                          <Text style={styles.statusText}>{order.ApprovalStatus}</Text>
-                        </View>
-                      </View>
-                    </View>
-                  </>
-                )}
-              </View>
-            );
-          })}
+          {paginatedOrders.map(order => (
+            <OrderCardItem 
+              key={order.OrdID} 
+              order={order} 
+              user={user} 
+              navigation={navigation}
+              onRefresh={() => setRefreshKey(k => k + 1)}
+            />
+          ))}
         </View>
       )}
 
@@ -263,6 +380,14 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: '#8E8E93', fontWeight: '600', marginBottom: 4 },
   statValue: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
 
+  dateFilterContainer: { marginBottom: 20 },
+  filterSectionTitle: { fontSize: 12, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', marginBottom: 8 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFF', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+  dateBtnText: { fontSize: 12, color: '#1A1A1A', fontWeight: '500' },
+  dateTo: { fontSize: 12, color: '#8E8E93', fontWeight: '500' },
+  clearDateBtn: { padding: 8, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' },
+
   filterScroll: { flexGrow: 0, marginBottom: 20 },
   filterBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', marginRight: 8 },
   filterBtnActive: { backgroundColor: '#1A1A1A', borderColor: '#1A1A1A' },
@@ -276,6 +401,11 @@ const styles = StyleSheet.create({
   emptyBtnText: { color: '#FFF', fontWeight: '600', fontSize: 14 },
 
   orderList: { gap: 16 },
+  
+  cardContainer: { position: 'relative', minHeight: 180 },
+  cardFace: { position: 'absolute', top: 0, left: 0, right: 0 },
+  cardBack: { },
+
   orderCard: { backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
@@ -294,9 +424,11 @@ const styles = StyleSheet.create({
   trackerLineBg: { position: 'absolute', top: 6, left: 16, right: 16, height: 2, backgroundColor: '#E2E8F0' },
   trackerLineFill: { height: '100%', backgroundColor: '#34C759' },
   trackerNodes: { flexDirection: 'row', justifyContent: 'space-between' },
-  node: { alignItems: 'center' },
-  dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#E2E8F0' },
+  node: { alignItems: 'center', width: 50 },
+  dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#E2E8F0', marginBottom: 6 },
   dotActive: { backgroundColor: '#34C759', borderColor: '#34C759' },
+  nodeLabel: { fontSize: 9, color: '#8E8E93', textAlign: 'center', fontWeight: '500' },
+  nodeLabelActive: { color: '#1A1A1A', fontWeight: '700' },
 
   orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16, flexWrap: 'wrap', gap: 8 },
   productRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

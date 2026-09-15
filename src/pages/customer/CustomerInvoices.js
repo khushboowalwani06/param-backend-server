@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Modal, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Modal, Image, Alert, Linking } from 'react-native';
 import { FileText, Image as ImageIcon, X, UploadCloud, CheckCircle } from 'lucide-react-native';
-import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -59,16 +60,46 @@ export default function CustomerInvoices() {
     setPayModalOpen(true);
   };
 
+  const handleViewInvoice = async (order) => {
+    const invoiceData = order.InvoicePdf || order.InvoicePdfLink;
+    if (!invoiceData) return;
+    
+    if (invoiceData.startsWith('http')) {
+      Linking.openURL(invoiceData);
+    } else {
+      try {
+        const isDataUrl = invoiceData.startsWith('data:');
+        const base64Data = isDataUrl ? invoiceData.split(',')[1] : invoiceData;
+        
+        const fileUri = FileSystem.documentDirectory + `Invoice_${order.OrdID}.pdf`;
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+        } else {
+          Alert.alert('Error', 'Sharing is not available on this device');
+        }
+      } catch (err) {
+        Alert.alert('Error', 'Failed to open invoice document.');
+        console.error(err);
+      }
+    }
+  };
+
   const handleFileChange = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: false,
+        quality: 0.8,
+        base64: true,
+      });
+      
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const uri = result.assets[0].uri;
-        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-        
-        // guess mime type based on extension or fallback
-        const mimeType = uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-        setScreenshotBase64(`data:${mimeType};base64,${base64}`);
+        const asset = result.assets[0];
+        const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+        setScreenshotBase64(`data:${mimeType};base64,${asset.base64}`);
       }
     } catch (err) {
       console.error(err);
@@ -174,7 +205,7 @@ export default function CustomerInvoices() {
                     {(order.InvoicePdf || order.InvoicePdfLink) ? (
                       <TouchableOpacity 
                         style={styles.actionBtn}
-                        onPress={() => Alert.alert('View Invoice', 'Viewing PDFs is currently supported on web.')}
+                        onPress={() => handleViewInvoice(order)}
                       >
                         <FileText size={14} color="#1A1A1A" />
                         <Text style={styles.actionBtnText}>View Invoice</Text>
@@ -243,22 +274,22 @@ export default function CustomerInvoices() {
               />
 
               <Text style={styles.inputLabel}>Upload Receipt Screenshot</Text>
-              <TouchableOpacity style={styles.uploadArea} onPress={handleFileChange}>
-                {screenshotBase64 ? (
-                  <View style={styles.previewContainer}>
-                    <Image source={{ uri: screenshotBase64 }} style={styles.previewImage} resizeMode="contain" />
-                    <View style={styles.previewCheck}>
-                      <CheckCircle size={16} color="#FFF" />
-                    </View>
-                  </View>
-                ) : (
+              {screenshotBase64 ? (
+                <View style={styles.photoPreviewRow}>
+                  <Image source={{ uri: screenshotBase64 }} style={styles.photoPreview} resizeMode="cover" />
+                  <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setScreenshotBase64('')}>
+                    <Text style={styles.removePhotoText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity style={styles.uploadArea} onPress={handleFileChange}>
                   <View style={styles.uploadPlaceholder}>
                     <UploadCloud size={32} color="#94A3B8" />
                     <Text style={styles.uploadText}>Tap to pick image</Text>
                     <Text style={styles.uploadSub}>JPEG, PNG, JPG</Text>
                   </View>
-                )}
-              </TouchableOpacity>
+                </TouchableOpacity>
+              )}
               
               <View style={styles.modalActions}>
                 <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setPayModalOpen(false)} disabled={isSubmitting}>
@@ -361,9 +392,11 @@ const styles = StyleSheet.create({
   uploadPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   uploadText: { fontSize: 14, fontWeight: '600', color: '#475569', marginTop: 8 },
   uploadSub: { fontSize: 12, color: '#94A3B8', marginTop: 4 },
-  previewContainer: { flex: 1, padding: 8 },
-  previewImage: { width: '100%', height: '100%', borderRadius: 4 },
-  previewCheck: { position: 'absolute', top: 12, right: 12, backgroundColor: '#34C759', borderRadius: 12, padding: 2 },
+  
+  photoPreviewRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 24 },
+  photoPreview: { width: 100, height: 100, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+  removePhotoBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6, backgroundColor: '#F2F2F7' },
+  removePhotoText: { color: '#1A1A1A', fontWeight: '600', fontSize: 12 },
   
   modalActions: { flexDirection: 'row', gap: 12 },
   modalCancelBtn: { flex: 1, padding: 14, borderRadius: 8, borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },

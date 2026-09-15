@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Square, CheckSquare, RefreshCw, Info } from 'lucide-react-native';
+import { Square, CheckSquare, RefreshCw, Info, Mic, Trash2, Play } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 
@@ -11,7 +11,16 @@ export default function PlaceOrder() {
   const navigation = useNavigation();
   const route = useRoute();
   
-  const activeUser = route.params?.forCustomer || user;
+  const [activeUser, setActiveUser] = useState(() => {
+    if (route.params?.forCustomer) {
+      try {
+        return JSON.parse(route.params.forCustomer);
+      } catch (e) {
+        return user;
+      }
+    }
+    return user;
+  });
   
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
@@ -43,6 +52,81 @@ export default function PlaceOrder() {
 
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState('');
+
+  // Sub-retailer auto-fill logic
+  useEffect(() => {
+    if (route.params?.forCustomer) {
+      try {
+        const sub = JSON.parse(route.params.forCustomer);
+        setUseCustomDelivery(true);
+        setCustomAddress(sub.Address || '');
+        setCustomCity(sub.City || '');
+        setCustomDistrict(sub.District || '');
+        setCustomState(sub.State || '');
+        setCustomZip(sub.ZipCode || '');
+        setCustomTehsil(sub.Tehsil || '');
+      } catch (e) {}
+    }
+  }, [route.params?.forCustomer]);
+
+  // Voice Note State
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioData, setAudioData] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  const startRecording = async () => {
+    if (Platform.OS !== 'web') {
+      alert("Voice note recording is only supported on the web platform currently.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          setAudioData(reader.result);
+        };
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Recording error:", err);
+      alert("Failed to start recording. Please check microphone permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const playAudio = () => {
+    if (Platform.OS === 'web' && audioData) {
+      const audio = new Audio(audioData);
+      audio.play();
+    }
+  };
+
+  const clearAudio = () => {
+    setAudioData(null);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -130,10 +214,10 @@ export default function PlaceOrder() {
       });
       
       let finalBagPrice = 0;
-      if (rateRow && rateRow.is_available !== false && basePrice > 0 && rateRow.formula) {
+      if (rateRow && rateRow.is_available !== false && basePrice > 0) {
         try {
-          const formula = String(rateRow.formula).toUpperCase().replace(/X/g, basePrice);
-          finalBagPrice = eval(formula); // using eval for simplicity in formula parsing
+          const formula = rateRow.formula.toUpperCase().replace(/X/g, basePrice);
+          finalBagPrice = Function(`'use strict'; return (${formula})`)();
         } catch (_e) {
           finalBagPrice = 0;
         }
@@ -250,7 +334,8 @@ export default function PlaceOrder() {
         OrderZip: finalZip,
         Company: activeUser.Company,
         UserID: activeUser.UserID,
-        Segment: segment
+        Segment: segment,
+        AudioData: audioData
       };
       
       await sheetsService.createOrder(user, orderData);
@@ -364,6 +449,33 @@ export default function PlaceOrder() {
           onChangeText={v => setFormData(prev => ({...prev, Notes: v}))} 
           placeholder="Type instructions here..."
         />
+
+        <Text style={[styles.inputLabel, { marginTop: 16 }]}>Voice Note (Optional)</Text>
+        <View style={styles.voiceNoteContainer}>
+          {audioData ? (
+            <View style={styles.audioRecordedCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity onPress={playAudio} style={styles.iconBtnRound}>
+                  <Play size={18} color="#FFF" fill="#FFF" />
+                </TouchableOpacity>
+                <Text style={styles.audioText}>Voice Note Recorded</Text>
+              </View>
+              <TouchableOpacity onPress={clearAudio}>
+                <Trash2 size={20} color="#FF3B30" />
+              </TouchableOpacity>
+            </View>
+          ) : isRecording ? (
+            <TouchableOpacity style={styles.recordBtnRecording} onPress={stopRecording}>
+              <Square size={20} color="#FFF" fill="#FFF" />
+              <Text style={styles.recordBtnTextRecording}>Stop Recording...</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.recordBtn} onPress={startRecording}>
+              <Mic size={20} color="#1A1A1A" />
+              <Text style={styles.recordBtnText}>Record Audio Instructions</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Material Detail */}
@@ -471,5 +583,14 @@ const styles = StyleSheet.create({
 
   blockedCard: { backgroundColor: '#FEF2F2', padding: 24, borderRadius: 16, borderWidth: 1, borderColor: '#DC2626', width: '100%', alignItems: 'center' },
   blockedTitle: { fontSize: 20, fontWeight: '700', color: '#DC2626', marginBottom: 12 },
-  blockedSub: { fontSize: 16, color: '#1A1A1A', textAlign: 'center', marginBottom: 24 }
+  blockedSub: { fontSize: 16, color: '#1A1A1A', textAlign: 'center', marginBottom: 24 },
+
+  voiceNoteContainer: { marginBottom: 16 },
+  recordBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, backgroundColor: '#F8FAFC', gap: 8 },
+  recordBtnText: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  recordBtnRecording: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 8, backgroundColor: '#EF4444', gap: 8 },
+  recordBtnTextRecording: { fontSize: 14, fontWeight: '600', color: '#FFF' },
+  audioRecordedCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderWidth: 1, borderColor: '#22C55E', borderRadius: 8, backgroundColor: '#F0FDF4' },
+  iconBtnRound: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#22C55E', alignItems: 'center', justifyContent: 'center' },
+  audioText: { fontSize: 14, fontWeight: '600', color: '#15803D' },
 });
