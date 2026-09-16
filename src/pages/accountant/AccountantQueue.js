@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Alert, ScrollView } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -8,6 +8,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Pagination } from '../../components/Pagination';
+import { ExportButton } from '../../components/ExportButton';
+import { DateRangeFilter } from '../../components/DateRangeFilter';
+import { LocationFilter } from '../../components/LocationFilter';
+import { SearchFilter } from '../../components/SearchFilter';
 
 export default function AccountantQueue() {
   const { user } = useAuth();
@@ -16,6 +20,8 @@ export default function AccountantQueue() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [location, setLocation] = useState('');
 
   // Invoice Upload Modal
   const [invoicingOrder, setInvoicingOrder] = useState(null);
@@ -53,8 +59,8 @@ export default function AccountantQueue() {
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-        if (file.size && file.size > 15 * 1024 * 1024) {
-          return Alert.alert('Error', 'File is too large. Please upload a PDF under 15MB.');
+        if (file.size && file.size > 5 * 1024 * 1024) {
+          return Alert.alert('Error', 'File is too large. Please upload a PDF under 5MB.');
         }
         const base64 = await FileSystem.readAsStringAsync(file.uri, { encoding: FileSystem.EncodingType.Base64 });
         setInvoicePdf(`data:application/pdf;base64,${base64}`);
@@ -92,13 +98,29 @@ export default function AccountantQueue() {
     }
   };
 
+  const uniqueLocations = [...new Set(orders.map(o => o.City || o.Location).filter(Boolean))];
+
   const filteredOrders = orders.filter(o => {
     const term = searchTerm.toLowerCase();
-    return (
-      o.OrdID?.toLowerCase().includes(term) ||
+    const matchesSearch = o.OrdID?.toLowerCase().includes(term) ||
       o.Company?.toLowerCase().includes(term) ||
-      o.Name?.toLowerCase().includes(term)
-    );
+      o.Name?.toLowerCase().includes(term);
+
+    let matchesLocation = true;
+    if (location) {
+      matchesLocation = (o.City || o.Location) === location;
+    }
+
+    let matchesDate = true;
+    if (dateRange.startDate && dateRange.endDate) {
+      const orderDate = new Date(o.DeliveryConfirmedTimestamp || o.OrderTimestamp);
+      const start = new Date(dateRange.startDate);
+      const end = new Date(dateRange.endDate);
+      end.setHours(23, 59, 59, 999);
+      matchesDate = orderDate >= start && orderDate <= end;
+    }
+
+    return matchesSearch && matchesLocation && matchesDate;
   });
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -157,14 +179,26 @@ export default function AccountantQueue() {
         <Text style={styles.subtitle}>Upload tax invoices for delivered orders.</Text>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Search size={20} color="#64748B" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by Order ID or Customer"
-          value={searchTerm}
-          onChangeText={setSearchTerm}
+      <View style={styles.filtersContainer}>
+        <SearchFilter 
+          value={searchTerm} 
+          onChange={setSearchTerm} 
+          placeholder="Search by Order ID or Customer" 
         />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          <DateRangeFilter 
+            startDate={dateRange.startDate} 
+            endDate={dateRange.endDate} 
+            onDateChange={setDateRange} 
+            onClear={() => setDateRange({ startDate: '', endDate: '' })} 
+          />
+          <LocationFilter 
+            value={location} 
+            onChange={setLocation} 
+            locations={uniqueLocations} 
+          />
+          <ExportButton data={filteredOrders} filename="Pending_Invoices" sheetName="Invoices" />
+        </ScrollView>
       </View>
 
       <FlatList
@@ -232,8 +266,8 @@ const styles = StyleSheet.create({
   header: { padding: 16, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   title: { fontSize: 20, fontWeight: '700', color: '#1A1A1A' },
   subtitle: { fontSize: 14, color: '#64748B', marginTop: 4 },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', margin: 16, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
-  searchInput: { flex: 1, height: 44, marginLeft: 8, fontSize: 15 },
+  filtersContainer: { padding: 16, backgroundColor: '#F8FAFC', gap: 12 },
+  filterScroll: { gap: 12, paddingBottom: 4 },
   listContent: { padding: 16, paddingTop: 0 },
   card: { backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },

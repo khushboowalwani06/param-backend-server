@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Image, Alert, ScrollView } from 'react-native';
 import { sheetsService } from '../../services/sheetsService';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
 import { FileText, CheckCircle, Pencil, X, CreditCard } from 'lucide-react-native';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Pagination } from '../../components/Pagination';
+import { ExportButton } from '../../components/ExportButton';
+import { DateRangeFilter } from '../../components/DateRangeFilter';
+import { LocationFilter } from '../../components/LocationFilter';
+import { SearchFilter } from '../../components/SearchFilter';
 
 export default function AccountantCredit() {
   const { user } = useAuth();
@@ -16,6 +20,12 @@ export default function AccountantCredit() {
 
   // View Receipt Modal
   const [viewReceiptUrl, setViewReceiptUrl] = useState(null);
+  const [receiptRotation, setReceiptRotation] = useState(0);
+
+  // Filters State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [location, setLocation] = useState('');
 
   // Edit Amount Modal
   const [editingOrder, setEditingOrder] = useState(null);
@@ -104,11 +114,52 @@ export default function AccountantCredit() {
       setIsSubmitting(false);
     }
   };
+  const uniqueLocations = [...new Set(orders.map(o => o.City || o.Location).filter(Boolean))];
 
+  const filteredOrders = orders.filter(o => {
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = o.OrdID?.toLowerCase().includes(term) ||
+      o.Company?.toLowerCase().includes(term) ||
+      o.Name?.toLowerCase().includes(term);
+
+    let matchesLocation = true;
+    if (location) {
+      matchesLocation = (o.City || o.Location) === location;
+    }
+
+    let matchesDate = true;
+    if (dateRange.startDate && dateRange.endDate) {
+      const orderDate = new Date(o.PaymentDueDate || o.OrderTimestamp);
+      const start = new Date(dateRange.startDate);
+      const end = new Date(dateRange.endDate);
+      end.setHours(23, 59, 59, 999);
+      matchesDate = orderDate >= start && orderDate <= end;
+    }
+
+    return matchesSearch && matchesLocation && matchesDate;
+  });
+
+  const totalOutstanding = orders.filter(o => o.ApprovalStatus === 'Payment Pending' || o.ApprovalStatus === 'Overdue').reduce((sum, o) => sum + (Number(o.FinalInvoicedAmount) || Number(o.EstimateAmt) || 0), 0);
+  const awaitingVerificationCount = orders.filter(o => o.ApprovalStatus === 'Payment Sent').length;
+
+  const getDueDateTag = (item) => {
+    if (item.ApprovalStatus === 'Closed') return null;
+    if (!item.PaymentDueDate) return null;
+    
+    const due = new Date(item.PaymentDueDate);
+    const today = new Date();
+    const diffTime = due - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return <Text style={styles.overdueTag}>{Math.abs(diffDays)} days overdue</Text>;
+    } else {
+      return <Text style={styles.pendingTag}>{diffDays} days left</Text>;
+    }
+  };
   const renderItem = ({ item }) => {
     const isPaymentSent = item.ApprovalStatus === 'Payment Sent';
     const isPaymentPending = item.ApprovalStatus === 'Payment Pending' || item.ApprovalStatus === 'Overdue';
-    const isClosed = item.ApprovalStatus === 'Closed';
     const amount = item.FinalInvoicedAmount || item.EstimateAmt || 0;
 
     return (
@@ -128,7 +179,10 @@ export default function AccountantCredit() {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Due Date:</Text>
-            <Text style={styles.value}>{item.PaymentDueDate ? new Date(item.PaymentDueDate).toLocaleDateString() : 'N/A'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.value}>{item.PaymentDueDate ? new Date(item.PaymentDueDate).toLocaleDateString() : 'N/A'}</Text>
+              {getDueDateTag(item)}
+            </View>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Invoice Amount:</Text>
@@ -166,7 +220,18 @@ export default function AccountantCredit() {
               disabled={isSubmitting}
             >
               <CheckCircle size={16} color="white" />
-              <Text style={styles.actionBtnText}>Verify</Text>
+              <Text style={styles.actionBtnText}>Verify & Close</Text>
+            </TouchableOpacity>
+          )}
+
+          {isPaymentPending && (
+            <TouchableOpacity 
+              style={styles.actionBtnPrimary}
+              onPress={() => handleVerifyPayment(item.OrdID)}
+              disabled={isSubmitting}
+            >
+              <CheckCircle size={16} color="white" />
+              <Text style={styles.actionBtnText}>Confirm</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -182,14 +247,47 @@ export default function AccountantCredit() {
     );
   }
 
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
-  const paginatedOrders = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Active Credit & Payments</Text>
-        <Text style={styles.subtitle}>Verify payments and manage active credit lines.</Text>
+        <Text style={styles.title}>Credit Cycles</Text>
+        <Text style={styles.subtitle}>Tracking overdue and pending payments.</Text>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Total Outstanding</Text>
+          <Text style={styles.statValueOutstanding}>₹{totalOutstanding.toLocaleString()}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Awaiting Verification</Text>
+          <Text style={styles.statValueWarning}>{awaitingVerificationCount}</Text>
+        </View>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <SearchFilter 
+          value={searchTerm} 
+          onChange={setSearchTerm} 
+          placeholder="Search by Order ID or Customer" 
+        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          <DateRangeFilter 
+            startDate={dateRange.startDate} 
+            endDate={dateRange.endDate} 
+            onDateChange={setDateRange} 
+            onClear={() => setDateRange({ startDate: '', endDate: '' })} 
+          />
+          <LocationFilter 
+            value={location} 
+            onChange={setLocation} 
+            locations={uniqueLocations} 
+          />
+          <ExportButton data={filteredOrders} filename="Active_Credit" sheetName="Credit" />
+        </ScrollView>
       </View>
 
       <FlatList
@@ -240,16 +338,18 @@ export default function AccountantCredit() {
 
       {/* View Receipt Modal */}
       {viewReceiptUrl && (
-        <Modal transparent animationType="fade" visible={!!viewReceiptUrl} onRequestClose={() => setViewReceiptUrl(null)}>
+        <Modal transparent animationType="fade" visible={!!viewReceiptUrl} onRequestClose={() => { setViewReceiptUrl(null); setReceiptRotation(0); }}>
           <View style={styles.fullModalOverlay}>
-            <TouchableOpacity style={styles.closeFullBtn} onPress={() => setViewReceiptUrl(null)}>
+            <TouchableOpacity style={styles.closeFullBtn} onPress={() => { setViewReceiptUrl(null); setReceiptRotation(0); }}>
               <X size={28} color="white" />
             </TouchableOpacity>
-            <Image 
-              source={{ uri: viewReceiptUrl }} 
-              style={styles.fullImage} 
-              resizeMode="contain"
-            />
+            <TouchableOpacity activeOpacity={1} onPress={() => setReceiptRotation(prev => prev + 90)} style={{ flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+              <Image 
+                source={{ uri: viewReceiptUrl }} 
+                style={[styles.fullImage, { transform: [{ rotate: `${receiptRotation}deg` }] }]} 
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
         </Modal>
       )}
@@ -263,7 +363,14 @@ const styles = StyleSheet.create({
   header: { padding: 16, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   title: { fontSize: 20, fontWeight: '700', color: '#1A1A1A' },
   subtitle: { fontSize: 14, color: '#64748B', marginTop: 4 },
-  listContent: { padding: 16 },
+  statsContainer: { flexDirection: 'row', padding: 16, gap: 12, backgroundColor: '#F8FAFC' },
+  statBox: { flex: 1, backgroundColor: 'white', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  statLabel: { fontSize: 13, color: '#64748B', marginBottom: 4 },
+  statValueOutstanding: { fontSize: 20, fontWeight: 'bold', color: '#EF4444' },
+  statValueWarning: { fontSize: 20, fontWeight: 'bold', color: '#F59E0B' },
+  filtersContainer: { paddingHorizontal: 16, paddingBottom: 16, backgroundColor: '#F8FAFC', gap: 12 },
+  filterScroll: { gap: 12, paddingBottom: 4 },
+  listContent: { padding: 16, paddingTop: 0 },
   card: { backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   orderId: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
@@ -272,6 +379,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { fontSize: 14, color: '#64748B' },
   value: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
+  overdueTag: { fontSize: 12, fontWeight: '600', color: '#EF4444', backgroundColor: '#FEE2E2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  pendingTag: { fontSize: 12, fontWeight: '600', color: '#F59E0B', backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   amountValue: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
   cardFooter: { borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between' },
   actionBtnOutline: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#3B82F6', gap: 8 },

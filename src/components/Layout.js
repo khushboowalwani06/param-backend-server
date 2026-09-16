@@ -136,12 +136,12 @@ export default function Layout() {
 
       {isAccountant && (
         <>
-          <Drawer.Screen name="accountant/queue" component={AccountantQueue} options={{ drawerLabel: 'Pending Invoice', title: 'Pending Invoice' }} />
-          <Drawer.Screen name="accountant/verify" component={AccountantCredit} options={{ drawerLabel: 'Verify Payments', title: 'Verify Payments' }} />
-          <Drawer.Screen name="accountant/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Retailers Directory', title: 'Retailers Directory' }} />
-          <Drawer.Screen name="accountant/credit" component={AccountantCredit} options={{ drawerLabel: 'Active Credit', title: 'Active Credit' }} />
+          <Drawer.Screen name="accountant/queue" component={AccountantQueue} options={{ drawerLabel: 'Pending Invoices', title: 'Pending Invoices' }} />
+          <Drawer.Screen name="accountant/credit" component={AccountantCredit} options={{ drawerLabel: 'Credit Cycles', title: 'Credit Cycles' }} />
           <Drawer.Screen name="accountant/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: 'All Invoices', title: 'All Invoices' }} />
-          <Drawer.Screen name="accountant/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
+          
+          <Drawer.Screen name="accountant/retailers" component={RetailersDirectory} options={{ drawerItemStyle: { display: 'none' }, title: 'Retailers Directory' }} />
+          <Drawer.Screen name="accountant/aging" component={CustomerAging} options={{ drawerItemStyle: { display: 'none' }, title: 'Customer Ageing' }} />
         </>
       )}
     </Drawer.Navigator>
