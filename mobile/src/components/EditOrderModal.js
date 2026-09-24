@@ -5,8 +5,10 @@ import { sheetsService } from '../services/sheetsService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Picker } from '@react-native-picker/picker';
+import { useLanguage } from '../context/LanguageContext';
 
 export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visible = true }) => {
+  const { t } = useLanguage();
   const { success, error } = useToast();
   
   const [formData, setFormData] = useState({
@@ -86,7 +88,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
 
       {inline && (
         <View style={styles.inlineHeader}>
-          <Text style={styles.inlineTitle}>Edit Mode</Text>
+          <Text style={styles.inlineTitle}>{t('Edit Mode')}</Text>
           <TouchableOpacity onPress={onClose}>
             <X size={18} color="#64748b" />
           </TouchableOpacity>
@@ -95,7 +97,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
 
       <ScrollView style={styles.formContainer}>
         <View style={styles.field}>
-          <Text style={styles.label}>Product Type</Text>
+          <Text style={styles.label}>{t('Product Type')}</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={formData.Product}
@@ -113,7 +115,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
 
         <View style={styles.row}>
           <View style={[styles.field, { flex: 1 }]}>
-            <Text style={styles.label}>Quantity</Text>
+            <Text style={styles.label}>{t('Quantity')}</Text>
             <TextInput
               style={styles.input}
               value={formData.EstimateQty}
@@ -122,7 +124,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
             />
           </View>
           <View style={[styles.field, { flex: 1 }]}>
-            <Text style={styles.label}>Unit</Text>
+            <Text style={styles.label}>{t('Unit')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={formData.Unit}
@@ -137,7 +139,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Unit Price (₹)</Text>
+          <Text style={styles.label}>{t('Unit Price (₹)')}</Text>
           <TextInput
             style={styles.input}
             value={formData.UnitPrice}
@@ -147,7 +149,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Estimate Amount (₹)</Text>
+          <Text style={styles.label}>{t('Estimate Amount (₹)')}</Text>
           <View style={styles.calcRow}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
@@ -157,7 +159,7 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
             />
             <TouchableOpacity style={styles.calcBtn} onPress={calculateAmount}>
               <Calculator size={16} color="#475569" />
-              <Text style={styles.calcText}>Auto Calculate</Text>
+              <Text style={styles.calcText}>{t('Auto Calculate')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -165,11 +167,11 @@ export const EditOrderModal = ({ order, onClose, onUpdate, inline = false, visib
         <View style={styles.actions}>
           {!inline && (
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{t('Cancel')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.saveBtn} onPress={handleSubmit}>
-            <Text style={styles.saveText}>Save Changes</Text>
+            <Text style={styles.saveText}>{t('Save Changes')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

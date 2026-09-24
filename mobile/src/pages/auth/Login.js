@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react-native';
 import Svg, { Line, Rect, Circle, G } from 'react-native-svg';
+import { useLanguage } from '../../context/LanguageContext';
 
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 
@@ -117,6 +118,7 @@ const SchematicTower = ({ x, width, maxHeight, startProg, progressCount, label }
 };
 
 export default function Login() {
+  const { t } = useLanguage();
   const { login } = useAuth();
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
@@ -137,6 +139,7 @@ export default function Login() {
 
   useEffect(() => {
     const countInterval = setInterval(() => {
+  const { t } = useLanguage();
       setProgressCount(prev => {
         if (prev >= 100) {
           clearInterval(countInterval);
@@ -184,6 +187,7 @@ export default function Login() {
   }, []);
 
   const handleSubmit = async () => {
+  const { t } = useLanguage();
     if (loadingRef.current) return;
     loadingRef.current = true;
     setLoading(true);
@@ -230,10 +234,10 @@ export default function Login() {
         <View style={styles.card}>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Text style={{fontWeight: '900', fontSize: 24, letterSpacing: -1, color: '#1A1A1A'}}>PM</Text>
+              <Text style={{fontWeight: '900', fontSize: 24, letterSpacing: -1, color: '#1A1A1A'}}>{t('PM')}</Text>
             </View>
-            <Text style={styles.title}>PARAM MARKETING</Text>
-            <Text style={styles.subtitle}>Param Distributor Management</Text>
+            <Text style={styles.title}>{t('PARAM MARKETING')}</Text>
+            <Text style={styles.subtitle}>{t('Param Distributor Management')}</Text>
           </View>
 
           <View style={styles.form}>
@@ -245,7 +249,7 @@ export default function Login() {
             ) : null}
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email or Customer ID</Text>
+              <Text style={styles.label}>{t('Email or Customer ID')}</Text>
               <View style={styles.inputWrapper}>
                 <Mail size={18} color="#94A3B8" style={styles.inputIcon} />
                 <TextInput
@@ -260,7 +264,7 @@ export default function Login() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t('Password')}</Text>
               <View style={styles.inputWrapper}>
                 <Lock size={18} color="#94A3B8" style={styles.inputIcon} />
                 <TextInput

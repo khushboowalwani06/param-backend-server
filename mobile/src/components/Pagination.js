@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const { t } = useLanguage();
   if (totalPages <= 1) return null;
 
   return (
@@ -13,7 +15,7 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === 1}
       >
         <ChevronLeft size={16} color={currentPage === 1 ? '#C7C7CC' : '#1A1A1A'} />
-        <Text style={[styles.buttonText, currentPage === 1 && styles.buttonTextDisabled]}>Previous</Text>
+        <Text style={[styles.buttonText, currentPage === 1 && styles.buttonTextDisabled]}>{t('Previous')}</Text>
       </TouchableOpacity>
       
       <Text style={styles.pageText}>
@@ -25,7 +27,7 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         onPress={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        <Text style={[styles.buttonText, currentPage === totalPages && styles.buttonTextDisabled]}>Next</Text>
+        <Text style={[styles.buttonText, currentPage === totalPages && styles.buttonTextDisabled]}>{t('Next')}</Text>
         <ChevronRight size={16} color={currentPage === totalPages ? '#C7C7CC' : '#1A1A1A'} />
       </TouchableOpacity>
     </View>

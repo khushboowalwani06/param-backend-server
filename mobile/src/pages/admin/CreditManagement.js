@@ -9,10 +9,12 @@ import { CardSkeleton } from '../../components/Skeleton';
 import { ExportButton } from '../../components/ExportButton';
 import { Pagination } from '../../components/Pagination';
 import { Picker } from '@react-native-picker/picker';
+import { useLanguage } from '../../context/LanguageContext';
 
 const isTrue = (val) => val === true || val === 'true';
 
 export const CreditManagement = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { success, error } = useToast();
   const [customers, setCustomers] = useState([]);
@@ -23,15 +25,15 @@ export const CreditManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  useRealtime(['users'], () => setRefreshKey(k => k + 1));
+  useRealtime(['users'], () => setRefreshKey((k) => k + 1));
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
       const data = await sheetsService.getAllUsers(user);
-      setCustomers(data.filter(u => u.Role === 'customer' || u.Role === 'dealer'));
+      setCustomers(data.filter((u) => u.Role === 'customer' || u.Role === 'dealer'));
     } catch (err) {
-      error('Failed to load customers');
+      error(t("Failed to load customers"));
     } finally {
       setLoading(false);
     }
@@ -47,33 +49,33 @@ export const CreditManagement = () => {
 
   const handleUpdate = async (customerId, field, value) => {
     if (field === 'CreditLimit' && Number(value) < 0) {
-      Alert.alert('Error', 'Credit limit cannot be negative.');
+      Alert.alert(t("Error"), t("Credit limit cannot be negative."));
       loadCustomers();
       return;
     }
 
-    const currentCustomer = customers.find(c => c.UserID === customerId);
+    const currentCustomer = customers.find((c) => c.UserID === customerId);
     if (currentCustomer && currentCustomer[field] === value) {
       return; // Value hasn't changed, ignore
     }
 
     if (updatingIds.has(customerId)) return;
-    setUpdatingIds(prev => new Set(prev).add(customerId));
+    setUpdatingIds((prev) => new Set(prev).add(customerId));
 
-    setCustomers(prev => prev.map(c =>
-      c.UserID === customerId ? { ...c, [field]: value } : c
+    setCustomers((prev) => prev.map((c) =>
+    c.UserID === customerId ? { ...c, [field]: value } : c
     ));
 
     try {
       await sheetsService.updateCustomerLimits(user, customerId, { [field]: value });
       success(`Successfully updated ${field}`);
       const data = await sheetsService.getAllUsers(user);
-      setCustomers(data.filter(u => u.Role === 'customer' || u.Role === 'dealer'));
+      setCustomers(data.filter((u) => u.Role === 'customer' || u.Role === 'dealer'));
     } catch (err) {
       error(`Failed to update ${field}`);
       loadCustomers();
     } finally {
-      setUpdatingIds(prev => {
+      setUpdatingIds((prev) => {
         const next = new Set(prev);
         next.delete(customerId);
         return next;
@@ -93,13 +95,13 @@ export const CreditManagement = () => {
     }
   };
 
-  const filteredCustomers = customers.filter(c => {
+  const filteredCustomers = customers.filter((c) => {
     const term = searchTerm.toLowerCase();
     return (
       c.Name?.toLowerCase().includes(term) ||
       c.Company?.toLowerCase().includes(term) ||
-      c.UserID?.toLowerCase().includes(term)
-    );
+      c.UserID?.toLowerCase().includes(term));
+
   });
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -110,18 +112,18 @@ export const CreditManagement = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Credit & Account Management</Text>
+        <Text style={styles.headerTitle}>{t('Credit & Account Management')}</Text>
         <View style={styles.actionsRow}>
-          <View style={{ flex: 1, minWidth: 200 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search customers..." /></View>
+          <View style={{ flex: 1, minWidth: 200 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder={t("Search customers...")} /></View>
           <ExportButton data={filteredCustomers} filename="CreditManagement" />
           <TouchableOpacity style={styles.sweepBtn} onPress={handleSweep}>
-            <Text style={styles.sweepText}>Issue Overdue Penalties</Text>
+            <Text style={styles.sweepText}>{t('Issue Overdue Penalties')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.content}>
-        {paginatedCustomers.map(c => {
+        {paginatedCustomers.map((c) => {
           const isBlocked = (isTrue(c.BlockedStatus) || Number(c.Bkt21_Above) > 0) && !isTrue(c.ManualUnlock);
           const isUpdating = updatingIds.has(c.UserID);
 
@@ -132,98 +134,98 @@ export const CreditManagement = () => {
               <View style={styles.cardHeader}>
                 <View style={{ flex: 1, paddingRight: 8 }}>
                   <Text style={styles.custName} numberOfLines={1}>{c.Name}</Text>
-                  <Text style={styles.custCompany} numberOfLines={1}>{c.Company} (ID: {c.UserID})</Text>
+                  <Text style={styles.custCompany} numberOfLines={1}>{c.Company} {t("(ID:")} {c.UserID})</Text>
                 </View>
                 <View style={[styles.statusBadge, isBlocked ? styles.statusBlocked : styles.statusActive]}>
                   <Text style={[styles.statusText, isBlocked ? styles.statusTextBlocked : styles.statusTextActive]}>
-                    {isBlocked ? 'Blocked' : 'Active'}
+                    {isBlocked ? t("Blocked") : t("Active")}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.grid}>
                 <View style={styles.gridItem}>
-                  <Text style={styles.label}>Segment</Text>
+                  <Text style={styles.label}>{t('Segment')}</Text>
                   <View style={styles.pickerWrapper}>
                     <Picker
-                      selectedValue={c.Segment || 'Trade'}
+                      selectedValue={c.Segment || t("Trade")}
                       onValueChange={(val) => handleUpdate(c.UserID, 'Segment', val)}
                       enabled={!isUpdating}
-                      style={styles.picker}
-                    >
-                      <Picker.Item label="Trade" value="Trade" />
-                      <Picker.Item label="Non-Trade" value="Non-Trade" />
+                      style={styles.picker}>
+                      
+                      <Picker.Item label={t("Trade")} value={t("Trade")} />
+                      <Picker.Item label={t("Non-Trade")} value={t("Non-Trade")} />
                     </Picker>
                   </View>
                 </View>
 
                 <View style={styles.gridItem}>
-                  <Text style={styles.label}>Non-Trade Access</Text>
+                  <Text style={styles.label}>{t('Non-Trade Access')}</Text>
                   <View style={{ height: 40, justifyContent: 'center', alignItems: 'flex-start' }}>
                     <Switch
                       value={isTrue(c.NonTradeActivated)}
                       onValueChange={(val) => handleUpdate(c.UserID, 'NonTradeActivated', val)}
                       disabled={isUpdating}
-                      trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                    />
+                      trackColor={{ false: '#E5E5EA', true: '#34C759' }} />
+                    
                   </View>
                 </View>
 
                 <View style={styles.gridItem}>
-                  <Text style={styles.label}>Credit Limit (₹)</Text>
+                  <Text style={styles.label}>{t('Credit Limit (₹)')}</Text>
                   <TextInput
                     style={styles.input}
                     defaultValue={String(c.CreditLimit || 0)}
                     onEndEditing={(e) => handleUpdate(c.UserID, 'CreditLimit', e.nativeEvent.text)}
                     keyboardType="numeric"
-                    editable={!isUpdating}
-                  />
+                    editable={!isUpdating} />
+                  
                 </View>
 
                 <View style={styles.gridItem}>
-                  <Text style={styles.label}>Allowed Days</Text>
+                  <Text style={styles.label}>{t('Allowed Days')}</Text>
                   <TextInput
                     style={styles.input}
                     defaultValue={String(c.AllowedPaymentDays || 21)}
                     onEndEditing={(e) => handleUpdate(c.UserID, 'AllowedPaymentDays', e.nativeEvent.text)}
                     keyboardType="numeric"
-                    editable={!isUpdating}
-                  />
+                    editable={!isUpdating} />
+                  
                 </View>
 
                 <View style={styles.gridItem}>
-                  <Text style={styles.label}>Outstanding</Text>
+                  <Text style={styles.label}>{t('Outstanding')}</Text>
                   <Text style={styles.outAmt}>₹ {c.OutstandingAmount || 0}</Text>
                 </View>
               </View>
 
               <View style={styles.actions}>
-                {isBlocked ? (
-                  <TouchableOpacity style={styles.unlockBtn} onPress={() => handleUpdate(c.UserID, 'ManualUnlock', true)}>
-                    <Text style={styles.unlockText}>Unlock Account</Text>
-                  </TouchableOpacity>
-                ) : isTrue(c.ManualUnlock) ? (
-                  <TouchableOpacity style={styles.revokeBtn} onPress={() => handleUpdate(c.UserID, 'ManualUnlock', false)}>
-                    <Text style={styles.revokeText}>Revoke Unlock</Text>
-                  </TouchableOpacity>
-                ) : null}
+                {isBlocked ?
+                <TouchableOpacity style={styles.unlockBtn} onPress={() => handleUpdate(c.UserID, 'ManualUnlock', true)}>
+                    <Text style={styles.unlockText}>{t('Unlock Account')}</Text>
+                  </TouchableOpacity> :
+                isTrue(c.ManualUnlock) ?
+                <TouchableOpacity style={styles.revokeBtn} onPress={() => handleUpdate(c.UserID, 'ManualUnlock', false)}>
+                    <Text style={styles.revokeText}>{t('Revoke Unlock')}</Text>
+                  </TouchableOpacity> :
+                null}
               </View>
-            </View>
-          );
+            </View>);
+
         })}
 
-        {filteredCustomers.length === 0 && (
-          <View style={{ padding: 40, alignItems: 'center' }}>
-            <Text style={{ color: '#8E8E93' }}>No customers found.</Text>
+        {filteredCustomers.length === 0 &&
+        <View style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ color: '#8E8E93' }}>{t('No customers found.')}</Text>
           </View>
-        )}
+        }
 
-        {filteredCustomers.length > 0 && (
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        )}
+        {filteredCustomers.length > 0 &&
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        }
       </View>
-    </ScrollView>
-  );
+    </ScrollView>);
+
 };
 
 const styles = StyleSheet.create({

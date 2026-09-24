@@ -6,10 +6,12 @@ import { Download, ArrowRight, CheckCircle2, Circle, Calendar, User, Phone, Mail
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
+import { useLanguage } from '../../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function CustomerOverview() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [orders, setOrders] = useState([]);
@@ -47,20 +49,20 @@ export default function CustomerOverview() {
     if (user?.AssignedSalesRep) {
       sheetsService.getBasicUserProfile(user.AssignedSalesRep).then(rep => {
         if (rep && rep.name) setSalesRepName(rep.name);
-      }).catch(() => {});
+      }).catch(() => { });
     }
-    
+
     if (sheetsService.fetchAdminContact) {
       sheetsService.fetchAdminContact()
         .then(res => { if (res && res.name) setAdminName(res.name); })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     if (user?.UserID) {
       if (sheetsService.getCustomerRewards) {
         sheetsService.getCustomerRewards(user.UserID).then(data => {
           setRewards(data);
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
   }, [user, refreshKey]);
@@ -85,12 +87,12 @@ export default function CustomerOverview() {
   const totalCreditLimit = Number(realtimeUser?.CreditLimit) || 0;
   const outstandingBalance = Number(realtimeUser?.OutstandingAmount) || 0;
   const availableBalance = totalCreditLimit - outstandingBalance;
-  
+
   const duePayments = filteredOrders.filter(o => o.PaymentDueDate && !o.ApprovalStatus.includes('Closed') && !o.ApprovalStatus.includes('Payment Sent'));
   const overdueCount = duePayments.filter(o => differenceInDays(new Date(o.PaymentDueDate), new Date()) < 0).length;
   const dueTodayCount = duePayments.filter(o => differenceInDays(new Date(o.PaymentDueDate), new Date()) === 0).length;
   const creditUsedPct = totalCreditLimit > 0 ? Math.round((outstandingBalance / totalCreditLimit) * 100) : 0;
-  
+
   const campaignOrders = orders; // simplified date logic for rewards tracking for now
   const campaignTons = campaignOrders.reduce((total, o) => {
     if (!o.ApprovalStatus || o.ApprovalStatus.includes('Rejected') || o.ApprovalStatus === 'Draft') return total;
@@ -112,7 +114,7 @@ export default function CustomerOverview() {
   };
 
   // --- BAR CHART ---
-  const pastDays = Array.from({length: chartDays}, (_, i) => {
+  const pastDays = Array.from({ length: chartDays }, (_, i) => {
     const d = subDays(new Date(), (chartDays - 1) - i);
     return { date: format(d, 'yyyy-MM-dd'), label: format(d, 'EEEEEE') };
   });
@@ -136,7 +138,7 @@ export default function CustomerOverview() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.greeting}>Hi, {user?.Name || 'Customer'}!</Text>
@@ -190,8 +192,8 @@ export default function CustomerOverview() {
             const hTons = (d.tons / maxVolume) * 100;
             const hBags = (d.bags / maxVolume) * 100;
             return (
-              <TouchableOpacity 
-                key={i} 
+              <TouchableOpacity
+                key={i}
                 style={styles.chartCol}
                 onPress={() => setActiveTooltip(activeTooltip === i ? null : i)}
                 activeOpacity={0.8}
@@ -259,7 +261,7 @@ export default function CustomerOverview() {
       {/* Support Contacts */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Support Contacts</Text>
-        
+
         <View style={styles.contactRow}>
           <View style={styles.contactIconBg}>
             <User size={18} color="#1A1A1A" />
@@ -300,7 +302,7 @@ export default function CustomerOverview() {
             <Text style={[styles.limitValue, { color: '#1A1A1A' }]}>{formatCompact(campaignTons)}</Text>
           </View>
         </View>
-        
+
         <Text style={styles.progressLabel}>Target 1 Progress ({tons1Pct}%)</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${tons1Pct}%`, backgroundColor: '#8E8E93' }]} />
@@ -311,16 +313,16 @@ export default function CustomerOverview() {
           <View style={[styles.progressBarFill, { width: `${tons2Pct}%`, backgroundColor: '#1A1A1A' }]} />
         </View>
       </TouchableOpacity>
-      
+
       {/* Date Filter Modal */}
       <Modal visible={showDatePicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Date Range</Text>
             {[3, 7, 10, 30].map(days => (
-              <TouchableOpacity 
-                key={days} 
-                style={[styles.modalOption, chartDays === days && styles.modalOptionActive]} 
+              <TouchableOpacity
+                key={days}
+                style={[styles.modalOption, chartDays === days && styles.modalOptionActive]}
                 onPress={() => { setChartDays(days); setShowDatePicker(false); }}
               >
                 <Text style={[styles.modalOptionText, chartDays === days && styles.modalOptionTextActive]}>
@@ -372,7 +374,7 @@ const styles = StyleSheet.create({
   progressBarFill: { height: '100%', borderRadius: 6 },
   utilizationText: { color: '#FFF', fontSize: 16, fontWeight: '700', textAlign: 'center', marginTop: 16 },
   chartContainer: { height: 120, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 20, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingBottom: 8 },
-  chartCol: { alignItems: 'center', width: `${100/7}%`, height: '100%' },
+  chartCol: { alignItems: 'center', width: `${100 / 7}%`, height: '100%' },
   barsArea: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', height: '80%', width: '100%', gap: 2 },
   bar: { width: 8, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
   barTons: { backgroundColor: '#1A1A1A' },

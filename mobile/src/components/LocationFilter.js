@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 import { MapPin, ChevronDown, X } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 export const LocationFilter = ({ value, onChange, locations = [] }) => {
+  const { t } = useLanguage();
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -28,7 +30,7 @@ export const LocationFilter = ({ value, onChange, locations = [] }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Location</Text>
+              <Text style={styles.modalTitle}>{t('Select Location')}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)} hitSlop={{top:10, bottom:10, left:10, right:10}}>
                 <X size={20} color="#1A1A1A" />
               </TouchableOpacity>

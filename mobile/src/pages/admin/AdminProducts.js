@@ -10,8 +10,10 @@ import { CardSkeleton } from '../../components/Skeleton';
 import { ExportButton } from '../../components/ExportButton';
 import { useRealtime } from '../../hooks/useRealtime';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const AdminProducts = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ export const AdminProducts = () => {
   const isSubmittingRef = useRef(false);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [activePricingMode, setActivePricingMode] = useState('Trade');
+  const [activePricingMode, setActivePricingMode] = useState(t("Trade"));
 
   const [newProductName, setNewProductName] = useState('');
   const [newProductGrade, setNewProductGrade] = useState('');
@@ -42,7 +44,7 @@ export const AdminProducts = () => {
 
   const [isImporting, setIsImporting] = useState(false);
 
-  useRealtime(['products'], () => setRefreshKey(k => k + 1));
+  useRealtime(['products'], () => setRefreshKey((k) => k + 1));
 
   useEffect(() => {
     fetchProducts();
@@ -50,7 +52,7 @@ export const AdminProducts = () => {
   }, [refreshKey]);
 
   useEffect(() => {
-    const activeBase = zoneRates.find(r => r.grade === 'BASE' && r.type === activePricingMode);
+    const activeBase = zoneRates.find((r) => r.grade === 'BASE' && r.type === activePricingMode);
     setBasePrice(activeBase ? activeBase.formula : '');
   }, [activePricingMode, zoneRates]);
 
@@ -60,7 +62,7 @@ export const AdminProducts = () => {
       setProducts(data);
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to load products');
+      Alert.alert(t("Error"), t("Failed to load products"));
     } finally {
       setLoading(false);
       setCurrentPage(1);
@@ -82,9 +84,9 @@ export const AdminProducts = () => {
     setIsSavingMappings(true);
     try {
       await sheetsService.saveZoneMappings(zoneMappings);
-      Alert.alert('Success', 'Zone mappings saved successfully');
+      Alert.alert(t("Success"), t("Zone mappings saved successfully"));
     } catch (err) {
-      Alert.alert('Error', 'Failed to save mappings');
+      Alert.alert(t("Error"), t("Failed to save mappings"));
     } finally {
       setIsSavingMappings(false);
     }
@@ -94,7 +96,7 @@ export const AdminProducts = () => {
     try {
       const res = await DocumentPicker.getDocumentAsync({
         type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
-        copyToCacheDirectory: true,
+        copyToCacheDirectory: true
       });
 
       if (res.canceled) return;
@@ -143,20 +145,20 @@ export const AdminProducts = () => {
       if (rates.length === 0) throw new Error("No valid rates found in sheet");
 
       await sheetsService.uploadZoneRates(rates, activePricingMode);
-      Alert.alert('Success', `Successfully imported ${rates.length} ${activePricingMode} zone logic rules!`);
+      Alert.alert(t("Success"), `Successfully imported ${rates.length} ${activePricingMode} zone logic rules!`);
       fetchRates();
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', `Failed to import zone rates: ${err.message}`);
+      Alert.alert(t("Error"), `Failed to import zone rates: ${err.message}`);
     } finally {
       setIsImporting(false);
     }
   };
 
   const handleAddSubmit = async () => {
-    if (!newProductName.trim()) return Alert.alert('Error', 'Product Name is required.');
+    if (!newProductName.trim()) return Alert.alert(t("Error"), t("Product Name is required."));
     if (isSubmittingRef.current) return;
-    isSubmittingRef.current = true; setIsSubmitting(true);
+    isSubmittingRef.current = true;setIsSubmitting(true);
     try {
       const payload = {
         ProductID: `PRD-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -165,19 +167,19 @@ export const AdminProducts = () => {
       };
       await sheetsService.addProduct(user, payload);
       setIsAdding(false);
-      setNewProductName(''); setNewProductGrade('');
+      setNewProductName('');setNewProductGrade('');
       await fetchProducts();
     } catch (err) {
-      Alert.alert('Error', 'Failed to add product');
+      Alert.alert(t("Error"), t("Failed to add product"));
     } finally {
-      isSubmittingRef.current = false; setIsSubmitting(false);
+      isSubmittingRef.current = false;setIsSubmitting(false);
     }
   };
 
   const startEditing = (product) => {
     setEditingId(product.ProductID);
     setEditProductName(product.ProductName);
-    if (activePricingMode === 'Trade') {
+    if (activePricingMode === t("Trade")) {
       setEditBagPrice(String(product.BagPrice || ''));
       setEditTonPrice(String(product.TonPrice || ''));
     } else {
@@ -187,54 +189,54 @@ export const AdminProducts = () => {
   };
 
   const handleEditSubmit = async (id) => {
-    if (!editProductName.trim()) return Alert.alert('Error', 'Product Name is required.');
+    if (!editProductName.trim()) return Alert.alert(t("Error"), t("Product Name is required."));
     if (isSubmittingRef.current) return;
-    isSubmittingRef.current = true; setIsSubmitting(true);
+    isSubmittingRef.current = true;setIsSubmitting(true);
     try {
       const payload = { ProductName: editProductName.trim() };
-      if (activePricingMode === 'Trade') {
-        payload.BagPrice = Number(editBagPrice); payload.TonPrice = Number(editTonPrice);
+      if (activePricingMode === t("Trade")) {
+        payload.BagPrice = Number(editBagPrice);payload.TonPrice = Number(editTonPrice);
       } else {
-        payload.NonTradeBagPrice = Number(editBagPrice); payload.NonTradeTonPrice = Number(editTonPrice);
+        payload.NonTradeBagPrice = Number(editBagPrice);payload.NonTradeTonPrice = Number(editTonPrice);
       }
       await sheetsService.updateProduct(user, id, payload);
       setEditingId(null);
       await fetchProducts();
     } catch (err) {
-      Alert.alert('Error', 'Failed to update product');
+      Alert.alert(t("Error"), t("Failed to update product"));
     } finally {
-      isSubmittingRef.current = false; setIsSubmitting(false);
+      isSubmittingRef.current = false;setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    Alert.alert('Confirm', 'Are you sure you want to delete this product?', [
-      { text: 'Cancel' },
-      {
-        text: 'Delete', style: 'destructive', onPress: async () => {
-          isSubmittingRef.current = true; setIsSubmitting(true);
-          try {
-            await sheetsService.deleteProduct(user, id);
-            await fetchProducts();
-          } catch (err) {
-            Alert.alert('Error', 'Failed to delete product');
-          } finally {
-            isSubmittingRef.current = false; setIsSubmitting(false);
-          }
+    Alert.alert(t("Confirm"), t("Are you sure you want to delete this product?"), [
+    { text: 'Cancel' },
+    {
+      text: 'Delete', style: 'destructive', onPress: async () => {
+        isSubmittingRef.current = true;setIsSubmitting(true);
+        try {
+          await sheetsService.deleteProduct(user, id);
+          await fetchProducts();
+        } catch (err) {
+          Alert.alert(t("Error"), t("Failed to delete product"));
+        } finally {
+          isSubmittingRef.current = false;setIsSubmitting(false);
         }
       }
-    ]);
+    }]
+    );
   };
 
   const handleSaveBasePrice = async () => {
-    if (Number(basePrice) <= 0) return Alert.alert('Error', 'Base price must be greater than 0.');
+    if (Number(basePrice) <= 0) return Alert.alert(t("Error"), t("Base price must be greater than 0."));
     try {
       setIsSubmitting(true);
       await sheetsService.saveBasePrice(Number(basePrice), activePricingMode);
       await fetchRates();
-      Alert.alert('Success', 'Ahmedabad Base Price saved successfully!');
+      Alert.alert(t("Success"), t("Ahmedabad Base Price saved successfully!"));
     } catch (err) {
-      Alert.alert('Error', 'Failed to save base price');
+      Alert.alert(t("Error"), t("Failed to save base price"));
     } finally {
       setIsSubmitting(false);
     }
@@ -246,7 +248,7 @@ export const AdminProducts = () => {
       await sheetsService.updateZoneRateCell(rateId, { formula: String(newFormula).toUpperCase() });
       fetchRates();
     } catch (err) {
-      Alert.alert('Error', 'Failed to update formula');
+      Alert.alert(t("Error"), t("Failed to update formula"));
     }
   };
 
@@ -256,7 +258,7 @@ export const AdminProducts = () => {
       await sheetsService.updateZoneRateCell(rateId, { is_available: isAvailable });
       fetchRates();
     } catch (err) {
-      Alert.alert('Error', 'Failed to update availability');
+      Alert.alert(t("Error"), t("Failed to update availability"));
     }
   };
 
@@ -271,30 +273,30 @@ export const AdminProducts = () => {
       setNewGradeName('');
       setIsAddingGrade(false);
       fetchRates();
-    } catch (err) { 
-      Alert.alert('Error', 'Failed to add grade'); 
+    } catch (err) {
+      Alert.alert(t("Error"), t("Failed to add grade"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const deleteGrade = (grade) => {
-    Alert.alert('Confirm Delete', `Are you sure you want to delete the entire grade "${grade}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive', onPress: async () => {
-          try {
-            setIsSubmitting(true);
-            await sheetsService.deleteZoneRateGrade(grade, activePricingMode);
-            fetchRates();
-          } catch (err) {
-            Alert.alert('Error', 'Failed to delete grade');
-          } finally {
-            setIsSubmitting(false);
-          }
+    Alert.alert(t("Confirm Delete"), `Are you sure you want to delete the entire grade "${grade}"?`, [
+    { text: 'Cancel', style: 'cancel' },
+    {
+      text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          setIsSubmitting(true);
+          await sheetsService.deleteZoneRateGrade(grade, activePricingMode);
+          fetchRates();
+        } catch (err) {
+          Alert.alert(t("Error"), t("Failed to delete grade"));
+        } finally {
+          setIsSubmitting(false);
         }
       }
-    ]);
+    }]
+    );
   };
 
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
@@ -302,25 +304,25 @@ export const AdminProducts = () => {
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const activeRates = zoneRates.filter(r => r.type === activePricingMode && r.grade !== 'BASE');
-  const grades = Array.from(new Set(activeRates.map(r => r.grade)));
-  const zones = Array.from(new Set(activeRates.map(r => r.zone)));
+  const activeRates = zoneRates.filter((r) => r.type === activePricingMode && r.grade !== 'BASE');
+  const grades = Array.from(new Set(activeRates.map((r) => r.grade)));
+  const zones = Array.from(new Set(activeRates.map((r) => r.zone)));
 
   const DEFAULT_ZONES = ['Saurashtra', 'South Gujarat', 'Vadodara', 'North Gujarat', 'Ahmedabad & Anand,Kheda'];
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Inventory & Pricing</Text>
-        <Text style={styles.headerSub}>Manage the product catalog available for ordering.</Text>
+        <Text style={styles.headerTitle}>{t('Inventory & Pricing')}</Text>
+        <Text style={styles.headerSub}>{t('Manage the product catalog available for ordering.')}</Text>
 
         <View style={styles.actionRow}>
           <View style={styles.tabsRow}>
-            {['Trade', 'Non-Trade'].map(seg => (
-              <TouchableOpacity key={seg} onPress={() => setActivePricingMode(seg)} style={[styles.tabBtn, activePricingMode === seg && styles.tabBtnActive]}>
-                <Text style={[styles.tabText, activePricingMode === seg && styles.tabTextActive]}>{seg} Pricing</Text>
+            {[t("Trade"), t("Non-Trade")].map((seg) =>
+            <TouchableOpacity key={seg} onPress={() => setActivePricingMode(seg)} style={[styles.tabBtn, activePricingMode === seg && styles.tabBtnActive]}>
+                <Text style={[styles.tabText, activePricingMode === seg && styles.tabTextActive]}>{seg} {t("Pricing")}</Text>
               </TouchableOpacity>
-            ))}
+            )}
           </View>
           <View style={styles.headerActions}>
             <ExportButton data={products} filename="Products" />
@@ -337,151 +339,151 @@ export const AdminProducts = () => {
       </View>
 
       <View style={styles.content}>
-        {isAdding && (
-          <View style={styles.addForm}>
+        {isAdding &&
+        <View style={styles.addForm}>
             <View style={styles.formRow}>
-              <View style={styles.field}><Text style={styles.label}>Product Name</Text><TextInput style={styles.input} value={newProductName} onChangeText={setNewProductName} /></View>
-              <View style={styles.field}><Text style={styles.label}>Grade (optional)</Text><TextInput style={styles.input} value={newProductGrade} onChangeText={setNewProductGrade} /></View>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleAddSubmit} disabled={isSubmitting}><Text style={styles.saveText}>Save</Text></TouchableOpacity>
+              <View style={styles.field}><Text style={styles.label}>{t('Product Name')}</Text><TextInput style={styles.input} value={newProductName} onChangeText={setNewProductName} /></View>
+              <View style={styles.field}><Text style={styles.label}>{t('Grade (optional)')}</Text><TextInput style={styles.input} value={newProductGrade} onChangeText={setNewProductGrade} /></View>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleAddSubmit} disabled={isSubmitting}><Text style={styles.saveText}>{t('Save')}</Text></TouchableOpacity>
             </View>
           </View>
-        )}
+        }
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>{activePricingMode} Zone Rates Pricing Matrix</Text>
-          <Text style={styles.cardSub}>Set the Base Price (X) for Ahmedabad below. The matrix will automatically calculate prices for all other zones.</Text>
+          <Text style={styles.cardTitle}>{activePricingMode} {t("Zone Rates Pricing Matrix")}</Text>
+          <Text style={styles.cardSub}>{t('Set the Base Price (X) for Ahmedabad below. The matrix will automatically calculate prices for all other zones.')}</Text>
           <View style={styles.baseRow}>
             <View style={styles.field}>
-              <Text style={styles.label}>Ahmedabad Base Price (X)</Text>
-              <TextInput style={styles.input} value={basePrice} onChangeText={setBasePrice} keyboardType="numeric" placeholder="e.g. 300" />
+              <Text style={styles.label}>{t('Ahmedabad Base Price (X)')}</Text>
+              <TextInput style={styles.input} value={basePrice} onChangeText={setBasePrice} keyboardType="numeric" placeholder={t("e.g. 300")} />
             </View>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveBasePrice} disabled={isSubmitting}><Text style={styles.saveText}>Save Base Price</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveBasePrice} disabled={isSubmitting}><Text style={styles.saveText}>{t('Save Base Price')}</Text></TouchableOpacity>
           </View>
 
-          {activeRates.length > 0 && (
-            <ScrollView horizontal style={styles.tableScroll}>
+          {activeRates.length > 0 &&
+          <ScrollView horizontal style={styles.tableScroll}>
               <View>
                 <View style={[styles.tableRow, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, styles.headerCell, { width: 150 }]}>Grade</Text>
-                  {zones.map(z => <Text key={z} style={[styles.tableCell, styles.headerCell]}>{z}</Text>)}
+                  <Text style={[styles.tableCell, styles.headerCell, { width: 150 }]}>{t('Grade')}</Text>
+                  {zones.map((z) => <Text key={z} style={[styles.tableCell, styles.headerCell]}>{z}</Text>)}
                 </View>
-                {grades.map(grade => (
-                  <View key={grade} style={styles.tableRow}>
+                {grades.map((grade) =>
+              <View key={grade} style={styles.tableRow}>
                     <View style={[styles.tableCell, { width: 150, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                       <Text style={{ fontWeight: '600' }}>{grade}</Text>
                       <TouchableOpacity onPress={() => deleteGrade(grade)} disabled={isSubmitting}>
                         <Trash2 size={16} color="#dc2626" />
                       </TouchableOpacity>
                     </View>
-                    {zones.map(zone => {
-                      const rate = activeRates.find(r => r.grade === grade && r.zone === zone);
-                      let finalPrice = '-';
-                      if (rate && basePrice && rate.formula) {
-                        try {
-                          const formula = String(rate.formula).toUpperCase().replace(/X/g, Number(basePrice));
-                          // Safe eval workaround
-                          finalPrice = eval(formula);
-                        } catch (e) { finalPrice = 'Error'; }
-                      }
-                      const isAvail = rate?.is_available !== false;
-                      return (
-                        <View key={zone} style={[styles.tableCell, { backgroundColor: isAvail ? '#FFF' : '#F8F9FA' }]}>
+                    {zones.map((zone) => {
+                  const rate = activeRates.find((r) => r.grade === grade && r.zone === zone);
+                  let finalPrice = '-';
+                  if (rate && basePrice && rate.formula) {
+                    try {
+                      const formula = String(rate.formula).toUpperCase().replace(/X/g, Number(basePrice));
+                      // Safe eval workaround
+                      finalPrice = eval(formula);
+                    } catch (e) {finalPrice = 'Error';}
+                  }
+                  const isAvail = rate?.is_available !== false;
+                  return (
+                    <View key={zone} style={[styles.tableCell, { backgroundColor: isAvail ? '#FFF' : '#F8F9FA' }]}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <Text style={{ fontSize: 10, color: '#8E8E93' }}>Available</Text>
+                            <Text style={{ fontSize: 10, color: '#8E8E93' }}>{t('Available')}</Text>
                             <Switch value={isAvail} onValueChange={(val) => toggleAvailable(rate?.id, val)} style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }} />
                           </View>
                           <TextInput
-                            style={styles.formulaInput}
-                            defaultValue={rate?.formula || ''}
-                            onBlur={(e) => updateFormula(rate?.id, e.nativeEvent.text, rate?.formula)}
-                            placeholder="Formula"
-                          />
+                        style={styles.formulaInput}
+                        defaultValue={rate?.formula || ''}
+                        onBlur={(e) => updateFormula(rate?.id, e.nativeEvent.text, rate?.formula)}
+                        placeholder={t("Formula")} />
+                      
                           <View style={{ opacity: isAvail ? 1 : 0.4 }}>
                             <Text style={styles.priceLg}>{finalPrice !== '-' ? `₹ ${finalPrice}` : '-'}</Text>
-                            {finalPrice !== '-' && <Text style={styles.priceSm}>₹ {finalPrice * 20} / ton</Text>}
+                            {finalPrice !== '-' && <Text style={styles.priceSm}>₹ {finalPrice * 20} {t("/ ton")}</Text>}
                           </View>
-                        </View>
-                      );
-                    })}
+                        </View>);
+
+                })}
                   </View>
-                ))}
+              )}
                 <View style={{ padding: 12 }}>
-                  {isAddingGrade ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <TextInput 
-                        style={[styles.input, { flex: 1, maxWidth: 200 }]} 
-                        value={newGradeName} 
-                        onChangeText={setNewGradeName} 
-                        placeholder="Enter Grade (e.g. OPC53)" 
-                        autoFocus 
-                      />
+                  {isAddingGrade ?
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TextInput
+                    style={[styles.input, { flex: 1, maxWidth: 200 }]}
+                    value={newGradeName}
+                    onChangeText={setNewGradeName}
+                    placeholder={t("Enter Grade (e.g. OPC53)")}
+                    autoFocus />
+                  
                       <TouchableOpacity style={[styles.saveBtn, { paddingVertical: 8 }]} onPress={submitNewGrade} disabled={isSubmitting}>
-                        <Text style={styles.saveText}>Save</Text>
+                        <Text style={styles.saveText}>{t('Save')}</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={{ padding: 8 }} onPress={() => { setIsAddingGrade(false); setNewGradeName(''); }}>
+                      <TouchableOpacity style={{ padding: 8 }} onPress={() => {setIsAddingGrade(false);setNewGradeName('');}}>
                         <X size={20} color="#8E8E93" />
                       </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <TouchableOpacity style={styles.addGradeBtn} onPress={() => setIsAddingGrade(true)}>
+                    </View> :
+
+                <TouchableOpacity style={styles.addGradeBtn} onPress={() => setIsAddingGrade(true)}>
                       <Plus size={16} color="#1A1A1A" />
-                      <Text style={styles.addGradeText}>Add New Grade</Text>
+                      <Text style={styles.addGradeText}>{t('Add New Grade')}</Text>
                     </TouchableOpacity>
-                  )}
+                }
                 </View>
               </View>
             </ScrollView>
-          )}
+          }
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Product Overrides</Text>
-          <Text style={styles.cardSub}>If manual prices are set here, they will override the matrix calculations.</Text>
-          {paginatedProducts.map(p => {
+          <Text style={styles.cardTitle}>{t('Product Overrides')}</Text>
+          <Text style={styles.cardSub}>{t('If manual prices are set here, they will override the matrix calculations.')}</Text>
+          {paginatedProducts.map((p) => {
             const isEditing = editingId === p.ProductID;
-            let currentBagPrice = activePricingMode === 'Trade' ? p.BagPrice : p.NonTradeBagPrice;
-            let currentTonPrice = activePricingMode === 'Trade' ? p.TonPrice : p.NonTradeTonPrice;
+            let currentBagPrice = activePricingMode === t("Trade") ? p.BagPrice : p.NonTradeBagPrice;
+            let currentTonPrice = activePricingMode === t("Trade") ? p.TonPrice : p.NonTradeTonPrice;
 
             return (
               <View key={p.ProductID} style={styles.productRow}>
                 <View style={{ width: '100%' }}>
-                  {isEditing ? (
-                    <TextInput style={[styles.input, { marginBottom: 8 }]} value={editProductName} onChangeText={setEditProductName} />
-                  ) : (
-                    <>
+                  {isEditing ?
+                  <TextInput style={[styles.input, { marginBottom: 8 }]} value={editProductName} onChangeText={setEditProductName} /> :
+
+                  <>
                       <Text style={styles.prodName} numberOfLines={2} ellipsizeMode="tail">{p.ProductName}</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                         <Text style={styles.prodId}>{p.ProductID}</Text>
                         {p.Grade && <View style={styles.gradeBadge}><Text style={styles.gradeText}>{p.Grade}</Text></View>}
                       </View>
                     </>
-                  )}
+                  }
                 </View>
                 <View style={{ width: '100%', flexDirection: 'row', gap: 16, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                   <View>
-                    <Text style={styles.priceLabel}>Price / Bag</Text>
+                    <Text style={styles.priceLabel}>{t('Price / Bag')}</Text>
                     {isEditing ? <TextInput style={styles.editPrice} value={editBagPrice} onChangeText={setEditBagPrice} keyboardType="numeric" /> : <Text style={styles.priceVal}>₹ {currentBagPrice || '-'}</Text>}
                   </View>
                   <View>
-                    <Text style={styles.priceLabel}>Price / Ton</Text>
+                    <Text style={styles.priceLabel}>{t('Price / Ton')}</Text>
                     {isEditing ? <TextInput style={styles.editPrice} value={editTonPrice} onChangeText={setEditTonPrice} keyboardType="numeric" /> : <Text style={styles.priceVal}>₹ {currentTonPrice || '-'}</Text>}
                   </View>
                   <View style={{ width: 60, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                    {isEditing ? (
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity onPress={() => handleEditSubmit(p.ProductID)}><Text style={{ color: '#0284C7', fontWeight: '600' }}>Save</Text></TouchableOpacity>
+                    {isEditing ?
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity onPress={() => handleEditSubmit(p.ProductID)}><Text style={{ color: '#0284C7', fontWeight: '600' }}>{t('Save')}</Text></TouchableOpacity>
                         <TouchableOpacity onPress={() => setEditingId(null)}><X size={16} color="#8E8E93" /></TouchableOpacity>
-                      </View>
-                    ) : (
-                      <View style={{ flexDirection: 'row', gap: 12 }}>
+                      </View> :
+
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
                         <TouchableOpacity onPress={() => startEditing(p)}><Edit2 size={16} color="#8E8E93" /></TouchableOpacity>
                         <TouchableOpacity onPress={() => handleDelete(p.ProductID)}><Trash2 size={16} color="#EF4444" /></TouchableOpacity>
                       </View>
-                    )}
+                    }
                   </View>
                 </View>
-              </View>
-            );
+              </View>);
+
           })}
         </View>
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -489,8 +491,8 @@ export const AdminProducts = () => {
         <View style={styles.card}>
           <View style={styles.zoneConfigHeader}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Zone Configuration</Text>
-              <Text style={styles.cardSub}>Map districts to their respective zones. Separate multiple districts with a comma.</Text>
+              <Text style={styles.cardTitle}>{t('Zone Configuration')}</Text>
+              <Text style={styles.cardSub}>{t('Map districts to their respective zones. Separate multiple districts with a comma.')}</Text>
             </View>
             <TouchableOpacity style={styles.saveMappingsBtn} onPress={handleSaveMappings} disabled={isSavingMappings}>
               <Save size={16} color="#FFF" />
@@ -499,8 +501,8 @@ export const AdminProducts = () => {
           </View>
 
           <View style={styles.zoneMappingsGrid}>
-            {DEFAULT_ZONES.map(zone => {
-              const mapping = zoneMappings.find(m => m.zone === zone) || { zone, districts: '' };
+            {DEFAULT_ZONES.map((zone) => {
+              const mapping = zoneMappings.find((m) => m.zone === zone) || { zone, districts: '' };
               return (
                 <View key={zone} style={styles.mappingRow}>
                   <Text style={styles.mappingLabel}>{zone}</Text>
@@ -510,7 +512,7 @@ export const AdminProducts = () => {
                     value={mapping.districts}
                     onChangeText={(text) => {
                       const newMappings = [...zoneMappings];
-                      const idx = newMappings.findIndex(m => m.zone === zone);
+                      const idx = newMappings.findIndex((m) => m.zone === zone);
                       if (idx >= 0) {
                         newMappings[idx].districts = text;
                       } else {
@@ -518,17 +520,17 @@ export const AdminProducts = () => {
                       }
                       setZoneMappings(newMappings);
                     }}
-                    placeholder={`e.g. Rajkot, Jamnagar`}
-                  />
-                </View>
-              );
+                    placeholder={`e.g. Rajkot, Jamnagar`} />
+                  
+                </View>);
+
             })}
           </View>
         </View>
 
       </View>
-    </ScrollView>
-  );
+    </ScrollView>);
+
 };
 
 const styles = StyleSheet.create({

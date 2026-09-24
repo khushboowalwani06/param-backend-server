@@ -4,6 +4,7 @@ import { useWindowDimensions } from 'react-native';
 import CustomDrawerContent from './CustomDrawerContent';
 import HeaderRight from './HeaderRight';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // Admin Pages
 import { AdminOverview } from '../pages/admin/AdminOverview';
@@ -46,6 +47,7 @@ const Drawer = createDrawerNavigator();
 export default function Layout() {
   const { width } = useWindowDimensions();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const isLargeScreen = width >= 1024;
   const isAdmin = user?.Role === 'admin';
   const isSales = user?.Role === 'sales';
@@ -82,66 +84,65 @@ export default function Layout() {
     >
       {isAdmin && (
         <>
-          <Drawer.Screen name="admin/overview" component={AdminOverview} options={{ drawerLabel: 'Overview', title: 'Admin Overview' }} />
-          <Drawer.Screen name="admin/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Retailers Directory', title: 'Retailers Directory' }} />
-          <Drawer.Screen name="admin/orders" component={AllOrders} options={{ drawerLabel: 'All Orders', title: 'All Orders' }} />
-          <Drawer.Screen name="admin/products" component={AdminProducts} options={{ drawerLabel: 'Inventory & Pricing', title: 'Inventory & Pricing' }} />
-          <Drawer.Screen name="admin/team" component={AdminTeam} options={{ drawerLabel: 'Team', title: 'Team & Assignments' }} />
-          <Drawer.Screen name="admin/registrations" component={PendingRegistrations} options={{ drawerLabel: 'Pending Registrations', title: 'Pending Registrations' }} />
-          <Drawer.Screen name="admin/queue" component={AdminQueue} options={{ drawerLabel: 'Admin Queue', title: 'Admin Queue' }} />
-          <Drawer.Screen name="admin/challans" component={ChallanTracking} options={{ drawerLabel: 'Challan Tracking', title: 'Challan Tracking' }} />
-          <Drawer.Screen name="admin/credit" component={CreditManagement} options={{ drawerLabel: 'Credit Management', title: 'Credit Management' }} />
-          <Drawer.Screen name="admin/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: 'Place Order' }} />
-          <Drawer.Screen name="admin/documents" component={CustomerDocuments} options={{ drawerLabel: 'Customer Documents', title: 'Customer Documents' }} />
-          <Drawer.Screen name="admin/import" component={ImportData} options={{ drawerLabel: 'Import Data', title: 'Import Data' }} />
-          <Drawer.Screen name="admin/notes" component={OutstandingNotes} options={{ drawerLabel: 'Outstanding Notes', title: 'Outstanding Notes' }} />
+          <Drawer.Screen name="admin/overview" component={AdminOverview} options={{ drawerLabel: t('Overview'), title: t('Admin Overview') }} />
+          <Drawer.Screen name="admin/retailers" component={RetailersDirectory} options={{ drawerLabel: t('Retailers Directory'), title: t('Retailers Directory') }} />
+          <Drawer.Screen name="admin/orders" component={AllOrders} options={{ drawerLabel: t('All Orders'), title: t('All Orders') }} />
+          <Drawer.Screen name="admin/products" component={AdminProducts} options={{ drawerLabel: t('Inventory & Pricing'), title: t('Inventory & Pricing') }} />
+          <Drawer.Screen name="admin/team" component={AdminTeam} options={{ drawerLabel: t('Team'), title: t('Team & Assignments') }} />
+          <Drawer.Screen name="admin/registrations" component={PendingRegistrations} options={{ drawerLabel: t('Pending Registrations'), title: t('Pending Registrations') }} />
+          <Drawer.Screen name="admin/queue" component={AdminQueue} options={{ drawerLabel: t('Admin Queue'), title: t('Admin Queue') }} />
+          <Drawer.Screen name="admin/challans" component={ChallanTracking} options={{ drawerLabel: t('Challan Tracking'), title: t('Challan Tracking') }} />
+          <Drawer.Screen name="admin/credit" component={CreditManagement} options={{ drawerLabel: t('Credit Management'), title: t('Credit Management') }} />
+          <Drawer.Screen name="admin/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: t('Place Order') }} />
+          <Drawer.Screen name="admin/documents" component={CustomerDocuments} options={{ drawerLabel: t('Customer Documents'), title: t('Customer Documents') }} />
+          <Drawer.Screen name="admin/import" component={ImportData} options={{ drawerLabel: t('Import Data'), title: t('Import Data') }} />
+          <Drawer.Screen name="admin/notes" component={OutstandingNotes} options={{ drawerLabel: t('Outstanding Notes'), title: t('Outstanding Notes') }} />
 
-          <Drawer.Screen name="admin/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: 'All Invoices', title: 'All Invoices' }} />
-          <Drawer.Screen name="admin/logistics" component={SharedLogistics} options={{ drawerLabel: 'Logistics', title: 'Logistics' }} />
-          <Drawer.Screen name="admin/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
-          <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: 'Competitor Intel', title: 'Competitor Intel' }} />
-          <Drawer.Screen name="admin/disputes" component={DisputesPanel} options={{ drawerLabel: 'Reported Issues', title: 'Reported Issues' }} />
+          <Drawer.Screen name="admin/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: t('All Invoices'), title: t('All Invoices') }} />
+          <Drawer.Screen name="admin/logistics" component={SharedLogistics} options={{ drawerLabel: t('Logistics'), title: t('Logistics') }} />
+          <Drawer.Screen name="admin/aging" component={CustomerAging} options={{ drawerLabel: t('Customer Ageing'), title: t('Customer Ageing') }} />
+          <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: t('Competitor Intel'), title: t('Competitor Intel') }} />
+          <Drawer.Screen name="admin/disputes" component={DisputesPanel} options={{ drawerLabel: t('Reported Issues'), title: t('Reported Issues') }} />
         </>
       )}
 
       {isSales && (
         <>
-          <Drawer.Screen name="sales/queue" component={SalesQueue} options={{ drawerLabel: 'Sales Queue', title: 'Sales Queue' }} />
-          <Drawer.Screen name="sales/history" component={SalesHistory} options={{ drawerLabel: 'Sales Registry', title: 'Sales Registry' }} />
-          <Drawer.Screen name="sales/visits" component={SalesVisits} options={{ drawerLabel: 'Log Visit', title: 'Log Visit' }} />
-          <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: 'Competitor Intel', title: 'Competitor Intel' }} />
-          <Drawer.Screen name="sales/awaiting" component={SalesAwaiting} options={{ drawerLabel: 'Dispatch Queue', title: 'Dispatch Queue' }} />
-          <Drawer.Screen name="sales/retailers" component={RetailersDirectory} options={{ drawerLabel: 'Customers', title: 'Customers' }} />
-          <Drawer.Screen name="sales/disputes" component={DisputesPanel} options={{ drawerLabel: 'Issues', title: 'Issues' }} />
+          <Drawer.Screen name="sales/queue" component={SalesQueue} options={{ drawerLabel: t('Sales Queue'), title: t('Sales Queue') }} />
+          <Drawer.Screen name="sales/history" component={SalesHistory} options={{ drawerLabel: t('Sales Registry'), title: t('Sales Registry') }} />
+          <Drawer.Screen name="sales/visits" component={SalesVisits} options={{ drawerLabel: t('Log Visit'), title: t('Log Visit') }} />
+          <Drawer.Screen name="shared/competitor-log" component={CompetitorLog} options={{ drawerLabel: t('Competitor Intel'), title: t('Competitor Intel') }} />
+          <Drawer.Screen name="sales/awaiting" component={SalesAwaiting} options={{ drawerLabel: t('Dispatch Queue'), title: t('Dispatch Queue') }} />
+          <Drawer.Screen name="sales/retailers" component={RetailersDirectory} options={{ drawerLabel: t('Customers'), title: t('Customers') }} />
+          <Drawer.Screen name="sales/disputes" component={DisputesPanel} options={{ drawerLabel: t('Issues'), title: t('Issues') }} />
           
-          {/* Unmentioned but existing roles */}
-          <Drawer.Screen name="sales/logistics" component={SharedLogistics} options={{ drawerLabel: 'Logistics', title: 'Logistics' }} />
-          <Drawer.Screen name="sales/aging" component={CustomerAging} options={{ drawerLabel: 'Customer Ageing', title: 'Customer Ageing' }} />
-          <Drawer.Screen name="sales/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: 'Place Order' }} />
+          <Drawer.Screen name="sales/logistics" component={SharedLogistics} options={{ drawerLabel: t('Logistics'), title: t('Logistics') }} />
+          <Drawer.Screen name="sales/aging" component={CustomerAging} options={{ drawerLabel: t('Customer Ageing'), title: t('Customer Ageing') }} />
+          <Drawer.Screen name="sales/new-order" component={PlaceOrder} options={{ drawerItemStyle: { display: 'none' }, title: t('Place Order') }} />
         </>
       )}
 
       {isCustomer && (
         <>
-          <Drawer.Screen name="customer/overview" component={CustomerOverview} options={{ drawerLabel: 'Dashboard', title: 'Dashboard' }} />
-          <Drawer.Screen name="customer/order" component={PlaceOrder} options={{ drawerLabel: 'New Order', title: 'New Order' }} />
-          <Drawer.Screen name="customer/orders" component={CustomerOrders} options={{ drawerLabel: 'My Orders', title: 'My Orders' }} />
-          <Drawer.Screen name="customer/invoices" component={CustomerInvoices} options={{ drawerLabel: 'Invoices & Payments', title: 'Invoices & Payments' }} />
-          <Drawer.Screen name="customer/disputes" component={DisputeForm} options={{ drawerLabel: 'Report Issue', title: 'Report Issue' }} />
-          <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: 'Rewards & Targets', title: 'Rewards & Targets' }} />
-          <Drawer.Screen name="customer/aging" component={CustomerAging} options={{ drawerLabel: 'Aging Report', title: 'Aging Report' }} />
-          <Drawer.Screen name="customer/profile" component={CustomerProfile} options={{ drawerLabel: 'Profile', title: 'Profile' }} />
+          <Drawer.Screen name="customer/overview" component={CustomerOverview} options={{ drawerLabel: t('Dashboard'), title: t('Dashboard') }} />
+          <Drawer.Screen name="customer/order" component={PlaceOrder} options={{ drawerLabel: t('New Order'), title: t('New Order') }} />
+          <Drawer.Screen name="customer/orders" component={CustomerOrders} options={{ drawerLabel: t('My Orders'), title: t('My Orders') }} />
+          <Drawer.Screen name="customer/invoices" component={CustomerInvoices} options={{ drawerLabel: t('Invoices & Payments'), title: t('Invoices & Payments') }} />
+          <Drawer.Screen name="customer/disputes" component={DisputeForm} options={{ drawerLabel: t('Report Issue'), title: t('Report Issue') }} />
+          <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: t('Rewards & Targets'), title: t('Rewards & Targets') }} />
+          <Drawer.Screen name="customer/aging" component={CustomerAging} options={{ drawerLabel: t('Aging Report'), title: t('Aging Report') }} />
+          <Drawer.Screen name="customer/profile" component={CustomerProfile} options={{ drawerLabel: t('Profile'), title: t('Profile') }} />
         </>
       )}
 
       {isAccountant && (
         <>
-          <Drawer.Screen name="accountant/queue" component={AccountantQueue} options={{ drawerLabel: 'Pending Invoices', title: 'Pending Invoices' }} />
-          <Drawer.Screen name="accountant/credit" component={AccountantCredit} options={{ drawerLabel: 'Credit Cycles', title: 'Credit Cycles' }} />
-          <Drawer.Screen name="accountant/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: 'All Invoices', title: 'All Invoices' }} />
+          <Drawer.Screen name="accountant/queue" component={AccountantQueue} options={{ drawerLabel: t('Pending Invoices'), title: t('Pending Invoices') }} />
+          <Drawer.Screen name="accountant/credit" component={AccountantCredit} options={{ drawerLabel: t('Credit Cycles'), title: t('Credit Cycles') }} />
+          <Drawer.Screen name="accountant/all-invoices" component={AccountantAllInvoices} options={{ drawerLabel: t('All Invoices'), title: t('All Invoices') }} />
           
-          <Drawer.Screen name="accountant/retailers" component={RetailersDirectory} options={{ drawerItemStyle: { display: 'none' }, title: 'Retailers Directory' }} />
-          <Drawer.Screen name="accountant/aging" component={CustomerAging} options={{ drawerItemStyle: { display: 'none' }, title: 'Customer Ageing' }} />
+          <Drawer.Screen name="accountant/retailers" component={RetailersDirectory} options={{ drawerItemStyle: { display: 'none' }, title: t('Retailers Directory') }} />
+          <Drawer.Screen name="accountant/aging" component={CustomerAging} options={{ drawerItemStyle: { display: 'none' }, title: t('Customer Ageing') }} />
         </>
       )}
     </Drawer.Navigator>

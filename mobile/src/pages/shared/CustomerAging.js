@@ -6,6 +6,7 @@ import AgingPanel from '../../components/AgingPanel';
 import { Search, RefreshCw, Download, X } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { useLanguage } from '../../context/LanguageContext';
 
 const CustomerCard = React.memo(({ dealer, onUpdate }) => (
   <View style={styles.card}>
@@ -17,6 +18,7 @@ const CustomerCard = React.memo(({ dealer, onUpdate }) => (
 
 
 export default function CustomerAging() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,8 +118,8 @@ export default function CustomerAging() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Customer Ageing & Balances</Text>
-        <Text style={styles.subtitle}>Overview of outstanding balances and ageing buckets.</Text>
+        <Text style={styles.title}>{t('Customer Ageing & Balances')}</Text>
+        <Text style={styles.subtitle}>{t('Overview of outstanding balances and ageing buckets.')}</Text>
       </View>
 
       {user?.Role !== 'customer' && (
@@ -151,7 +153,7 @@ export default function CustomerAging() {
           </View>
 
           <View style={styles.toggleRow}>
-            <Text style={styles.toggleText}>Has Outstanding</Text>
+            <Text style={styles.toggleText}>{t('Has Outstanding')}</Text>
             <Switch 
               value={hasOutstanding} 
               onValueChange={setHasOutstanding}
@@ -175,7 +177,7 @@ export default function CustomerAging() {
         {user?.Role !== 'customer' && (
           <TouchableOpacity onPress={handleExportCSV} style={styles.exportBtn}>
             <Download size={16} color="#FFF" />
-            <Text style={styles.exportText}>Export CSV</Text>
+            <Text style={styles.exportText}>{t('Export CSV')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -190,7 +192,7 @@ export default function CustomerAging() {
         keyExtractor={(dealer, index) => dealer.UserID ? dealer.UserID.toString() : index.toString()}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No customers found.</Text>
+            <Text style={styles.emptyText}>{t('No customers found.')}</Text>
           </View>
         }
         renderItem={renderItem}

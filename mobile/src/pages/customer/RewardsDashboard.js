@@ -4,8 +4,10 @@ import { Gift, Trophy, Lock, Unlock, Calendar, TrendingUp } from 'lucide-react-n
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function RewardsDashboard() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   
   const [campaign, setCampaign] = useState({
@@ -109,8 +111,8 @@ export default function RewardsDashboard() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Rewards & Targets</Text>
-        <Text style={styles.headerSub}>Track your campaign progress and unlock rewards</Text>
+        <Text style={styles.headerTitle}>{t('Rewards & Targets')}</Text>
+        <Text style={styles.headerSub}>{t('Track your campaign progress and unlock rewards')}</Text>
       </View>
 
       {/* Progress Timelines Card */}
@@ -120,14 +122,14 @@ export default function RewardsDashboard() {
         <View style={styles.targetSection}>
           <View style={styles.targetHeader}>
             <View>
-              <Text style={styles.targetLabel}>TONS PROGRESS (TARGET 1)</Text>
+              <Text style={styles.targetLabel}>{t('TONS PROGRESS (TARGET 1)')}</Text>
               <View style={styles.targetValues}>
                 <Text style={styles.currentValue}>{campaign.currentTons}</Text>
                 <Text style={styles.targetValue}>/ {target1} Tons</Text>
               </View>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.targetLabel}>CAMPAIGN ENDS</Text>
+              <Text style={styles.targetLabel}>{t('CAMPAIGN ENDS')}</Text>
               <View style={styles.daysRow}>
                 <Calendar size={16} color="#0056D2" />
                 <Text style={styles.daysText}>{daysRemaining > 0 ? daysRemaining : 0} Days</Text>
@@ -144,7 +146,7 @@ export default function RewardsDashboard() {
                 {isTarget1Achieved ? <Unlock size={14} color="#94A3B8" /> : <Lock size={14} color="#94A3B8" />}
               </View>
               <Text style={styles.nodeTargetText}>{target1}T</Text>
-              {isTarget1Achieved && <View style={styles.unlockedBadge}><Text style={styles.unlockedBadgeText}>Unlocked</Text></View>}
+              {isTarget1Achieved && <View style={styles.unlockedBadge}><Text style={styles.unlockedBadgeText}>{t('Unlocked')}</Text></View>}
             </View>
           </View>
         </View>
@@ -153,7 +155,7 @@ export default function RewardsDashboard() {
         <View style={styles.targetSection}>
           <View style={styles.targetHeader}>
             <View>
-              <Text style={styles.targetLabel}>TONS PROGRESS (TARGET 2)</Text>
+              <Text style={styles.targetLabel}>{t('TONS PROGRESS (TARGET 2)')}</Text>
               <View style={styles.targetValues}>
                 <Text style={styles.currentValue}>{campaign.currentTons}</Text>
                 <Text style={styles.targetValue}>/ {target2} Tons</Text>
@@ -170,7 +172,7 @@ export default function RewardsDashboard() {
                 {isTarget2Achieved ? <Trophy size={14} color="#FBBF24" /> : <Lock size={14} color="#FBBF24" />}
               </View>
               <Text style={styles.nodeTargetText}>{target2}T</Text>
-              {isTarget2Achieved && <View style={[styles.unlockedBadge, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}><Text style={[styles.unlockedBadgeText, { color: '#D97706' }]}>Unlocked</Text></View>}
+              {isTarget2Achieved && <View style={[styles.unlockedBadge, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}><Text style={[styles.unlockedBadgeText, { color: '#D97706' }]}>{t('Unlocked')}</Text></View>}
             </View>
           </View>
         </View>
@@ -190,7 +192,7 @@ export default function RewardsDashboard() {
       </View>
 
       {/* Rewards Cards */}
-      <Text style={styles.sectionTitle}>Your Rewards</Text>
+      <Text style={styles.sectionTitle}>{t('Your Rewards')}</Text>
 
       {/* Reward 1 */}
       <View style={styles.rewardCard}>

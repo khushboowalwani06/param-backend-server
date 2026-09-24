@@ -5,8 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import { CardSkeleton } from '../../components/Skeleton';
 import { FileText } from 'lucide-react-native';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const OutstandingNotes = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,8 +37,8 @@ export const OutstandingNotes = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Outstanding Notes</Text>
-        <Text style={styles.headerSub}>Log of all manual adjustments to outstanding balances and their mandatory reasons.</Text>
+        <Text style={styles.headerTitle}>{t('Outstanding Notes')}</Text>
+        <Text style={styles.headerSub}>{t('Log of all manual adjustments to outstanding balances and their mandatory reasons.')}</Text>
       </View>
 
       <View style={styles.content}>
@@ -44,8 +46,8 @@ export const OutstandingNotes = () => {
           {notes.length === 0 ? (
             <View style={styles.emptyState}>
               <FileText size={48} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No Outstanding Notes Yet</Text>
-              <Text style={styles.emptySub}>Manual adjustments will appear here.</Text>
+              <Text style={styles.emptyTitle}>{t('No Outstanding Notes Yet')}</Text>
+              <Text style={styles.emptySub}>{t('Manual adjustments will appear here.')}</Text>
             </View>
           ) : (
             <>

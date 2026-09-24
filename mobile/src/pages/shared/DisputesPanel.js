@@ -6,10 +6,12 @@ import { notificationEngine } from '../../services/notificationEngine';
 import { AlertCircle, Image as ImageIcon, X } from 'lucide-react-native';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function DisputesPanel() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   
   const [disputes, setDisputes] = useState([]);
@@ -93,14 +95,14 @@ export default function DisputesPanel() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Reported Issues</Text>
-        <Text style={styles.subtitle}>Manage and resolve customer disputes.</Text>
+        <Text style={styles.title}>{t('Reported Issues')}</Text>
+        <Text style={styles.subtitle}>{t('Manage and resolve customer disputes.')}</Text>
       </View>
 
       <ScrollView style={styles.list}>
         {disputes.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No disputes found.</Text>
+            <Text style={styles.emptyText}>{t('No disputes found.')}</Text>
           </View>
         ) : (
           paginatedDisputes.map(d => (
@@ -115,7 +117,7 @@ export default function DisputesPanel() {
 
               <View style={styles.cardBody}>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Customer:</Text>
+                  <Text style={styles.label}>{t('Customer:')}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.valueBold}>{d.CustomerName} ({d.UserID})</Text>
                     <Text style={styles.value}>{d.CustomerCompany}</Text>
@@ -124,7 +126,7 @@ export default function DisputesPanel() {
                 </View>
 
                 <View style={styles.row}>
-                  <Text style={styles.label}>Issue:</Text>
+                  <Text style={styles.label}>{t('Issue:')}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.valueBold}>Ord: {d.OrdID}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
@@ -135,17 +137,17 @@ export default function DisputesPanel() {
                 </View>
                 
                 <View style={styles.row}>
-                  <Text style={styles.label}>Evidence:</Text>
+                  <Text style={styles.label}>{t('Evidence:')}</Text>
                   {d.PhotoURL ? (
                     <TouchableOpacity 
                       style={styles.evidenceBtn}
                       onPress={() => setSelectedPhoto(d.PhotoURL)}
                     >
                       <ImageIcon size={14} color="#1A1A1A" />
-                      <Text style={styles.evidenceText}>View Photo</Text>
+                      <Text style={styles.evidenceText}>{t('View Photo')}</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={[styles.value, { color: '#94A3B8' }]}>N/A</Text>
+                    <Text style={[styles.value, { color: '#94A3B8' }]}>{t('N/A')}</Text>
                   )}
                 </View>
               </View>
@@ -158,7 +160,7 @@ export default function DisputesPanel() {
                     setUpdateForm({ Status: d.Status, AdminNotes: d.AdminNotes || '' });
                   }}
                 >
-                  <Text style={styles.updateText}>Update Issue</Text>
+                  <Text style={styles.updateText}>{t('Update Issue')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -194,14 +196,14 @@ export default function DisputesPanel() {
         <View style={styles.modalOverlayDark}>
           <View style={styles.updateModalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Update Issue</Text>
+              <Text style={styles.modalTitle}>{t('Update Issue')}</Text>
               <TouchableOpacity onPress={() => setEditingDispute(null)}>
                 <X size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Status</Text>
+              <Text style={styles.label}>{t('Status')}</Text>
               <View style={styles.statusButtonsRow}>
                 {['Pending', 'Investigating', 'Resolved', 'Rejected'].map(st => (
                   <TouchableOpacity
@@ -216,7 +218,7 @@ export default function DisputesPanel() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Resolution Notes</Text>
+              <Text style={styles.label}>{t('Resolution Notes')}</Text>
               <TextInput 
                 style={styles.textArea}
                 value={updateForm.AdminNotes}
@@ -229,10 +231,10 @@ export default function DisputesPanel() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#F1F5F9' }]} onPress={() => setEditingDispute(null)}>
-                <Text style={[styles.modalBtnText, { color: '#64748B' }]}>Cancel</Text>
+                <Text style={[styles.modalBtnText, { color: '#64748B' }]}>{t('Cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#1A1A1A' }]} onPress={handleUpdateSubmit}>
-                <Text style={[styles.modalBtnText, { color: '#FFF' }]}>Save Changes</Text>
+                <Text style={[styles.modalBtnText, { color: '#FFF' }]}>{t('Save Changes')}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -1,13 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Bell } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function HeaderRight() {
+  const { language, toggleLanguage } = useLanguage();
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.langSwitch}>
-        <Text style={[styles.langText, styles.activeLang]}>EN</Text>
-        <Text style={styles.langText}>GU</Text>
+      <TouchableOpacity style={styles.langSwitch} onPress={toggleLanguage}>
+        <Text style={[styles.langText, language === 'en' && styles.activeLang]}>EN</Text>
+        <Text style={[styles.langText, language === 'gu' && styles.activeLang]}>GU</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconBtn}>

@@ -11,13 +11,15 @@ import { EditOrderModal } from '../../components/EditOrderModal';
 import { Edit2 } from 'lucide-react-native';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 const OrderCard = ({ order, users, onEditStart }) => {
+  const { t } = useLanguage();
   const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
 
-  const u = users.find(usr => usr.UserID === order.UserID);
-  const userSegment = u ? (u.Segment ? u.Segment : (u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade')) : 'Trade';
-  const isNonTrade = userSegment === 'Non-Trade';
+  const u = users.find((usr) => usr.UserID === order.UserID);
+  const userSegment = u ? u.Segment ? u.Segment : u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? t("Non-Trade") : t("Trade") : t("Trade");
+  const isNonTrade = userSegment === t("Non-Trade");
 
   return (
     <View style={styles.cardContainer}>
@@ -32,12 +34,12 @@ const OrderCard = ({ order, users, onEditStart }) => {
 
         <View style={styles.cardBody}>
           <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>CUSTOMER</Text>
+            <Text style={styles.infoLabel}>{t('CUSTOMER')}</Text>
             <Text style={styles.infoValue} numberOfLines={1}>{order.Name} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({order.Company})</Text></Text>
           </View>
 
           <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>PRODUCT</Text>
+            <Text style={styles.infoLabel}>{t('PRODUCT')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{order.Product}</Text>
               <View style={[styles.segmentBadge, isNonTrade && styles.segmentBadgeNonTrade]}>
@@ -48,37 +50,38 @@ const OrderCard = ({ order, users, onEditStart }) => {
 
           <View style={styles.grid2}>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>QUANTITY</Text>
+              <Text style={styles.infoLabel}>{t('QUANTITY')}</Text>
               <Text style={[styles.infoValue, { fontSize: 16 }]}>{order.EstimateQty} {order.Unit}</Text>
             </View>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>UNIT PRICE</Text>
+              <Text style={styles.infoLabel}>{t('UNIT PRICE')}</Text>
               <Text style={[styles.infoValue, { fontSize: 16 }]}>{formatCurrency(order.UnitPrice || 0)}</Text>
             </View>
           </View>
 
           <View style={styles.amtBox}>
-            <Text style={styles.infoLabel}>ESTIMATE AMOUNT</Text>
+            <Text style={styles.infoLabel}>{t('ESTIMATE AMOUNT')}</Text>
             <Text style={styles.amtValue}>{formatCurrency(order.EstimateAmt || 0)}</Text>
           </View>
 
           <View style={{ flex: 1 }} />
           <TouchableOpacity onPress={onEditStart} style={styles.editBtn}>
             <Edit2 size={16} color="#475569" />
-            <Text style={styles.editBtnText}>Edit Order</Text>
+            <Text style={styles.editBtnText}>{t('Edit Order')}</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
-  );
+    </View>);
+
 };
 
 export const AllOrders = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSegment, setActiveSegment] = useState('All Segments');
+  const [activeSegment, setActiveSegment] = useState(t("All Segments"));
   const [users, setUsers] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -87,15 +90,15 @@ export const AllOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  useRealtime(['orders', 'payments'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders', 'payments'], () => setRefreshKey((k) => k + 1));
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [data, allUsers] = await Promise.all([
-          sheetsService.getOrders(user),
-          sheetsService._fetch('/users').catch(() => [])
-        ]);
+        sheetsService.getOrders(user),
+        sheetsService._fetch('/users').catch(() => [])]
+        );
         setOrders(data);
         setUsers(allUsers);
       } catch (err) {
@@ -113,10 +116,11 @@ export const AllOrders = () => {
 
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
-  const filteredOrders = orders.filter(o => {
-    if (activeSegment !== 'All Segments') {
-      const u = users.find(usr => usr.UserID === o.UserID);
-      const segment = u ? (u.Segment ? u.Segment : (u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade')) : 'Trade';
+  const filteredOrders = orders.filter((o) => {
+    const { t } = useLanguage();
+    if (activeSegment !== t("All Segments")) {
+      const u = users.find((usr) => usr.UserID === o.UserID);
+      const segment = u ? u.Segment ? u.Segment : u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? t("Non-Trade") : t("Trade") : t("Trade");
       if (segment !== activeSegment) return false;
     }
 
@@ -140,8 +144,8 @@ export const AllOrders = () => {
       String(o.OrdID || '').toLowerCase().includes(term) ||
       String(o.Company || '').toLowerCase().includes(term) ||
       String(o.Name || '').toLowerCase().includes(term) ||
-      String(o.Product || '').toLowerCase().includes(term)
-    );
+      String(o.Product || '').toLowerCase().includes(term));
+
   });
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -150,32 +154,32 @@ export const AllOrders = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>All Orders Directory</Text>
-        <Text style={styles.headerSub}>Complete ledger of all orders across the system.</Text>
+        <Text style={styles.headerTitle}>{t('All Orders Directory')}</Text>
+        <Text style={styles.headerSub}>{t('Complete ledger of all orders across the system.')}</Text>
 
         <View style={styles.filtersWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.segmentsRow}>
-            {['All Segments', 'Trade', 'Non-Trade'].map(seg => (
-              <TouchableOpacity
-                key={seg}
-                onPress={() => setActiveSegment(seg)}
-                style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}
-              >
+            {[t("All Segments"), t("Trade"), t("Non-Trade")].map((seg) =>
+            <TouchableOpacity
+              key={seg}
+              onPress={() => setActiveSegment(seg)}
+              style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}>
+              
                 <Text style={[styles.segmentText, activeSegment === seg && styles.segmentTextActive]}>{seg}</Text>
               </TouchableOpacity>
-            ))}
+            )}
           </ScrollView>
 
           <DateRangeFilter
             startDate={startDate} endDate={endDate}
-            onDateChange={({ startDate: s, endDate: e }) => { setStartDate(s); setEndDate(e); }}
-            onClear={() => { setStartDate(''); setEndDate(''); }}
-            style={{ marginBottom: 12 }}
-          />
+            onDateChange={({ startDate: s, endDate: e }) => {setStartDate(s);setEndDate(e);}}
+            onClear={() => {setStartDate('');setEndDate('');}}
+            style={{ marginBottom: 12 }} />
+          
 
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
             <View style={{ flex: 1 }}>
-              <SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search ID, Company..." />
+              <SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder={t("Search ID, Company...")} />
             </View>
             <ExportButton data={filteredOrders} filename="AllOrders" />
           </View>
@@ -183,41 +187,41 @@ export const AllOrders = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.listContent}>
-        {paginatedOrders.map(order => (
-          <OrderCard
-            key={order.OrdID}
-            order={order}
-            users={users}
-            isEditing={editingOrder?.OrdID === order.OrdID}
-            onEditStart={() => setEditingOrder(order)}
-          />
-        ))}
+        {paginatedOrders.map((order) =>
+        <OrderCard
+          key={order.OrdID}
+          order={order}
+          users={users}
+          isEditing={editingOrder?.OrdID === order.OrdID}
+          onEditStart={() => setEditingOrder(order)} />
 
-        {paginatedOrders.length === 0 && (
-          <View style={{ padding: 40, alignItems: 'center' }}>
-            <Text style={{ color: '#8E8E93' }}>No orders found.</Text>
-          </View>
         )}
+
+        {paginatedOrders.length === 0 &&
+        <View style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ color: '#8E8E93' }}>{t('No orders found.')}</Text>
+          </View>
+        }
       </ScrollView>
 
-      {totalPages > 1 && (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      )}
+      {totalPages > 1 &&
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      }
 
-      {editingOrder && (
-        <EditOrderModal
-          order={editingOrder}
-          onClose={() => setEditingOrder(null)}
-          onUpdate={() => {
-            setEditingOrder(null);
-            setRefreshKey(k => k + 1);
-          }}
-          inline={false}
-          visible={true}
-        />
-      )}
-    </View>
-  );
+      {editingOrder &&
+      <EditOrderModal
+        order={editingOrder}
+        onClose={() => setEditingOrder(null)}
+        onUpdate={() => {
+          setEditingOrder(null);
+          setRefreshKey((k) => k + 1);
+        }}
+        inline={false}
+        visible={true} />
+
+      }
+    </View>);
+
 };
 
 const styles = StyleSheet.create({

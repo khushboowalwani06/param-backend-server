@@ -12,8 +12,10 @@ import { Archive, Search, Filter, Download, Edit3, Check, X } from 'lucide-react
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
 import { OnDemandAudio } from '../../components/OnDemandAudio';
+import { useLanguage } from '../../context/LanguageContext';
 
 const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, editingPriceValue, setEditingPriceValue, onCancel }) => {
+  const { t } = useLanguage();
   const isEditing = editingPriceId === order.OrdID;
   const canEdit = !['Delivered', 'Cancelled', 'Sales Rejected', 'Admin Rejected'].includes(order.ApprovalStatus);
   const canCancel = !['Delivered', 'Cancelled', 'Sales Rejected', 'Admin Rejected'].includes(order.ApprovalStatus);
@@ -30,23 +32,23 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
 
       <View style={styles.content}>
         <View style={styles.infoRow}>
-          <Text style={styles.label}>DATE</Text>
+          <Text style={styles.label}>{t('DATE')}</Text>
           <Text style={styles.valueText}>{order.OrderTimestamp ? new Date(order.OrderTimestamp).toLocaleDateString() : 'N/A'}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.label}>CUSTOMER</Text>
+          <Text style={styles.label}>{t('CUSTOMER')}</Text>
           <Text style={styles.valueText} numberOfLines={1}>{order.Name}</Text>
           <Text style={styles.subText} numberOfLines={1}>{order.Company}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.label}>ITEMS</Text>
+          <Text style={styles.label}>{t('ITEMS')}</Text>
           <Text style={styles.valueText} numberOfLines={1}>{order.EstimateQty} {order.Unit || 'Bags'} • {order.Product}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.label}>AMOUNT</Text>
+          <Text style={styles.label}>{t('AMOUNT')}</Text>
           {isEditing ? (
             <View style={styles.editPriceRow}>
               <Text style={styles.currency}>₹</Text>
@@ -77,7 +79,7 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
 
         {(order.Notes || hasAudio) ? (
           <View style={styles.infoRow}>
-            <Text style={styles.label}>NOTES</Text>
+            <Text style={styles.label}>{t('NOTES')}</Text>
             {order.Notes && order.Notes.replace(' [Audio Note Attached]', '').trim() ? (
               <Text style={styles.subText}>"{order.Notes.replace(' [Audio Note Attached]', '')}"</Text>
             ) : null}
@@ -91,7 +93,7 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
 
         {order.RejectionReason ? (
           <View style={styles.rejectReasonBox}>
-            <Text style={styles.label}>REJECTION REASON</Text>
+            <Text style={styles.label}>{t('REJECTION REASON')}</Text>
             <Text style={styles.rejectReasonText}>{order.RejectionReason}</Text>
           </View>
         ) : null}
@@ -100,7 +102,7 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
       {canCancel && (
         <View style={styles.actions}>
           <TouchableOpacity style={styles.cancelBtn} onPress={() => onCancel(order.OrdID)}>
-            <Text style={styles.cancelBtnText}>CANCEL ORDER</Text>
+            <Text style={styles.cancelBtnText}>{t('CANCEL ORDER')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -109,6 +111,7 @@ const HistoryCard = ({ order, onSavePrice, editingPriceId, setEditingPriceId, ed
 };
 
 export default function SalesHistory() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,6 +159,7 @@ export default function SalesHistory() {
   }, [user, refreshKey]);
 
   const handleSavePrice = async (ordId) => {
+  const { t } = useLanguage();
     try {
       await sheetsService.updateOrderPrice(user, ordId, Number(editingPriceValue));
       setEditingPriceId(null);
@@ -220,6 +224,7 @@ export default function SalesHistory() {
   });
 
   useEffect(() => {
+  const { t } = useLanguage();
     setCurrentPage(1);
   }, [searchTerm, activeProductFilter, startDate, endDate]);
 
@@ -240,8 +245,8 @@ export default function SalesHistory() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.header}>
-          <Text style={styles.title}>Sales Registry</Text>
-          <Text style={styles.subtitle}>Historical logs of your approvals, rejections, and closures.</Text>
+          <Text style={styles.title}>{t('Sales Registry')}</Text>
+          <Text style={styles.subtitle}>{t('Historical logs of your approvals, rejections, and closures.')}</Text>
         </View>
 
         <View style={styles.tools}>
@@ -257,8 +262,8 @@ export default function SalesHistory() {
         {filteredOrders.length === 0 ? (
           <View style={styles.emptyState}>
             <Archive size={48} color="#E5E5EA" />
-            <Text style={styles.emptyTitle}>No Records Found</Text>
-            <Text style={styles.emptySub}>Try adjusting your filters or search term.</Text>
+            <Text style={styles.emptyTitle}>{t('No Records Found')}</Text>
+            <Text style={styles.emptySub}>{t('Try adjusting your filters or search term.')}</Text>
           </View>
         ) : (
           paginatedOrders.map(order => (
@@ -290,13 +295,13 @@ export default function SalesHistory() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter History</Text>
+              <Text style={styles.modalTitle}>{t('Filter History')}</Text>
               <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
                 <X size={24} color="#1A1A1A" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.filterLabel}>Product Type</Text>
+            <Text style={styles.filterLabel}>{t('Product Type')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={activeProductFilter}
@@ -308,7 +313,7 @@ export default function SalesHistory() {
               </Picker>
             </View>
 
-            <Text style={styles.filterLabel}>Date Range</Text>
+            <Text style={styles.filterLabel}>{t('Date Range')}</Text>
             <DateRangeFilter
               startDate={startDate}
               endDate={endDate}
@@ -317,7 +322,7 @@ export default function SalesHistory() {
             />
 
             <TouchableOpacity style={styles.applyBtn} onPress={() => setIsFilterModalVisible(false)}>
-              <Text style={styles.applyBtnText}>Apply Filters</Text>
+              <Text style={styles.applyBtnText}>{t('Apply Filters')}</Text>
             </TouchableOpacity>
           </View>
         </View>

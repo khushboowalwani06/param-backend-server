@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { useLanguage } from '../context/LanguageContext';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
 
 export function AnimatedSplashOverlay() {
+  const { t } = useLanguage();
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
 

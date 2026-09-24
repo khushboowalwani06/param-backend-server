@@ -10,8 +10,10 @@ import { ExportButton } from '../../components/ExportButton';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { LocationFilter } from '../../components/LocationFilter';
 import { SearchFilter } from '../../components/SearchFilter';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function AccountantCredit() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -174,18 +176,18 @@ export default function AccountantCredit() {
 
         <View style={styles.cardBody}>
           <View style={styles.row}>
-            <Text style={styles.label}>Product:</Text>
+            <Text style={styles.label}>{t('Product:')}</Text>
             <Text style={styles.value}>{item.Product}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Due Date:</Text>
+            <Text style={styles.label}>{t('Due Date:')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={styles.value}>{item.PaymentDueDate ? new Date(item.PaymentDueDate).toLocaleDateString() : 'N/A'}</Text>
               {getDueDateTag(item)}
             </View>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Invoice Amount:</Text>
+            <Text style={styles.label}>{t('Invoice Amount:')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={styles.amountValue}>₹{parseFloat(amount).toLocaleString()}</Text>
               {(isPaymentPending || isPaymentSent) && (
@@ -207,7 +209,7 @@ export default function AccountantCredit() {
               onPress={() => setViewReceiptUrl(item.payment_receipt)}
             >
               <FileText size={16} color="#3B82F6" />
-              <Text style={styles.actionBtnOutlineText}>View Receipt</Text>
+              <Text style={styles.actionBtnOutlineText}>{t('View Receipt')}</Text>
             </TouchableOpacity>
           ) : (
             <View />
@@ -220,7 +222,7 @@ export default function AccountantCredit() {
               disabled={isSubmitting}
             >
               <CheckCircle size={16} color="white" />
-              <Text style={styles.actionBtnText}>Verify & Close</Text>
+              <Text style={styles.actionBtnText}>{t('Verify & Close')}</Text>
             </TouchableOpacity>
           )}
 
@@ -231,7 +233,7 @@ export default function AccountantCredit() {
               disabled={isSubmitting}
             >
               <CheckCircle size={16} color="white" />
-              <Text style={styles.actionBtnText}>Confirm</Text>
+              <Text style={styles.actionBtnText}>{t('Confirm')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -253,17 +255,17 @@ export default function AccountantCredit() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Credit Cycles</Text>
-        <Text style={styles.subtitle}>Tracking overdue and pending payments.</Text>
+        <Text style={styles.title}>{t('Credit Cycles')}</Text>
+        <Text style={styles.subtitle}>{t('Tracking overdue and pending payments.')}</Text>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Total Outstanding</Text>
+          <Text style={styles.statLabel}>{t('Total Outstanding')}</Text>
           <Text style={styles.statValueOutstanding}>₹{totalOutstanding.toLocaleString()}</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Awaiting Verification</Text>
+          <Text style={styles.statLabel}>{t('Awaiting Verification')}</Text>
           <Text style={styles.statValueWarning}>{awaitingVerificationCount}</Text>
         </View>
       </View>
@@ -295,7 +297,7 @@ export default function AccountantCredit() {
         keyExtractor={item => item.OrdID}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.emptyText}>No active credit records found.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('No active credit records found.')}</Text>}
       />
 
       {totalPages > 1 && (
@@ -313,10 +315,10 @@ export default function AccountantCredit() {
                 <X size={24} color="#64748B" />
               </TouchableOpacity>
               
-              <Text style={styles.modalTitle}>Edit Invoice Amount</Text>
+              <Text style={styles.modalTitle}>{t('Edit Invoice Amount')}</Text>
               <Text style={styles.modalDesc}>Update amount for <Text style={{fontWeight: '700'}}>{editingOrder}</Text></Text>
 
-              <Text style={styles.inputLabel}>New Amount (₹)</Text>
+              <Text style={styles.inputLabel}>{t('New Amount (₹)')}</Text>
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
@@ -329,7 +331,7 @@ export default function AccountantCredit() {
                 onPress={handleSaveEdit}
                 disabled={isSubmitting || !editAmount}
               >
-                {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text style={styles.submitBtnText}>Save Changes</Text>}
+                {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text style={styles.submitBtnText}>{t('Save Changes')}</Text>}
               </TouchableOpacity>
             </View>
           </View>

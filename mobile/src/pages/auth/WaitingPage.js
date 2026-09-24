@@ -6,8 +6,10 @@ import { AlertCircle, Clock, LogOut, UploadCloud, CheckCircle } from 'lucide-rea
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { sheetsService } from '../../services/sheetsService';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function WaitingPage() {
+  const { t } = useLanguage();
   const { user, logout, updateUser } = useAuth();
   const { showToast } = useToast();
 
@@ -87,10 +89,10 @@ export default function WaitingPage() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerBrand}>PARAM MARKETING</Text>
+        <Text style={styles.headerBrand}>{t('PARAM MARKETING')}</Text>
         <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
           <LogOut size={16} color="#64748B" />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Text style={styles.logoutText}>{t('Sign Out')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -112,15 +114,15 @@ export default function WaitingPage() {
 
           {isRejected && user.RejectionReason && (
             <View style={styles.reasonBox}>
-              <Text style={styles.reasonTitle}>Reason for Rejection:</Text>
+              <Text style={styles.reasonTitle}>{t('Reason for Rejection:')}</Text>
               <Text style={styles.reasonText}>{user.RejectionReason}</Text>
             </View>
           )}
 
           {isRejected && (
             <View style={styles.resubmitSection}>
-              <Text style={styles.resubmitTitle}>Re-upload Documents</Text>
-              <Text style={styles.resubmitDesc}>Upload the corrected files below and resubmit your registration for review.</Text>
+              <Text style={styles.resubmitTitle}>{t('Re-upload Documents')}</Text>
+              <Text style={styles.resubmitDesc}>{t('Upload the corrected files below and resubmit your registration for review.')}</Text>
               
               {Object.entries(documentLabels).map(([key, label]) => {
                 const hasDoc = !!newDocuments[key];

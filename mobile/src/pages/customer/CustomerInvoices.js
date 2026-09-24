@@ -9,8 +9,10 @@ import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function CustomerInvoices() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,8 +153,8 @@ export default function CustomerInvoices() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Invoices & Payments</Text>
-          <Text style={styles.headerSub}>Track payments for your delivered orders.</Text>
+          <Text style={styles.headerTitle}>{t('Invoices & Payments')}</Text>
+          <Text style={styles.headerSub}>{t('Track payments for your delivered orders.')}</Text>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={{ paddingRight: 16 }}>
@@ -170,8 +172,8 @@ export default function CustomerInvoices() {
         {filteredOrders.length === 0 ? (
           <View style={styles.emptyState}>
             <FileText size={48} color="#C7C7CC" />
-            <Text style={styles.emptyTitle}>No Invoices Yet</Text>
-            <Text style={styles.emptySub}>You don't have any pending or closed invoices.</Text>
+            <Text style={styles.emptyTitle}>{t('No Invoices Yet')}</Text>
+            <Text style={styles.emptySub}>{t("You don't have any pending or closed invoices.")}</Text>
           </View>
         ) : (
           <View style={styles.list}>
@@ -196,7 +198,7 @@ export default function CustomerInvoices() {
                       <Text style={styles.cardQty}>{order.EstimateQty} {order.Unit || 'Tons'}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={styles.cardLabel}>Amount</Text>
+                      <Text style={styles.cardLabel}>{t('Amount')}</Text>
                       <Text style={styles.cardAmt}>₹{order.EstimateAmt.toLocaleString()}</Text>
                     </View>
                   </View>
@@ -208,18 +210,18 @@ export default function CustomerInvoices() {
                         onPress={() => handleViewInvoice(order)}
                       >
                         <FileText size={14} color="#1A1A1A" />
-                        <Text style={styles.actionBtnText}>View Invoice</Text>
+                        <Text style={styles.actionBtnText}>{t('View Invoice')}</Text>
                       </TouchableOpacity>
                     ) : (
                       <View style={[styles.actionBtn, { opacity: 0.5 }]}>
                         <FileText size={14} color="#8E8E93" />
-                        <Text style={[styles.actionBtnText, { color: '#8E8E93' }]}>No Invoice Yet</Text>
+                        <Text style={[styles.actionBtnText, { color: '#8E8E93' }]}>{t('No Invoice Yet')}</Text>
                       </View>
                     )}
                     
                     {!isPaid && (order.InvoicePdf || order.InvoicePdfLink) && (
                       <TouchableOpacity style={styles.payBtn} onPress={() => handlePayClick(order.OrdID)}>
-                        <Text style={styles.payBtnText}>Pay Now</Text>
+                        <Text style={styles.payBtnText}>{t('Pay Now')}</Text>
                       </TouchableOpacity>
                     )}
 
@@ -232,7 +234,7 @@ export default function CustomerInvoices() {
                         }}
                       >
                         <ImageIcon size={14} color="#16A34A" />
-                        <Text style={styles.viewTxBtnText}>View Receipt</Text>
+                        <Text style={styles.viewTxBtnText}>{t('View Receipt')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -252,7 +254,7 @@ export default function CustomerInvoices() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Submit Payment</Text>
+              <Text style={styles.modalTitle}>{t('Submit Payment')}</Text>
               <TouchableOpacity onPress={() => !isSubmitting && setPayModalOpen(false)}>
                 <X size={24} color="#8E8E93" />
               </TouchableOpacity>
@@ -260,11 +262,11 @@ export default function CustomerInvoices() {
             
             <View style={styles.modalBody}>
               <View style={styles.modalPayFor}>
-                <Text style={styles.modalPayForLabel}>PAYMENT FOR</Text>
+                <Text style={styles.modalPayForLabel}>{t('PAYMENT FOR')}</Text>
                 <Text style={styles.modalPayForVal}>Order {payOrderId}</Text>
               </View>
 
-              <Text style={styles.inputLabel}>Transaction ID (UTR)</Text>
+              <Text style={styles.inputLabel}>{t('Transaction ID (UTR)')}</Text>
               <TextInput 
                 style={styles.input} 
                 value={transactionId} 
@@ -273,30 +275,30 @@ export default function CustomerInvoices() {
                 maxLength={35}
               />
 
-              <Text style={styles.inputLabel}>Upload Receipt Screenshot</Text>
+              <Text style={styles.inputLabel}>{t('Upload Receipt Screenshot')}</Text>
               {screenshotBase64 ? (
                 <View style={styles.photoPreviewRow}>
                   <Image source={{ uri: screenshotBase64 }} style={styles.photoPreview} resizeMode="cover" />
                   <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setScreenshotBase64('')}>
-                    <Text style={styles.removePhotoText}>Remove</Text>
+                    <Text style={styles.removePhotoText}>{t('Remove')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity style={styles.uploadArea} onPress={handleFileChange}>
                   <View style={styles.uploadPlaceholder}>
                     <UploadCloud size={32} color="#94A3B8" />
-                    <Text style={styles.uploadText}>Tap to pick image</Text>
-                    <Text style={styles.uploadSub}>JPEG, PNG, JPG</Text>
+                    <Text style={styles.uploadText}>{t('Tap to pick image')}</Text>
+                    <Text style={styles.uploadSub}>{t('JPEG, PNG, JPG')}</Text>
                   </View>
                 </TouchableOpacity>
               )}
               
               <View style={styles.modalActions}>
                 <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setPayModalOpen(false)} disabled={isSubmitting}>
-                  <Text style={styles.modalCancelBtnText}>Cancel</Text>
+                  <Text style={styles.modalCancelBtnText}>{t('Cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.modalSubmitBtn} onPress={handlePaySubmit} disabled={isSubmitting}>
-                  {isSubmitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.modalSubmitBtnText}>Submit Payment</Text>}
+                  {isSubmitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.modalSubmitBtnText}>{t('Submit Payment')}</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -314,9 +316,9 @@ export default function CustomerInvoices() {
             <X size={28} color="#FFF" />
           </TouchableOpacity>
           
-          <Text style={styles.viewTitle}>Transaction Details</Text>
+          <Text style={styles.viewTitle}>{t('Transaction Details')}</Text>
           <View style={styles.viewIdPill}>
-            <Text style={styles.viewIdLabel}>ID: </Text>
+            <Text style={styles.viewIdLabel}>{t('ID:')}</Text>
             <Text style={styles.viewIdVal}>{viewTransactionId}</Text>
           </View>
           

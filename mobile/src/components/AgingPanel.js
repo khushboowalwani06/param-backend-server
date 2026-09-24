@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform } 
 import { Clock, Save, X } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { sheetsService } from '../services/sheetsService';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AgingPanel({ customer, onUpdate }) {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isReceivingPayment, setIsReceivingPayment] = useState(false);
@@ -146,7 +148,7 @@ export default function AgingPanel({ customer, onUpdate }) {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Clock size={20} color="#1A1A1A" />
-          <Text style={styles.title}>Ageing & Credit Overview</Text>
+          <Text style={styles.title}>{t('Ageing & Credit Overview')}</Text>
         </View>
 
         <View style={styles.summaryRow}>
@@ -158,10 +160,10 @@ export default function AgingPanel({ customer, onUpdate }) {
         {canEdit && !isEditing && !isReceivingPayment && !isAdjustingOutstanding && (
           <View style={styles.actionButtons}>
             <TouchableOpacity onPress={() => setIsReceivingPayment(true)} style={[styles.btn, { backgroundColor: '#10B981' }]}>
-              <Text style={styles.btnText}>Record Payment</Text>
+              <Text style={styles.btnText}>{t('Record Payment')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsAdjustingOutstanding(true)} style={[styles.btn, { backgroundColor: '#E2E8F0' }]}>
-              <Text style={[styles.btnText, { color: '#1A1A1A' }]}>Add Outstanding</Text>
+              <Text style={[styles.btnText, { color: '#1A1A1A' }]}>{t('Add Outstanding')}</Text>
             </TouchableOpacity>
           </View>
         )}

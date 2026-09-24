@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { View, ActivityIndicator } from 'react-native';
 
 import Login from './pages/auth/Login';
@@ -43,9 +44,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
+        <LanguageProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </LanguageProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

@@ -12,8 +12,10 @@ import { ExportButton } from '../../components/ExportButton';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { LocationFilter } from '../../components/LocationFilter';
 import { SearchFilter } from '../../components/SearchFilter';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function AccountantQueue() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,15 +139,15 @@ export default function AccountantQueue() {
       </View>
       <View style={styles.cardBody}>
         <View style={styles.row}>
-          <Text style={styles.label}>Product:</Text>
+          <Text style={styles.label}>{t('Product:')}</Text>
           <Text style={styles.value}>{item.Product}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Quantity:</Text>
+          <Text style={styles.label}>{t('Quantity:')}</Text>
           <Text style={styles.value}>{item.Qty} Bags</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Estimate Amount:</Text>
+          <Text style={styles.label}>{t('Estimate Amount:')}</Text>
           <Text style={styles.value}>₹{(parseFloat(item.EstimateAmt) || 0).toLocaleString()}</Text>
         </View>
       </View>
@@ -158,7 +160,7 @@ export default function AccountantQueue() {
           }}
         >
           <FileUp size={16} color="white" />
-          <Text style={styles.actionBtnText}>Upload Invoice</Text>
+          <Text style={styles.actionBtnText}>{t('Upload Invoice')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,8 +177,8 @@ export default function AccountantQueue() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Pending Invoices</Text>
-        <Text style={styles.subtitle}>Upload tax invoices for delivered orders.</Text>
+        <Text style={styles.title}>{t('Pending Invoices')}</Text>
+        <Text style={styles.subtitle}>{t('Upload tax invoices for delivered orders.')}</Text>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -206,7 +208,7 @@ export default function AccountantQueue() {
         keyExtractor={item => item.OrdID}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.emptyText}>No pending invoices found.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('No pending invoices found.')}</Text>}
       />
 
       {totalPages > 1 && (
@@ -225,12 +227,12 @@ export default function AccountantQueue() {
               
               <View style={styles.modalHeader}>
                 <View style={styles.iconBg}><FileUp size={24} color="#1A1A1A" /></View>
-                <Text style={styles.modalTitle}>Upload Invoice</Text>
+                <Text style={styles.modalTitle}>{t('Upload Invoice')}</Text>
               </View>
               
               <Text style={styles.modalDesc}>Generating tax invoice for <Text style={{fontWeight: '700'}}>{invoicingOrder}</Text></Text>
 
-              <Text style={styles.inputLabel}>Final Invoiced Amount (₹)</Text>
+              <Text style={styles.inputLabel}>{t('Final Invoiced Amount (₹)')}</Text>
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
@@ -239,7 +241,7 @@ export default function AccountantQueue() {
                 placeholder="0.00"
               />
 
-              <Text style={styles.inputLabel}>Invoice PDF</Text>
+              <Text style={styles.inputLabel}>{t('Invoice PDF')}</Text>
               <TouchableOpacity style={styles.uploadBtn} onPress={handleFilePick}>
                 <FileUp size={20} color="#64748B" />
                 <Text style={styles.uploadBtnText} numberOfLines={1}>{invoiceFileName || 'Select PDF File'}</Text>
@@ -250,7 +252,7 @@ export default function AccountantQueue() {
                 onPress={handleUploadSubmit}
                 disabled={isSubmitting || !invoiceAmount || !invoicePdf}
               >
-                {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text style={styles.submitBtnText}>Submit Invoice</Text>}
+                {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text style={styles.submitBtnText}>{t('Submit Invoice')}</Text>}
               </TouchableOpacity>
             </View>
           </View>

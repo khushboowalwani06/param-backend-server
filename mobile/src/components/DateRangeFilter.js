@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Calendar, X } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DateRangeFilter = ({ startDate, endDate, onDateChange, onClear, style = {} }) => {
+  const { t } = useLanguage();
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconContainer}>
@@ -17,7 +19,7 @@ export const DateRangeFilter = ({ startDate, endDate, onDateChange, onClear, sty
           placeholderTextColor="#C7C7CC"
           style={styles.input}
         />
-        <Text style={styles.separator}>to</Text>
+        <Text style={styles.separator}>{t('to')}</Text>
         <TextInput 
           value={endDate}
           onChangeText={(text) => onDateChange({ startDate, endDate: text })}

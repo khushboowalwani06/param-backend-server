@@ -9,8 +9,10 @@ import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
 import { useRealtime } from '../../hooks/useRealtime';
 import { StatusBadge } from '../../components/StatusBadge';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function DisputeForm() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const route = useRoute();
   const initialOrderId = route.params?.order || '';
@@ -141,8 +143,8 @@ export default function DisputeForm() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Report & Track Issues</Text>
-          <Text style={styles.headerSub}>File disputes for orders and track their resolution status.</Text>
+          <Text style={styles.headerTitle}>{t('Report & Track Issues')}</Text>
+          <Text style={styles.headerSub}>{t('File disputes for orders and track their resolution status.')}</Text>
         </View>
 
         <View style={styles.tabsContainer}>
@@ -150,20 +152,20 @@ export default function DisputeForm() {
             style={[styles.tabBtn, activeTab === 'new' && styles.tabBtnActive]} 
             onPress={() => setActiveTab('new')}
           >
-            <Text style={[styles.tabBtnText, activeTab === 'new' && styles.tabBtnTextActive]}>File New Issue</Text>
+            <Text style={[styles.tabBtnText, activeTab === 'new' && styles.tabBtnTextActive]}>{t('File New Issue')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tabBtn, activeTab === 'history' && styles.tabBtnActive]} 
             onPress={() => setActiveTab('history')}
           >
-            <Text style={[styles.tabBtnText, activeTab === 'history' && styles.tabBtnTextActive]}>My Past Reports</Text>
+            <Text style={[styles.tabBtnText, activeTab === 'history' && styles.tabBtnTextActive]}>{t('My Past Reports')}</Text>
           </TouchableOpacity>
         </View>
 
         {activeTab === 'new' && (
           <View style={styles.card}>
             
-            <Text style={styles.inputLabel}>Select Order</Text>
+            <Text style={styles.inputLabel}>{t('Select Order')}</Text>
             <View style={styles.pickerContainer}>
               <Picker selectedValue={formData.OrdID} onValueChange={(val) => setFormData({...formData, OrdID: val})}>
                 <Picker.Item label="Select an order..." value="" />
@@ -173,7 +175,7 @@ export default function DisputeForm() {
               </Picker>
             </View>
 
-            <Text style={styles.inputLabel}>Issue Type</Text>
+            <Text style={styles.inputLabel}>{t('Issue Type')}</Text>
             <View style={styles.pickerContainer}>
               <Picker selectedValue={formData.IssueType} onValueChange={(val) => setFormData({...formData, IssueType: val})}>
                 <Picker.Item label="Missing Bags" value="Missing Bags" />
@@ -186,7 +188,7 @@ export default function DisputeForm() {
 
             {formData.IssueType === 'Other' && (
               <>
-                <Text style={styles.inputLabel}>Describe the Issue</Text>
+                <Text style={styles.inputLabel}>{t('Describe the Issue')}</Text>
                 <TextInput 
                   style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
                   value={formData.OtherIssueDescription} 
@@ -197,7 +199,7 @@ export default function DisputeForm() {
               </>
             )}
 
-            <Text style={styles.inputLabel}>Affected Quantity (Bags/Units)</Text>
+            <Text style={styles.inputLabel}>{t('Affected Quantity (Bags/Units)')}</Text>
             <TextInput 
               style={styles.input} 
               value={formData.DamagedQuantity} 
@@ -205,24 +207,24 @@ export default function DisputeForm() {
               keyboardType="numeric"
             />
 
-            <Text style={styles.inputLabel}>Photo Evidence</Text>
+            <Text style={styles.inputLabel}>{t('Photo Evidence')}</Text>
             {formData.PhotoURL ? (
               <View style={styles.photoPreviewRow}>
                 <Image source={{ uri: formData.PhotoURL }} style={styles.photoPreview} />
                 <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setFormData({...formData, PhotoURL: ''})}>
-                  <Text style={styles.removePhotoText}>Remove</Text>
+                  <Text style={styles.removePhotoText}>{t('Remove')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity style={styles.uploadBox} onPress={handleFileUpload}>
                 <UploadCloud size={32} color="#94A3B8" />
-                <Text style={styles.uploadText}>Tap to pick image</Text>
-                <Text style={styles.uploadSub}>JPEG, PNG, JPG (Max 5MB)</Text>
+                <Text style={styles.uploadText}>{t('Tap to pick image')}</Text>
+                <Text style={styles.uploadSub}>{t('JPEG, PNG, JPG (Max 5MB)')}</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={loading}>
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitBtnText}>Submit Report</Text>}
+              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitBtnText}>{t('Submit Report')}</Text>}
             </TouchableOpacity>
           </View>
         )}
@@ -235,7 +237,7 @@ export default function DisputeForm() {
                 <CalendarIcon size={16} color="#8E8E93" />
                 <Text style={styles.dateBtnText}>{dateRange.start ? dateRange.start.toLocaleDateString() : 'Start Date'}</Text>
               </TouchableOpacity>
-              <Text style={styles.dateTo}>to</Text>
+              <Text style={styles.dateTo}>{t('to')}</Text>
               <TouchableOpacity style={styles.dateBtn} onPress={() => setShowDatePicker({ visible: true, type: 'end' })}>
                 <CalendarIcon size={16} color="#8E8E93" />
                 <Text style={styles.dateBtnText}>{dateRange.end ? dateRange.end.toLocaleDateString() : 'End Date'}</Text>
@@ -250,7 +252,7 @@ export default function DisputeForm() {
             {historyLoading ? (
               <ActivityIndicator size="large" color="#1A1A1A" style={{ marginTop: 40 }} />
             ) : filteredDisputes.length === 0 ? (
-              <Text style={styles.emptyText}>No reports found for this period.</Text>
+              <Text style={styles.emptyText}>{t('No reports found for this period.')}</Text>
             ) : (
               filteredDisputes.map(d => (
                 <View key={d.DisputeID} style={styles.historyCard}>
@@ -273,7 +275,7 @@ export default function DisputeForm() {
                   </View>
 
                   <TouchableOpacity style={styles.viewDetailsBtn} onPress={() => setSelectedReport(d)}>
-                    <Text style={styles.viewDetailsText}>View Details & Photo</Text>
+                    <Text style={styles.viewDetailsText}>{t('View Details & Photo')}</Text>
                   </TouchableOpacity>
                 </View>
               ))
@@ -296,40 +298,40 @@ export default function DisputeForm() {
             <ScrollView style={styles.modalBody}>
               <View style={styles.modalGridRow}>
                 <View style={styles.modalGridItem}>
-                  <Text style={styles.modalLabel}>Order ID</Text>
+                  <Text style={styles.modalLabel}>{t('Order ID')}</Text>
                   <Text style={styles.modalVal}>{selectedReport?.OrdID}</Text>
                 </View>
                 <View style={styles.modalGridItem}>
-                  <Text style={styles.modalLabel}>Date Reported</Text>
+                  <Text style={styles.modalLabel}>{t('Date Reported')}</Text>
                   <Text style={styles.modalVal}>{new Date(selectedReport?.CreatedAt || Date.now()).toLocaleDateString()}</Text>
                 </View>
               </View>
               
               <View style={styles.modalGridRow}>
                 <View style={styles.modalGridItem}>
-                  <Text style={styles.modalLabel}>Issue Type</Text>
+                  <Text style={styles.modalLabel}>{t('Issue Type')}</Text>
                   <Text style={[styles.modalVal, { color: '#DC2626' }]}>{selectedReport?.IssueType}</Text>
                 </View>
                 <View style={styles.modalGridItem}>
-                  <Text style={styles.modalLabel}>Quantity</Text>
+                  <Text style={styles.modalLabel}>{t('Quantity')}</Text>
                   <Text style={styles.modalVal}>{selectedReport?.DamagedQuantity} units</Text>
                 </View>
               </View>
               
               <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Admin Notes</Text>
+                <Text style={styles.modalLabel}>{t('Admin Notes')}</Text>
                 <View style={styles.notesBox}>
                   {selectedReport?.AdminNotes ? (
                     <Text style={styles.notesText}>{selectedReport.AdminNotes}</Text>
                   ) : (
-                    <Text style={styles.notesEmpty}>No notes yet.</Text>
+                    <Text style={styles.notesEmpty}>{t('No notes yet.')}</Text>
                   )}
                 </View>
               </View>
 
               {selectedReport?.PhotoURL && (
                 <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Evidence</Text>
+                  <Text style={styles.modalLabel}>{t('Evidence')}</Text>
                   <Image source={{ uri: selectedReport.PhotoURL }} style={styles.modalImage} resizeMode="contain" />
                 </View>
               )}

@@ -7,8 +7,10 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { Clock, Truck, MapPin, Edit3, Check, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice, editingPriceId, setEditingPriceId, editingPriceValue, setEditingPriceValue }) => {
+  const { t } = useLanguage();
   const isEditing = editingPriceId === order.OrdID;
 
   return (
@@ -22,13 +24,13 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
 
       <View style={styles.content}>
         <View style={styles.infoRow}>
-          <Text style={styles.label}>CUSTOMER</Text>
+          <Text style={styles.label}>{t('CUSTOMER')}</Text>
           <Text style={styles.valueText} numberOfLines={1}>{order.Name}</Text>
           <Text style={styles.subText} numberOfLines={1}>{order.Company}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.label}>ITEMS</Text>
+          <Text style={styles.label}>{t('ITEMS')}</Text>
           <Text style={styles.valueText} numberOfLines={1}>{order.EstimateQty} {order.Unit || 'Bags'} • {order.Product}</Text>
           <View style={styles.locationRow}>
             <MapPin size={12} color="#8E8E93" />
@@ -37,7 +39,7 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.label}>AMOUNT</Text>
+          <Text style={styles.label}>{t('AMOUNT')}</Text>
           {isEditing ? (
             <View style={styles.editPriceRow}>
               <Text style={styles.currency}>₹</Text>
@@ -67,7 +69,7 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelBtnText}>CANCEL ORDER</Text>
+          <Text style={styles.cancelBtnText}>{t('CANCEL ORDER')}</Text>
         </TouchableOpacity>
         
         {order.ApprovalStatus === 'Ready for Dispatch' ? (
@@ -81,14 +83,14 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
             ) : (
               <>
                 <Truck size={16} color="#FFF" />
-                <Text style={styles.dispatchBtnText}>DISPATCH</Text>
+                <Text style={styles.dispatchBtnText}>{t('DISPATCH')}</Text>
               </>
             )}
           </TouchableOpacity>
         ) : (
           <View style={styles.waitingBtn}>
             <Clock size={16} color="#F59E0B" />
-            <Text style={styles.waitingBtnText}>WAITING FOR ADMIN</Text>
+            <Text style={styles.waitingBtnText}>{t('WAITING FOR ADMIN')}</Text>
           </View>
         )}
       </View>
@@ -97,6 +99,7 @@ const AwaitingCard = ({ order, isDispatching, onDispatch, onCancel, onSavePrice,
 };
 
 export default function SalesAwaiting() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -162,6 +165,7 @@ export default function SalesAwaiting() {
   };
 
   const handleCancel = (ordId) => {
+  const { t } = useLanguage();
     Alert.alert(
       "Cancel Order",
       `Are you sure you want to cancel order ${ordId}?`,
@@ -200,15 +204,15 @@ export default function SalesAwaiting() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.header}>
-          <Text style={styles.title}>Fleet Dispatch Actions</Text>
-          <Text style={styles.subtitle}>Orders approved by administration waiting for physical dispatch logs.</Text>
+          <Text style={styles.title}>{t('Fleet Dispatch Actions')}</Text>
+          <Text style={styles.subtitle}>{t('Orders approved by administration waiting for physical dispatch logs.')}</Text>
         </View>
 
         {orders.length === 0 ? (
           <View style={styles.emptyState}>
             <Clock size={48} color="#E5E5EA" />
-            <Text style={styles.emptyTitle}>No Pending Dispatches</Text>
-            <Text style={styles.emptySub}>All your approved orders have either been dispatched or are waiting for Admin sign-off.</Text>
+            <Text style={styles.emptyTitle}>{t('No Pending Dispatches')}</Text>
+            <Text style={styles.emptySub}>{t('All your approved orders have either been dispatched or are waiting for Admin sign-off.')}</Text>
           </View>
         ) : (
           paginatedOrders.map(order => (

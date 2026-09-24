@@ -12,8 +12,10 @@ import { isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
 import { Pagination } from '../../components/Pagination';
+import { useLanguage } from '../../context/LanguageContext';
 
 const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit }) => {
+  const { t } = useLanguage();
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -22,17 +24,17 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
       </View>
 
       <View style={styles.headline}>
-        <View style={styles.reqBadge}><Text style={styles.reqBadgeText}>ORDER REQUEST</Text></View>
+        <View style={styles.reqBadge}><Text style={styles.reqBadgeText}>{t('ORDER REQUEST')}</Text></View>
         <Text style={styles.orderId}>{order.OrdID}</Text>
       </View>
 
       <View style={styles.clientInfo}>
-        <Text style={styles.sectionLabel}>CLIENT INFO</Text>
+        <Text style={styles.sectionLabel}>{t('CLIENT INFO')}</Text>
         <Text style={styles.companyName} numberOfLines={1}>{order.Company}</Text>
         <Text style={styles.clientName} numberOfLines={1}>{order.Name}</Text>
         <View style={styles.repRow}>
           <User size={12} color="#64748B" />
-          <Text style={styles.repText} numberOfLines={1}>Sales Rep: {order.SalesApproverID || 'System'}</Text>
+          <Text style={styles.repText} numberOfLines={1}>{t("Sales Rep:")} {order.SalesApproverID || 'System'}</Text>
         </View>
       </View>
 
@@ -40,73 +42,74 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
 
       <View style={styles.grid}>
         <View style={styles.gridItem}>
-          <Text style={styles.sectionLabel}>PRODUCT TYPE</Text>
+          <Text style={styles.sectionLabel}>{t('PRODUCT TYPE')}</Text>
           <Text style={styles.gridVal}>{order.Product}</Text>
         </View>
         <View style={styles.gridItem}>
-          <Text style={styles.sectionLabel}>QUANTITY</Text>
+          <Text style={styles.sectionLabel}>{t('QUANTITY')}</Text>
           <Text style={styles.gridVal}>{order.EstimateQty} {order.Unit || 'tons'}</Text>
         </View>
         <View style={styles.gridItem}>
-          <Text style={styles.sectionLabel}>EST. AMOUNT</Text>
+          <Text style={styles.sectionLabel}>{t('EST. AMOUNT')}</Text>
           <Text style={styles.gridVal}>₹{Number(order.EstimateAmt || 0).toLocaleString('en-IN')}</Text>
         </View>
-        {order.City ? (
-          <View style={styles.gridItem}>
-            <Text style={styles.sectionLabel}>DESTINATION</Text>
+        {order.City ?
+        <View style={styles.gridItem}>
+            <Text style={styles.sectionLabel}>{t('DESTINATION')}</Text>
             <Text style={styles.gridVal}>{order.City}</Text>
-          </View>
-        ) : null}
+          </View> :
+        null}
       </View>
 
-      {order.Notes ? (
-        <View style={styles.notesBox}>
-          <Text style={styles.sectionLabel}>NOTES</Text>
+      {order.Notes ?
+      <View style={styles.notesBox}>
+          <Text style={styles.sectionLabel}>{t('NOTES')}</Text>
           <Text style={styles.notesText}>"{order.Notes.replace(' [Audio Note Attached]', '')}"</Text>
-        </View>
-      ) : null}
+        </View> :
+      null}
 
       <TouchableOpacity onPress={onToggleExpand} style={styles.historyBtn}>
         <History size={14} color="#0F172A" />
-        <Text style={styles.historyText}>Customer Profile</Text>
+        <Text style={styles.historyText}>{t('Customer Profile')}</Text>
         {isExpanded ? <ChevronUp size={14} color="#0F172A" /> : <ChevronDown size={14} color="#0F172A" />}
       </TouchableOpacity>
 
-      {isExpanded && hist && (
-        <View style={styles.histGrid}>
+      {isExpanded && hist &&
+      <View style={styles.histGrid}>
           <View style={styles.histBox}>
             <Text style={styles.histNum}>{hist.TotalOrdersPlaced}</Text>
-            <Text style={styles.histLbl}>Total</Text>
+            <Text style={styles.histLbl}>{t('Total')}</Text>
           </View>
           <View style={styles.histBox}>
             <Text style={styles.histNum}>{hist.TotalOrdersClosedOnTime}</Text>
-            <Text style={styles.histLbl}>On Time</Text>
+            <Text style={styles.histLbl}>{t('On Time')}</Text>
           </View>
           <View style={[styles.histBox, { borderRightWidth: 0 }]}>
             <Text style={styles.histNum}>{hist.TotalOrdersOverdue}</Text>
-            <Text style={styles.histLbl}>Overdue</Text>
+            <Text style={styles.histLbl}>{t('Overdue')}</Text>
           </View>
         </View>
-      )}
+      }
 
       <View style={styles.divider} />
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.editBtn} onPress={onEdit} disabled={isSubmitting}>
-          <Text style={styles.editBtnText}>EDIT</Text>
+          <Text style={styles.editBtnText}>{t('EDIT')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.rejectBtn} onPress={onReject} disabled={isSubmitting}>
-          <Text style={styles.rejectBtnText}>REJECT</Text>
+          <Text style={styles.rejectBtnText}>{t('REJECT')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.approveBtn} onPress={onApprove} disabled={isSubmitting}>
-          <Text style={styles.approveBtnText}>APPROVE</Text>
+          <Text style={styles.approveBtnText}>{t('APPROVE')}</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
+    </View>);
+
 };
 
 export const AdminQueue = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,12 +128,12 @@ export const AdminQueue = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders', 'profiles'], () => setRefreshKey((k) => k + 1));
 
   const fetchOrders = async () => {
     try {
       const data = await sheetsService.getOrders(user);
-      const queue = data.filter(o => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval');
+      const queue = data.filter((o) => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval');
       queue.sort((a, b) => new Date(a.OrderTimestamp) - new Date(b.OrderTimestamp));
       setOrders(queue);
       setCurrentPage(1);
@@ -146,9 +149,9 @@ export const AdminQueue = () => {
   }, [user, refreshKey]);
 
   const toggleAccordion = (ordId) => {
-    setExpandedOrders(prev => ({ ...prev, [ordId]: !prev[ordId] }));
+    setExpandedOrders((prev) => ({ ...prev, [ordId]: !prev[ordId] }));
     if (!customerHistory[ordId]) {
-      setCustomerHistory(prev => ({
+      setCustomerHistory((prev) => ({
         ...prev,
         [ordId]: { TotalOrdersPlaced: 45, TotalOrdersClosedOnTime: 40, TotalOrdersOverdue: 5 }
       }));
@@ -169,6 +172,7 @@ export const AdminQueue = () => {
   };
 
   const handleReject = async () => {
+    const { t } = useLanguage();
     if (!overrideReason.trim()) {
       alert("Please provide a rejection reason.");
       return;
@@ -176,7 +180,7 @@ export const AdminQueue = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await sheetsService.updateOrderStatus(user, rejectingOrder, 'Admin Rejected', { reason: overrideReason });
+      await sheetsService.updateOrderStatus(user, rejectingOrder, t("Admin Rejected"), { reason: overrideReason });
       setRejectingOrder(null);
       setOverrideReason('');
       await fetchOrders();
@@ -189,22 +193,23 @@ export const AdminQueue = () => {
 
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders.filter((o) => {
+    const { t } = useLanguage();
     const term = searchTerm.toLowerCase();
     const matchesSearch = o.OrdID?.toLowerCase().includes(term) ||
-      o.Company?.toLowerCase().includes(term) ||
-      o.Product?.toLowerCase().includes(term) ||
-      o.Name?.toLowerCase().includes(term) ||
-      o.SalesApproverID?.toLowerCase().includes(term);
+    o.Company?.toLowerCase().includes(term) ||
+    o.Product?.toLowerCase().includes(term) ||
+    o.Name?.toLowerCase().includes(term) ||
+    o.SalesApproverID?.toLowerCase().includes(term);
 
     let matchesTime = true;
     if (timeFilter !== 'All Time' && o.OrderTimestamp) {
       let ts = o.OrderTimestamp;
       if (!ts.endsWith('Z') && !ts.includes('+')) ts += 'Z';
       const orderDate = new Date(ts);
-      if (timeFilter === 'Today') matchesTime = isToday(orderDate);
-      else if (timeFilter === 'Yesterday') matchesTime = isYesterday(orderDate);
-      else if (timeFilter === 'Last 7 Days') matchesTime = isThisWeek(orderDate);
+      if (timeFilter === 'Today') matchesTime = isToday(orderDate);else
+      if (timeFilter === 'Yesterday') matchesTime = isYesterday(orderDate);else
+      if (timeFilter === 'Last 7 Days') matchesTime = isThisWeek(orderDate);
     }
 
     return matchesSearch && matchesTime;
@@ -218,69 +223,69 @@ export const AdminQueue = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={{ flex: 1, marginRight: 12 }}>
-            <Text style={styles.headerTitle} numberOfLines={2} adjustsFontSizeToFit>Final Approval Queue</Text>
+            <Text style={styles.headerTitle} numberOfLines={2} adjustsFontSizeToFit>{t('Final Approval Queue')}</Text>
           </View>
           <ExportButton data={filteredOrders} filename="AdminQueue" />
         </View>
 
         <View style={styles.filters}>
-          <View style={{ flex: 1 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder="Search Order ID..." /></View>
+          <View style={{ flex: 1 }}><SearchFilter value={searchTerm} onChange={setSearchTerm} placeholder={t("Search Order ID...")} /></View>
           <View style={styles.pickerWrapper}>
             <Calendar size={16} color="#8E8E93" style={styles.pickerIcon} />
             <Picker
               selectedValue={timeFilter}
               onValueChange={setTimeFilter}
-              style={styles.picker}
-            >
-              <Picker.Item label="All Time" value="All Time" />
-              <Picker.Item label="Today" value="Today" />
-              <Picker.Item label="Yesterday" value="Yesterday" />
-              <Picker.Item label="Last 7 Days" value="Last 7 Days" />
+              style={styles.picker}>
+              
+              <Picker.Item label={t("All Time")} value="All Time" />
+              <Picker.Item label={t("Today")} value="Today" />
+              <Picker.Item label={t("Yesterday")} value="Yesterday" />
+              <Picker.Item label={t("Last 7 Days")} value="Last 7 Days" />
             </Picker>
           </View>
         </View>
       </View>
 
       <View style={styles.content}>
-        {filteredOrders.length === 0 ? (
-          <View style={styles.emptyState}>
+        {filteredOrders.length === 0 ?
+        <View style={styles.emptyState}>
             <Check size={48} color={searchTerm ? "#8E8E93" : "#34C759"} />
             <Text style={styles.emptyTitle}>{searchTerm ? 'No Results Found' : 'All Caught Up'}</Text>
             <Text style={styles.emptySub}>{searchTerm ? `No orders matching "${searchTerm}".` : 'No orders awaiting final approval.'}</Text>
-          </View>
-        ) : (
-          paginatedOrders.map((order, index) => (
-            <QueueCard
-              key={order.OrdID}
-              index={index}
-              order={order}
-              isExpanded={!!expandedOrders[order.OrdID]}
-              onToggleExpand={() => toggleAccordion(order.OrdID)}
-              hist={customerHistory[order.OrdID]}
-              isSubmitting={isSubmitting}
-              onApprove={() => handleApprove(order.OrdID)}
-              onReject={() => setRejectingOrder(order.OrdID)}
-              onEdit={() => setEditingOrder(order)}
-            />
-          ))
-        )}
+          </View> :
+
+        paginatedOrders.map((order, index) =>
+        <QueueCard
+          key={order.OrdID}
+          index={index}
+          order={order}
+          isExpanded={!!expandedOrders[order.OrdID]}
+          onToggleExpand={() => toggleAccordion(order.OrdID)}
+          hist={customerHistory[order.OrdID]}
+          isSubmitting={isSubmitting}
+          onApprove={() => handleApprove(order.OrdID)}
+          onReject={() => setRejectingOrder(order.OrdID)}
+          onEdit={() => setEditingOrder(order)} />
+
+        )
+        }
       </View>
 
-      {totalPages > 1 && (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      )}
+      {totalPages > 1 &&
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      }
 
       <Modal visible={!!editingOrder} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {editingOrder && (
-              <EditOrderModal
-                order={editingOrder}
-                onClose={() => setEditingOrder(null)}
-                onUpdate={() => { setEditingOrder(null); fetchOrders(); }}
-                inline
-              />
-            )}
+            {editingOrder &&
+            <EditOrderModal
+              order={editingOrder}
+              onClose={() => setEditingOrder(null)}
+              onUpdate={() => {setEditingOrder(null);fetchOrders();}}
+              inline />
+
+            }
           </View>
         </View>
       </Modal>
@@ -288,19 +293,19 @@ export const AdminQueue = () => {
       <Modal visible={!!rejectingOrder} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.rejectModal}>
-            <Text style={styles.rejectTitle}>REJECT REQUEST</Text>
-            <Text style={styles.sectionLabel}>REASON</Text>
+            <Text style={styles.rejectTitle}>{t('REJECT REQUEST')}</Text>
+            <Text style={styles.sectionLabel}>{t('REASON')}</Text>
             <TextInput
               style={styles.rejectInput}
               value={overrideReason}
               onChangeText={setOverrideReason}
-              placeholder="Explain rejection reason..."
+              placeholder={t("Explain rejection reason...")}
               multiline
-              textAlignVertical="top"
-            />
+              textAlignVertical="top" />
+            
             <View style={styles.rejectActions}>
-              <TouchableOpacity style={styles.cancelRejectBtn} onPress={() => { setRejectingOrder(null); setOverrideReason(''); }}>
-                <Text style={styles.cancelRejectText}>CANCEL</Text>
+              <TouchableOpacity style={styles.cancelRejectBtn} onPress={() => {setRejectingOrder(null);setOverrideReason('');}}>
+                <Text style={styles.cancelRejectText}>{t('CANCEL')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmRejectBtn} onPress={handleReject} disabled={isSubmitting}>
                 <Text style={styles.confirmRejectText}>{isSubmitting ? 'WAIT' : 'REJECT'}</Text>
@@ -309,8 +314,8 @@ export const AdminQueue = () => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
-  );
+    </ScrollView>);
+
 };
 
 const styles = StyleSheet.create({

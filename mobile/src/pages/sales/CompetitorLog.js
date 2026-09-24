@@ -6,8 +6,10 @@ import { User, FileText, Eye, X, IndianRupee, Camera, Save } from 'lucide-react-
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { ExportButton } from '../../components/ExportButton';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function CompetitorLog() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [intelFeed, setIntelFeed] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,14 +92,14 @@ export default function CompetitorLog() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Competitor Intel Feed</Text>
+          <Text style={styles.title}>{t('Competitor Intel Feed')}</Text>
           <ExportButton data={intelFeed} filename="competitor_intel" />
         </View>
 
         <ScrollView style={styles.feedContainer}>
           {intelFeed.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No competitor intel logged yet.</Text>
+              <Text style={styles.emptyText}>{t('No competitor intel logged yet.')}</Text>
             </View>
           ) : (
             intelFeed.map((intel, index) => (
@@ -132,7 +134,7 @@ export default function CompetitorLog() {
                     onPress={() => setViewImage(intel.photo_data)}
                   >
                     <Eye size={16} color="#FFF" />
-                    <Text style={styles.viewImageText}>View Image</Text>
+                    <Text style={styles.viewImageText}>{t('View Image')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -165,24 +167,24 @@ export default function CompetitorLog() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
       <View style={styles.formCard}>
-        <Text style={styles.title}>Log Competitor Intel</Text>
+        <Text style={styles.title}>{t('Log Competitor Intel')}</Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Photo Capture</Text>
+          <Text style={styles.label}>{t('Photo Capture')}</Text>
           <TouchableOpacity style={styles.photoCaptureBox} onPress={pickImage}>
             {formData.photo_data ? (
               <Image source={{ uri: formData.photo_data }} style={styles.previewImage} />
             ) : (
               <View style={styles.photoPlaceholder}>
                 <Camera size={32} color="#64748B" />
-                <Text style={styles.photoPlaceholderText}>Tap to upload photo</Text>
+                <Text style={styles.photoPlaceholderText}>{t('Tap to upload photo')}</Text>
               </View>
             )}
           </TouchableOpacity>
         </View>
         
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Competitor Brand Name</Text>
+          <Text style={styles.label}>{t('Competitor Brand Name')}</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={formData.competitorName}
@@ -199,7 +201,7 @@ export default function CompetitorLog() {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Current Rate per Bag (₹)</Text>
+          <Text style={styles.label}>{t('Current Rate per Bag (₹)')}</Text>
           <View style={styles.inputContainer}>
             <IndianRupee size={16} color="#64748B" />
             <TextInput
@@ -213,7 +215,7 @@ export default function CompetitorLog() {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Additional Notes</Text>
+          <Text style={styles.label}>{t('Additional Notes')}</Text>
           <TextInput
             style={styles.textArea}
             placeholder="Any schemes, bulk discounts, or context..."
@@ -234,7 +236,7 @@ export default function CompetitorLog() {
           ) : (
             <>
               <Save size={18} color="#FFF" />
-              <Text style={styles.submitBtnText}>Submit Intel</Text>
+              <Text style={styles.submitBtnText}>{t('Submit Intel')}</Text>
             </>
           )}
         </TouchableOpacity>

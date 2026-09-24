@@ -6,8 +6,10 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { MapPin, Calendar, CheckSquare, Plus, Save, X } from 'lucide-react-native';
 import { CardSkeleton } from '../../components/Skeleton';
 import { Picker } from '@react-native-picker/picker';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function SalesVisits() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [dealers, setDealers] = useState([]);
   const [visits, setVisits] = useState([]);
@@ -101,7 +103,7 @@ export default function SalesVisits() {
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <MapPin size={24} color="#1A1A1A" />
-            <Text style={styles.title}>My Retailer Visits</Text>
+            <Text style={styles.title}>{t('My Retailer Visits')}</Text>
           </View>
           <Text style={styles.targetText}>
             Daily Target: <Text style={{ color: visitsToday >= targetVisits ? '#10B981' : '#F59E0B', fontWeight: '700' }}>{visitsToday} / {targetVisits}</Text>
@@ -110,14 +112,14 @@ export default function SalesVisits() {
 
         <TouchableOpacity style={styles.addBtn} onPress={() => setIsLoggingModalVisible(true)}>
           <Plus size={20} color="#FFF" />
-          <Text style={styles.addBtnText}>LOG NEW VISIT</Text>
+          <Text style={styles.addBtnText}>{t('LOG NEW VISIT')}</Text>
         </TouchableOpacity>
 
         {visits.length === 0 ? (
           <View style={styles.emptyState}>
             <Calendar size={48} color="#E5E5EA" />
-            <Text style={styles.emptyTitle}>No Visits Logged</Text>
-            <Text style={styles.emptySub}>Start logging your field visits to track your daily progress.</Text>
+            <Text style={styles.emptyTitle}>{t('No Visits Logged')}</Text>
+            <Text style={styles.emptySub}>{t('Start logging your field visits to track your daily progress.')}</Text>
           </View>
         ) : (
           <View style={styles.list}>
@@ -149,13 +151,13 @@ export default function SalesVisits() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Log Visit</Text>
+              <Text style={styles.modalTitle}>{t('Log Visit')}</Text>
               <TouchableOpacity onPress={() => setIsLoggingModalVisible(false)}>
                 <X size={24} color="#1A1A1A" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Retailer / Dealer</Text>
+            <Text style={styles.label}>{t('Retailer / Dealer')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={selectedDealer}
@@ -168,7 +170,7 @@ export default function SalesVisits() {
               </Picker>
             </View>
 
-            <Text style={styles.label}>Visit Date (YYYY-MM-DD)</Text>
+            <Text style={styles.label}>{t('Visit Date (YYYY-MM-DD)')}</Text>
             <View style={styles.datePickerBtn}>
               <TextInput
                 style={{ flex: 1, fontSize: 16, color: '#1A1A1A' }}
@@ -179,7 +181,7 @@ export default function SalesVisits() {
               <Calendar size={18} color="#64748B" />
             </View>
 
-            <Text style={styles.label}>Remarks / Summary</Text>
+            <Text style={styles.label}>{t('Remarks / Summary')}</Text>
             <TextInput
               style={styles.remarksInput}
               placeholder="Discussed new credit limit, took order for 50 tons, etc..."
@@ -199,7 +201,7 @@ export default function SalesVisits() {
               ) : (
                 <>
                   <Save size={18} color="#FFF" />
-                  <Text style={styles.saveBtnText}>SAVE VISIT</Text>
+                  <Text style={styles.saveBtnText}>{t('SAVE VISIT')}</Text>
                 </>
               )}
             </TouchableOpacity>

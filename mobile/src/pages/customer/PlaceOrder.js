@@ -5,8 +5,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Square, CheckSquare, RefreshCw, Info, Mic, Trash2, Play } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { sheetsService } from '../../services/sheetsService';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function PlaceOrder() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
@@ -359,10 +361,10 @@ export default function PlaceOrder() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
         <View style={styles.blockedCard}>
-          <Text style={styles.blockedTitle}>Order Placement Blocked</Text>
+          <Text style={styles.blockedTitle}>{t('Order Placement Blocked')}</Text>
           <Text style={styles.blockedSub}>{blockReason}</Text>
           <TouchableOpacity style={styles.btnPrimary} onPress={() => navigation.navigate('customer/invoices')}>
-            <Text style={styles.btnPrimaryText}>Go to Invoices</Text>
+            <Text style={styles.btnPrimaryText}>{t('Go to Invoices')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -385,7 +387,7 @@ export default function PlaceOrder() {
             style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FEF2F2', borderRadius: 6, borderWidth: 1, borderColor: '#FCA5A5' }}
             onPress={() => setFormData({ Product: '', EstimateTons: '', Unit: 'Tons', EstimateAmt: '', Notes: '' })}
           >
-            <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '700' }}>CLEAR</Text>
+            <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '700' }}>{t('CLEAR')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -393,13 +395,13 @@ export default function PlaceOrder() {
       {lastOrder && !formData.Product && (
         <View style={styles.autofillCard}>
           <View>
-            <Text style={styles.autofillLabel}>LAST ORDER INFO</Text>
+            <Text style={styles.autofillLabel}>{t('LAST ORDER INFO')}</Text>
             <Text style={styles.autofillProd}>{lastOrder.Product}</Text>
             <Text style={styles.autofillDesc}>{lastOrder.EstimateQty} {lastOrder.Unit} on {new Date(lastOrder.OrderTimestamp).toLocaleDateString()}</Text>
           </View>
           <TouchableOpacity style={styles.autofillBtn} onPress={handleAutofill}>
             <RefreshCw size={14} color="#1A1A1A" />
-            <Text style={styles.autofillBtnText}>AUTOFILL</Text>
+            <Text style={styles.autofillBtnText}>{t('AUTOFILL')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -411,23 +413,23 @@ export default function PlaceOrder() {
         <TouchableOpacity style={styles.checkboxRow} onPress={() => setUseCustomDelivery(!useCustomDelivery)}>
           {useCustomDelivery ? <CheckSquare size={20} color="#1A1A1A" /> : <Square size={20} color="#8E8E93" />}
           <View style={{ flex: 1 }}>
-            <Text style={styles.checkboxTitle}>Custom Site Delivery</Text>
-            <Text style={styles.checkboxSub}>Deliver to a location other than default address.</Text>
+            <Text style={styles.checkboxTitle}>{t('Custom Site Delivery')}</Text>
+            <Text style={styles.checkboxSub}>{t('Deliver to a location other than default address.')}</Text>
           </View>
         </TouchableOpacity>
 
         {useCustomDelivery ? (
           <View style={styles.customDeliveryForm}>
-            <Text style={styles.inputLabel}>Site Street Address</Text>
+            <Text style={styles.inputLabel}>{t('Site Street Address')}</Text>
             <TextInput style={styles.input} value={customAddress} onChangeText={setCustomAddress} placeholder="Enter street/site address" />
             
-            <Text style={styles.inputLabel}>City</Text>
+            <Text style={styles.inputLabel}>{t('City')}</Text>
             <TextInput style={styles.input} value={customCity} onChangeText={setCustomCity} placeholder="City name" />
             
-            <Text style={styles.inputLabel}>Tehsil (Optional)</Text>
+            <Text style={styles.inputLabel}>{t('Tehsil (Optional)')}</Text>
             <TextInput style={styles.input} value={customTehsil} onChangeText={setCustomTehsil} placeholder="Tehsil name" />
             
-            <Text style={styles.inputLabel}>District</Text>
+            <Text style={styles.inputLabel}>{t('District')}</Text>
             <View style={styles.pickerContainer}>
               <Picker selectedValue={customDistrict} onValueChange={setCustomDistrict}>
                 <Picker.Item label="Select District" value="" />
@@ -437,10 +439,10 @@ export default function PlaceOrder() {
               </Picker>
             </View>
 
-            <Text style={styles.inputLabel}>State</Text>
+            <Text style={styles.inputLabel}>{t('State')}</Text>
             <TextInput style={styles.input} value={customState} onChangeText={setCustomState} placeholder="State name" />
 
-            <Text style={styles.inputLabel}>ZIP Code (Optional)</Text>
+            <Text style={styles.inputLabel}>{t('ZIP Code (Optional)')}</Text>
             <TextInput style={styles.input} value={customZip} onChangeText={setCustomZip} placeholder="PIN code" keyboardType="numeric" />
           </View>
         ) : (
@@ -452,7 +454,7 @@ export default function PlaceOrder() {
           </View>
         )}
 
-        <Text style={styles.inputLabel}>Special Instructions (Optional)</Text>
+        <Text style={styles.inputLabel}>{t('Special Instructions (Optional)')}</Text>
         <TextInput 
           style={styles.textArea} 
           multiline 
@@ -462,7 +464,7 @@ export default function PlaceOrder() {
           placeholder="Type instructions here..."
         />
 
-        <Text style={[styles.inputLabel, { marginTop: 16 }]}>Voice Note (Optional)</Text>
+        <Text style={[styles.inputLabel, { marginTop: 16 }]}>{t('Voice Note (Optional)')}</Text>
         <View style={styles.voiceNoteContainer}>
           {audioData ? (
             <View style={styles.audioRecordedCard}>
@@ -470,7 +472,7 @@ export default function PlaceOrder() {
                 <TouchableOpacity onPress={playAudio} style={styles.iconBtnRound}>
                   <Play size={18} color="#FFF" fill="#FFF" />
                 </TouchableOpacity>
-                <Text style={styles.audioText}>Voice Note Recorded</Text>
+                <Text style={styles.audioText}>{t('Voice Note Recorded')}</Text>
               </View>
               <TouchableOpacity onPress={clearAudio}>
                 <Trash2 size={20} color="#FF3B30" />
@@ -479,12 +481,12 @@ export default function PlaceOrder() {
           ) : isRecording ? (
             <TouchableOpacity style={styles.recordBtnRecording} onPress={stopRecording}>
               <Square size={20} color="#FFF" fill="#FFF" />
-              <Text style={styles.recordBtnTextRecording}>Stop Recording...</Text>
+              <Text style={styles.recordBtnTextRecording}>{t('Stop Recording...')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.recordBtn} onPress={startRecording}>
               <Mic size={20} color="#1A1A1A" />
-              <Text style={styles.recordBtnText}>Record Audio Instructions</Text>
+              <Text style={styles.recordBtnText}>{t('Record Audio Instructions')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -494,7 +496,7 @@ export default function PlaceOrder() {
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}><View style={[styles.stepBadge, { backgroundColor: '#E2E8F0' }]}><Text style={[styles.stepBadgeText, { color: '#1A1A1A' }]}>2</Text></View> MATERIAL DETAIL</Text>
         
-        <Text style={styles.inputLabel}>Select Product Catalog</Text>
+        <Text style={styles.inputLabel}>{t('Select Product Catalog')}</Text>
         <View style={styles.pickerContainer}>
           <Picker selectedValue={formData.Product} onValueChange={handleProductChange}>
             <Picker.Item label="-- Choose a product --" value="" />
@@ -507,7 +509,7 @@ export default function PlaceOrder() {
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={styles.inputLabel}>Qty Required</Text>
+              <Text style={styles.inputLabel}>{t('Qty Required')}</Text>
               <View style={styles.unitPickerContainer}>
                 <Picker style={styles.unitPicker} selectedValue={formData.Unit} onValueChange={handleUnitChange}>
                   <Picker.Item label="Tons" value="Tons" />
@@ -531,7 +533,7 @@ export default function PlaceOrder() {
           </View>
           <View style={{ width: 16 }} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.inputLabel}>Estimated Cost</Text>
+            <Text style={styles.inputLabel}>{t('Estimated Cost')}</Text>
             <View style={styles.costBox}>
               <Text style={styles.costText}>{formData.EstimateAmt ? `₹${Number(formData.EstimateAmt).toLocaleString()}` : '₹0'}</Text>
               {selectedProductObj && (
@@ -543,7 +545,7 @@ export default function PlaceOrder() {
       </View>
 
       <TouchableOpacity style={[styles.btnPrimary, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading}>
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnPrimaryText}>SUBMIT PROCUREMENT REQUEST</Text>}
+        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnPrimaryText}>{t('SUBMIT PROCUREMENT REQUEST')}</Text>}
       </TouchableOpacity>
 
     </ScrollView>

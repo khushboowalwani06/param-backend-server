@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert,
 import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, MapPin, Briefcase, Save, Edit2, X } from 'lucide-react-native';
 import { sheetsService } from '../../services/sheetsService';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function CustomerProfile() {
+  const { t } = useLanguage();
   const { user, updateUser } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -58,12 +60,12 @@ export default function CustomerProfile() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Details</Text>
+        <Text style={styles.sectionTitle}>{t('Account Details')}</Text>
         
         <View style={styles.infoRow}>
           <User size={20} color="#64748B" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Full Name</Text>
+            <Text style={styles.infoLabel}>{t('Full Name')}</Text>
             <TextInput
               style={[styles.infoInput, !isEditing && styles.infoInputDisabled]}
               value={formData.Name}
@@ -78,7 +80,7 @@ export default function CustomerProfile() {
         <View style={styles.infoRow}>
           <Mail size={20} color="#64748B" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoLabel}>{t('Email')}</Text>
             <TextInput
               style={[styles.infoInput, !isEditing && styles.infoInputDisabled]}
               value={formData.Email}
@@ -95,7 +97,7 @@ export default function CustomerProfile() {
         <View style={styles.infoRow}>
           <Phone size={20} color="#64748B" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Phone</Text>
+            <Text style={styles.infoLabel}>{t('Phone')}</Text>
             <TextInput
               style={[styles.infoInput, !isEditing && styles.infoInputDisabled]}
               value={formData.Phone}
@@ -111,7 +113,7 @@ export default function CustomerProfile() {
         <View style={styles.infoRow}>
           <Briefcase size={20} color="#64748B" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Company / Business</Text>
+            <Text style={styles.infoLabel}>{t('Company / Business')}</Text>
             <TextInput
               style={[styles.infoInput, !isEditing && styles.infoInputDisabled]}
               value={formData.Company}
@@ -126,7 +128,7 @@ export default function CustomerProfile() {
         <View style={styles.infoRow}>
           <MapPin size={20} color="#64748B" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Location / Region</Text>
+            <Text style={styles.infoLabel}>{t('Location / Region')}</Text>
             <TextInput
               style={[styles.infoInput, !isEditing && styles.infoInputDisabled]}
               value={formData.Address}
@@ -157,7 +159,7 @@ export default function CustomerProfile() {
             disabled={isSaving}
           >
             <X size={20} color="#1A1A1A" />
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelBtnText}>{t('Cancel')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -170,7 +172,7 @@ export default function CustomerProfile() {
             ) : (
               <>
                 <Save size={20} color="#FFF" />
-                <Text style={styles.saveBtnText}>Save</Text>
+                <Text style={styles.saveBtnText}>{t('Save')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -181,7 +183,7 @@ export default function CustomerProfile() {
           onPress={() => setIsEditing(true)}
         >
           <Edit2 size={20} color="#FFF" />
-          <Text style={styles.editBtnText}>Edit Profile</Text>
+          <Text style={styles.editBtnText}>{t('Edit Profile')}</Text>
         </TouchableOpacity>
       )}
     </ScrollView>

@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { LogOut, X } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function CustomDrawerContent(props) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigation = useNavigation();
 
   const handleLogout = async () => {
@@ -51,7 +53,7 @@ export default function CustomDrawerContent(props) {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <LogOut size={20} color="#DC2626" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t('Log Out')}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -283,11 +283,11 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (error || !profile) {
       console.error('Supabase login error:', error);
-      return res.status(401).json({ error: 'Invalid email or password', details: error ? error.message : 'Profile not found' });
+      return res.status(401).json({ error: `DEBUG: Profile not found. Is Service Role Key missing? error=${error?.message || 'none'}, profile=${profile ? 'exists' : 'null'}` });
     }
 
     if (profile.password !== password) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: `DEBUG: Password mismatch. DB=${profile.password}, Input=${password}` });
     }
 
     const token = jwt.sign({ user_id: profile.user_id, role: profile.role }, jwtSecret, { expiresIn: '7d' });

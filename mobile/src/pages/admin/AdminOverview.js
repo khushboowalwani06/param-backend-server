@@ -11,10 +11,12 @@ import { RetailersDirectory } from '../shared/RetailersDirectory';
 import { CardSkeleton } from '../../components/Skeleton';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
+import { useLanguage } from '../../context/LanguageContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const AdminOverview = () => {
+  const { t } = useLanguage();
   const navigation = useNavigation();
   const { user } = useAuth();
   const { success, info } = useToast();
@@ -28,14 +30,14 @@ export const AdminOverview = () => {
   const [repViewMode, setRepViewMode] = useState('grid');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useRealtime(['orders', 'profiles', 'payments'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders', 'profiles', 'payments'], () => setRefreshKey((k) => k + 1));
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [ordersData] = await Promise.all([
-          sheetsService.getOrders(user)
-        ]);
+        sheetsService.getOrders(user)]
+        );
         setOrders(ordersData);
       } catch (err) {
         console.error(err);
@@ -48,7 +50,7 @@ export const AdminOverview = () => {
 
   if (loading) return <View style={styles.loadingContainer}><CardSkeleton /><CardSkeleton /></View>;
 
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders.filter((o) => {
     if (!o.OrderTimestamp) return false;
     let ts = o.OrderTimestamp;
     if (!ts.endsWith('Z') && !ts.includes('+')) ts += 'Z';
@@ -68,38 +70,38 @@ export const AdminOverview = () => {
   });
 
   const totalOrders = filteredOrders.length;
-  const pendingFinal = filteredOrders.filter(o => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval').length;
-  const inTransit = filteredOrders.filter(o => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length;
-  const closedOrders = filteredOrders.filter(o => o.ApprovalStatus === 'Closed' || o.ApprovalStatus === 'Delivered').length;
-  const overduePayments = filteredOrders.filter(o => o.ApprovalStatus === 'Overdue' || (o.ApprovalStatus.includes('Payment Pending') && new Date(o.PaymentDueDate) < new Date())).length;
+  const pendingFinal = filteredOrders.filter((o) => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval').length;
+  const inTransit = filteredOrders.filter((o) => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length;
+  const closedOrders = filteredOrders.filter((o) => o.ApprovalStatus === 'Closed' || o.ApprovalStatus === 'Delivered').length;
+  const overduePayments = filteredOrders.filter((o) => o.ApprovalStatus === 'Overdue' || o.ApprovalStatus.includes('Payment Pending') && new Date(o.PaymentDueDate) < new Date()).length;
 
-  const funnelSubmitted = filteredOrders.filter(o => o.ApprovalStatus !== 'Draft').length;
-  const funnelApproved = filteredOrders.filter(o => !['Draft', 'Pending Sales Approval', 'Pending Admin Approval', 'Rejected', 'Admin Rejected'].includes(o.ApprovalStatus)).length;
+  const funnelSubmitted = filteredOrders.filter((o) => o.ApprovalStatus !== 'Draft').length;
+  const funnelApproved = filteredOrders.filter((o) => !['Draft', 'Pending Sales Approval', 'Pending Admin Approval', 'Rejected', t("Admin Rejected")].includes(o.ApprovalStatus)).length;
   const funnelDelivered = closedOrders;
 
   const repStats = filteredOrders.reduce((acc, order) => {
     const rep = order.SalesApproverID || 'Direct';
     if (!acc[rep]) acc[rep] = { name: rep, totalAmt: 0, orderCount: 0 };
-    acc[rep].totalAmt += (Number(order.EstimateAmt) || 0);
+    acc[rep].totalAmt += Number(order.EstimateAmt) || 0;
     acc[rep].orderCount += 1;
     return acc;
   }, {});
   const topReps = Object.values(repStats).sort((a, b) => b.totalAmt - a.totalAmt).slice(0, 3);
 
-  const blockedCount = filteredOrders.filter(o => o.ApprovalStatus?.includes('Rejected')).length;
+  const blockedCount = filteredOrders.filter((o) => o.ApprovalStatus?.includes('Rejected')).length;
   const delayedCount = overduePayments;
   const activeCount = totalOrders - blockedCount - delayedCount - closedOrders;
 
-  const activePct = totalOrders > 0 ? Math.round((activeCount / totalOrders) * 100) : 100;
-  const delayedPct = totalOrders > 0 ? Math.round((delayedCount / totalOrders) * 100) : 0;
+  const activePct = totalOrders > 0 ? Math.round(activeCount / totalOrders * 100) : 100;
+  const delayedPct = totalOrders > 0 ? Math.round(delayedCount / totalOrders * 100) : 0;
 
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = subDays(new Date(), 6 - i);
     return { date: format(d, 'yyyy-MM-dd'), label: format(d, 'EEEEE') }; // M, T, W etc.
   });
 
-  const volumeData = last7Days.map(dayObj => {
-    const dayOrders = filteredOrders.filter(o => {
+  const volumeData = last7Days.map((dayObj) => {
+    const dayOrders = filteredOrders.filter((o) => {
       if (!o.OrderTimestamp) return false;
       let ts = o.OrderTimestamp;
       if (!ts.endsWith('Z') && !ts.includes('+')) ts += 'Z';
@@ -108,15 +110,15 @@ export const AdminOverview = () => {
     return {
       label: dayObj.label,
       orders: dayOrders.length,
-      dispatch: dayOrders.filter(o => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length
+      dispatch: dayOrders.filter((o) => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length
     };
   });
 
-  const maxVolume = Math.max(...volumeData.map(d => d.orders), 1);
+  const maxVolume = Math.max(...volumeData.map((d) => d.orders), 1);
   const graphWidth = SCREEN_WIDTH - 64;
   const graphHeight = 80;
   const stepX = graphWidth / 6;
-  const growthRate = totalOrders > 0 ? Math.round((volumeData[6].orders / (volumeData[0].orders || 1)) * 100) : 0;
+  const growthRate = totalOrders > 0 ? Math.round(volumeData[6].orders / (volumeData[0].orders || 1) * 100) : 0;
 
   const handleDownload = async () => {
     try {
@@ -133,7 +135,7 @@ export const AdminOverview = () => {
         'Transit': 6,
         'Payment Pending': 7,
         'Delivered': 8,
-        'Closed': 9,
+        'Closed': 9
       };
 
       const sortedData = [...filteredOrders].sort((a, b) => {
@@ -143,49 +145,49 @@ export const AdminOverview = () => {
       });
 
       await exportToExcel(sortedData, 'Admin_Overview_Report', 'Orders');
-      success("Report exported successfully!");
+      success(t("Report exported successfully!"));
     } catch (err) {
       console.error(err);
     }
   };
 
   const circumference = 2 * Math.PI * 15.9155;
-  const strokeDashoffsetActive = circumference - (activePct / 100) * circumference;
+  const strokeDashoffsetActive = circumference - activePct / 100 * circumference;
 
   const circumferenceInner = 2 * Math.PI * 11.9155;
-  const strokeDashoffsetDelayed = circumferenceInner - (delayedPct / 100) * circumferenceInner;
+  const strokeDashoffsetDelayed = circumferenceInner - delayedPct / 100 * circumferenceInner;
 
-  const pendingApprovals = filteredOrders.filter(o => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval');
+  const pendingApprovals = filteredOrders.filter((o) => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.title}>Hi, {user?.Name || 'Admin'}!</Text>
+        <Text style={styles.title}>{t("Hi,")} {user?.Name || 'Admin'}!</Text>
 
         <View style={styles.timeFiltersWrapper}>
           <View style={styles.timeFilters}>
-            {['All Time', 'Today', 'This Month'].map(f => (
-              <TouchableOpacity key={f} onPress={() => { setTimeFilter(f); setStartDate(''); setEndDate(''); }} style={[styles.timeBtn, timeFilter === f && styles.timeBtnActive]}>
+            {['All Time', 'Today', 'This Month'].map((f) =>
+            <TouchableOpacity key={f} onPress={() => {setTimeFilter(f);setStartDate('');setEndDate('');}} style={[styles.timeBtn, timeFilter === f && styles.timeBtnActive]}>
                 <Text style={[styles.timeText, timeFilter === f && styles.timeTextActive]}>{f}</Text>
               </TouchableOpacity>
-            ))}
+            )}
           </View>
-          <DateRangeFilter startDate={startDate} endDate={endDate} onDateChange={({ startDate: s, endDate: e }) => { setStartDate(s); setEndDate(e); setTimeFilter('Custom'); }} onClear={() => { setStartDate(''); setEndDate(''); setTimeFilter('All Time'); }} />
+          <DateRangeFilter startDate={startDate} endDate={endDate} onDateChange={({ startDate: s, endDate: e }) => {setStartDate(s);setEndDate(e);setTimeFilter('Custom');}} onClear={() => {setStartDate('');setEndDate('');setTimeFilter('All Time');}} />
         </View>
       </View>
 
       <View style={styles.darkCard}>
-        <Text style={styles.darkCardTitle}>Overall Information</Text>
+        <Text style={styles.darkCardTitle}>{t("Overall Information")}</Text>
 
         <View style={styles.overallStatsRow}>
           <TouchableOpacity onPress={() => navigation?.navigate('admin/orders')} style={styles.mainStatCol}>
             <Text style={styles.mainStatValue} adjustsFontSizeToFit numberOfLines={1}>{totalOrders}</Text>
-            <Text style={styles.mainStatLabel}>Total Orders</Text>
+            <Text style={styles.mainStatLabel}>{t("Total Orders")}</Text>
           </TouchableOpacity>
           <View style={styles.verticalDivider} />
           <TouchableOpacity onPress={() => navigation?.navigate('admin/aging')} style={styles.mainStatCol}>
             <Text style={styles.subStatValue} adjustsFontSizeToFit numberOfLines={1}>{overduePayments}</Text>
-            <Text style={styles.mainStatLabel}>Overdue accounts</Text>
+            <Text style={styles.mainStatLabel}>{t("Overdue accounts")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -195,13 +197,13 @@ export const AdminOverview = () => {
               <View style={styles.pillIconDot} />
             </View>
             <Text style={styles.pillValue} adjustsFontSizeToFit numberOfLines={1}>{pendingFinal}</Text>
-            <Text style={styles.pillLabel}>PENDING</Text>
+            <Text style={styles.pillLabel}>{t("PENDING")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation?.navigate('admin/logistics')} style={styles.pillCard}>
             <View style={styles.pillIconDashed} />
             <Text style={styles.pillValue} adjustsFontSizeToFit numberOfLines={1}>{inTransit}</Text>
-            <Text style={styles.pillLabel}>TRANSIT</Text>
+            <Text style={styles.pillLabel}>{t("TRANSIT")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation?.navigate('admin/orders')} style={styles.pillCard}>
@@ -209,7 +211,7 @@ export const AdminOverview = () => {
               <View style={styles.pillIconRing} />
             </View>
             <Text style={styles.pillValue} adjustsFontSizeToFit numberOfLines={1}>{closedOrders}</Text>
-            <Text style={styles.pillLabel}>COMPLETED</Text>
+            <Text style={styles.pillLabel}>{t("COMPLETED")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -217,10 +219,10 @@ export const AdminOverview = () => {
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
           <View>
-            <Text style={styles.cardTitle}>Volume Trends (7d)</Text>
+            <Text style={styles.cardTitle}>{t("Volume Trends (7d)")}</Text>
             <View style={styles.legendRow}>
-              <View style={styles.legendDotBlack} /><Text style={styles.legendText}>Orders</Text>
-              <View style={styles.legendDotGray} /><Text style={styles.legendText}>Dispatch</Text>
+              <View style={styles.legendDotBlack} /><Text style={styles.legendText}>{t("Orders")}</Text>
+              <View style={styles.legendDotGray} /><Text style={styles.legendText}>{t("Dispatch")}</Text>
             </View>
           </View>
           <View style={styles.growthBadge}><Text style={styles.growthText}>+{growthRate}%</Text></View>
@@ -231,8 +233,8 @@ export const AdminOverview = () => {
             <Line x1="0" y1="100" x2={graphWidth} y2="100" stroke="#E5E5EA" strokeWidth="2" />
             {volumeData.map((d, i) => {
               const x = i * stepX;
-              const hOrders = (d.orders / maxVolume) * graphHeight || 0;
-              const hDispatch = (d.dispatch / maxVolume) * graphHeight || 0;
+              const hOrders = d.orders / maxVolume * graphHeight || 0;
+              const hDispatch = d.dispatch / maxVolume * graphHeight || 0;
               const yOrders = 100 - hOrders;
               const yDispatch = 100 - hDispatch;
               const barWidth = 14;
@@ -240,16 +242,16 @@ export const AdminOverview = () => {
                 <React.Fragment key={i}>
                   <Rect x={x - barWidth / 2 - 2} y={yDispatch} width={barWidth / 2} height={hDispatch} fill="#C7C7CC" rx="2" />
                   <Rect x={x} y={yOrders} width={barWidth / 2} height={hOrders} fill="#1A1A1A" rx="2" />
-                </React.Fragment>
-              );
+                </React.Fragment>);
+
             })}
           </Svg>
           <View style={styles.chartLabels}>
-            {volumeData.map((d, i) => (
-              <View key={i} style={i === 6 ? styles.currentDayLabel : styles.dayLabel}>
+            {volumeData.map((d, i) =>
+            <View key={i} style={i === 6 ? styles.currentDayLabel : styles.dayLabel}>
                 <Text style={i === 6 ? styles.currentDayText : styles.dayText}>{d.label[0]}</Text>
               </View>
-            ))}
+            )}
           </View>
         </View>
       </View>
@@ -257,16 +259,16 @@ export const AdminOverview = () => {
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
           <View>
-            <Text style={styles.cardTitle}>Operational SLA</Text>
-            <Text style={styles.slaSubtext}>+{activePct > 50 ? '5' : '0'}% <Text style={styles.slaSubtextMuted}>compared to last month</Text></Text>
+            <Text style={styles.cardTitle}>{t("Operational SLA")}</Text>
+            <Text style={styles.slaSubtext}>+{activePct > 50 ? '5' : '0'}% <Text style={styles.slaSubtextMuted}>{t("compared to last month")}</Text></Text>
           </View>
         </View>
 
         <View style={styles.slaContentRow}>
           <View style={styles.slaLegendCol}>
-            <View style={styles.slaLegendRow}><View style={styles.legendDotBlack} /><Text style={styles.slaLegendText}>Active ({activeCount})</Text></View>
-            <View style={styles.slaLegendRow}><View style={styles.legendDotGray} /><Text style={styles.slaLegendText}>Delayed ({delayedCount})</Text></View>
-            <View style={styles.slaLegendRow}><View style={styles.legendDotLightGray} /><Text style={styles.slaLegendText}>Blocked ({blockedCount})</Text></View>
+            <View style={styles.slaLegendRow}><View style={styles.legendDotBlack} /><Text style={styles.slaLegendText}>{t("Active (")}{activeCount})</Text></View>
+            <View style={styles.slaLegendRow}><View style={styles.legendDotGray} /><Text style={styles.slaLegendText}>{t("Delayed (")}{delayedCount})</Text></View>
+            <View style={styles.slaLegendRow}><View style={styles.legendDotLightGray} /><Text style={styles.slaLegendText}>{t("Blocked (")}{blockedCount})</Text></View>
           </View>
           <View style={styles.circularChartWrapper}>
             <Svg viewBox="0 0 36 36" width={100} height={100}>
@@ -284,36 +286,36 @@ export const AdminOverview = () => {
 
         <TouchableOpacity style={styles.downloadBtn} onPress={handleDownload}>
           <Download size={16} color="#1A1A1A" />
-          <Text style={styles.downloadBtnText}>Download Report</Text>
+          <Text style={styles.downloadBtnText}>{t("Download Report")}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Order Funnel:</Text>
+        <Text style={styles.cardTitle}>{t("Order Funnel:")}</Text>
         <View style={styles.funnelList}>
           <View style={styles.funnelRow}>
-            <View style={styles.funnelLabelRow}><CheckCircle2 size={18} fill="#1A1A1A" color="#FFF" /><Text style={styles.funnelLabelActive}>Submitted Orders</Text></View>
+            <View style={styles.funnelLabelRow}><CheckCircle2 size={18} fill="#1A1A1A" color="#FFF" /><Text style={styles.funnelLabelActive}>{t("Submitted Orders")}</Text></View>
             <Text style={styles.funnelValue}>{funnelSubmitted}</Text>
           </View>
           <View style={styles.funnelRow}>
-            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>Approved Orders</Text></View>
+            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>{t("Approved Orders")}</Text></View>
             <Text style={styles.funnelValueMuted}>{funnelApproved}</Text>
           </View>
           <View style={styles.funnelRow}>
-            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>Delivered & Closed</Text></View>
+            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>{t("Delivered & Closed")}</Text></View>
             <Text style={styles.funnelValueMuted}>{funnelDelivered}</Text>
           </View>
           <View style={styles.funnelRow}>
-            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>Exceptions / Overdue</Text></View>
+            <View style={styles.funnelLabelRow}><Circle size={18} color="#C7C7CC" /><Text style={styles.funnelLabelMuted}>{t("Exceptions / Overdue")}</Text></View>
             <Text style={styles.funnelValueMuted}>{overduePayments}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.repsHeader}>
-        <Text style={styles.cardTitle}>Top Sales Reps ({topReps.length})</Text>
+        <Text style={styles.cardTitle}>{t("Top Sales Reps (")}{topReps.length})</Text>
         <View style={styles.repsToggle}>
-          <Text style={styles.repsToggleText}>Sort by</Text>
+          <Text style={styles.repsToggleText}>{t("Sort by")}</Text>
           <TouchableOpacity onPress={() => setRepViewMode('grid')}><Grid size={16} color={repViewMode === 'grid' ? '#1A1A1A' : '#C7C7CC'} /></TouchableOpacity>
           <TouchableOpacity onPress={() => setRepViewMode('list')}><List size={16} color={repViewMode === 'list' ? '#1A1A1A' : '#C7C7CC'} /></TouchableOpacity>
         </View>
@@ -323,7 +325,7 @@ export const AdminOverview = () => {
         {topReps.map((rep, idx) => {
           const repCircumference = 2 * Math.PI * 15.9155;
           const repScore = Math.max(20, 100 - idx * 25);
-          const repDashoffset = repCircumference - (repScore / 100) * repCircumference;
+          const repDashoffset = repCircumference - repScore / 100 * repCircumference;
 
           return (
             <View key={idx} style={[styles.repCardDark, repViewMode === 'grid' ? styles.repCardGrid : styles.repCardList]}>
@@ -339,29 +341,29 @@ export const AdminOverview = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <View style={styles.repStatusRow}>
-                  <View style={styles.repStatusDot} /><Text style={styles.repStatusText}>In progress</Text>
+                  <View style={styles.repStatusDot} /><Text style={styles.repStatusText}>{t("In progress")}</Text>
                 </View>
                 <View style={[styles.repStatsRow, repViewMode === 'grid' && { flexDirection: 'column', alignItems: 'flex-start', gap: 4 }, repViewMode === 'list' && { justifyContent: 'flex-start', gap: 32 }]}>
-                  <Text style={styles.repStatLabel}>Total Sales: <Text style={styles.repStatValue}>₹{rep.totalAmt.toLocaleString()}</Text></Text>
-                  <Text style={styles.repStatLabel}>Orders: <Text style={styles.repStatValue}>{rep.orderCount}</Text></Text>
+                  <Text style={styles.repStatLabel}>{t("Total Sales:")} <Text style={styles.repStatValue}>₹{rep.totalAmt.toLocaleString()}</Text></Text>
+                  <Text style={styles.repStatLabel}>{t("Orders:")} <Text style={styles.repStatValue}>{rep.orderCount}</Text></Text>
                 </View>
               </View>
-            </View>
-          );
+            </View>);
+
         })}
         <TouchableOpacity style={styles.viewAllRepsBtn} onPress={() => navigation?.navigate('admin/team')}>
-          <Text style={styles.viewAllRepsText}>+ View All Reps</Text>
+          <Text style={styles.viewAllRepsText}>{t("+ View All Reps")}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ marginTop: 24 }}>
-        <Text style={[styles.cardTitle, { marginBottom: 16 }]}>Pending Admin Approvals ({pendingFinal})</Text>
+        <Text style={[styles.cardTitle, { marginBottom: 16 }]}>{t("Pending Admin Approvals (")}{pendingFinal})</Text>
         <View style={[styles.card, { padding: 0, overflow: 'hidden' }]}>
-          {pendingApprovals.length === 0 ? (
-            <Text style={styles.emptyTableText}>No orders pending your approval.</Text>
-          ) : (
-            pendingApprovals.slice(0, 5).map((o, idx) => (
-              <View key={o.OrdID} style={[styles.tableRow, idx === pendingApprovals.length - 1 && { borderBottomWidth: 0 }]}>
+          {pendingApprovals.length === 0 ?
+          <Text style={styles.emptyTableText}>{t("No orders pending your approval.")}</Text> :
+
+          pendingApprovals.slice(0, 5).map((o, idx) =>
+          <View key={o.OrdID} style={[styles.tableRow, idx === pendingApprovals.length - 1 && { borderBottomWidth: 0 }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.tableRowId}>{o.OrdID}</Text>
                   <Text style={styles.tableRowDate}>{o.OrderTimestamp ? format(new Date(o.OrderTimestamp), 'dd MMM yyyy') : 'N/A'}</Text>
@@ -371,29 +373,29 @@ export const AdminOverview = () => {
                   <Text style={styles.tableRowCompany} numberOfLines={1}>{o.Company || ''}</Text>
                 </View>
                 <View style={{ flex: 1.5, marginLeft: 8 }}>
-                  <Text style={styles.tableRowProduct} numberOfLines={1}>{o.Product} <Text style={styles.tableRowQty}>x {o.EstimateQty}</Text></Text>
+                  <Text style={styles.tableRowProduct} numberOfLines={1}>{o.Product} <Text style={styles.tableRowQty}>{t("x")} {o.EstimateQty}</Text></Text>
                   <Text style={styles.tableRowAmt}>₹{(Number(o.EstimateAmt) || 0).toLocaleString()}</Text>
                 </View>
                 <TouchableOpacity onPress={() => navigation?.navigate('admin/queue')} style={styles.reviewBtn}>
-                  <Text style={styles.reviewBtnText}>Review</Text>
+                  <Text style={styles.reviewBtnText}>{t("Review")}</Text>
                 </TouchableOpacity>
               </View>
-            ))
-          )}
-          {pendingApprovals.length > 5 && (
-            <TouchableOpacity onPress={() => navigation?.navigate('admin/queue')} style={styles.viewMoreRow}>
-              <Text style={styles.viewMoreText}>View all {pendingApprovals.length} pending orders</Text>
+          )
+          }
+          {pendingApprovals.length > 5 &&
+          <TouchableOpacity onPress={() => navigation?.navigate('admin/queue')} style={styles.viewMoreRow}>
+              <Text style={styles.viewMoreText}>{t("View all")} {pendingApprovals.length} {t("pending orders")}</Text>
             </TouchableOpacity>
-          )}
+          }
         </View>
       </View>
 
       <View style={{ marginTop: 24 }}>
-        <Text style={[styles.cardTitle, { marginBottom: 16 }]}>Retailer Directory</Text>
+        <Text style={[styles.cardTitle, { marginBottom: 16 }]}>{t("Retailer Directory")}</Text>
         <RetailersDirectory compactMode={true} />
       </View>
-    </ScrollView>
-  );
+    </ScrollView>);
+
 };
 
 const styles = StyleSheet.create({

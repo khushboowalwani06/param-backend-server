@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Activi
 import { sheetsService } from '../services/sheetsService';
 import { useAuth } from '../context/AuthContext';
 import { Truck, Package, CheckCircle, PackageCheck, AlertCircle, Edit3, Check, X, Search } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 const StatusBadge = ({ status }) => {
   let color = '#64748B';
@@ -20,6 +21,7 @@ const StatusBadge = ({ status }) => {
 };
 
 export default function SharedLogistics() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
@@ -58,6 +60,7 @@ export default function SharedLogistics() {
   }, [user]);
 
   const handleUpdateStatus = async (order, newStatus) => {
+  const { t } = useLanguage();
     try {
       if (newStatus === 'Dispatched') {
         await sheetsService._fetch('/challans', {
@@ -80,6 +83,7 @@ export default function SharedLogistics() {
   };
 
   const handleCancel = (order) => {
+  const { t } = useLanguage();
     Alert.alert(
       "Cancel Order",
       `Are you sure you want to cancel order ${order.OrdID}?`,
@@ -102,6 +106,7 @@ export default function SharedLogistics() {
   };
 
   const handleSavePrice = async (ordId) => {
+  const { t } = useLanguage();
     try {
       await sheetsService.updateOrderPrice(user, ordId, Number(editingPriceValue));
       setEditingPriceId(null);
@@ -132,24 +137,25 @@ export default function SharedLogistics() {
   });
 
   const renderAction = (order) => {
+  const { t } = useLanguage();
     return (
       <View style={{ gap: 8, marginTop: 12 }}>
         {order.ApprovalStatus === 'Ready for Dispatch' && (
           dispatchingOrder === order.OrdID ? (
             <View style={styles.dispatchForm}>
-              <Text style={styles.dispatchLabel}>Selected Depot: Main Godown (Static for now)</Text>
+              <Text style={styles.dispatchLabel}>{t('Selected Depot: Main Godown (Static for now)')}</Text>
               <View style={styles.dispatchButtons}>
                 <TouchableOpacity 
                   style={[styles.btn, { flex: 1, backgroundColor: '#1A1A1A' }]}
                   onPress={() => handleUpdateStatus(order, 'Dispatched')}
                 >
-                  <Text style={[styles.btnText, { color: '#FFF' }]}>Confirm Dispatch</Text>
+                  <Text style={[styles.btnText, { color: '#FFF' }]}>{t('Confirm Dispatch')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.btn, { flex: 1, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0' }]}
                   onPress={() => setDispatchingOrder(null)}
                 >
-                  <Text style={[styles.btnText, { color: '#64748B' }]}>Cancel</Text>
+                  <Text style={[styles.btnText, { color: '#64748B' }]}>{t('Cancel')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -162,7 +168,7 @@ export default function SharedLogistics() {
               }}
             >
               <Package size={16} color="#FFF" />
-              <Text style={[styles.btnText, { color: '#FFF' }]}>Mark Dispatched</Text>
+              <Text style={[styles.btnText, { color: '#FFF' }]}>{t('Mark Dispatched')}</Text>
             </TouchableOpacity>
           )
         )}
@@ -172,7 +178,7 @@ export default function SharedLogistics() {
             onPress={() => handleUpdateStatus(order, 'In Transit')}
           >
             <Truck size={16} color="#FFF" />
-            <Text style={[styles.btnText, { color: '#FFF' }]}>Mark In Transit</Text>
+            <Text style={[styles.btnText, { color: '#FFF' }]}>{t('Mark In Transit')}</Text>
           </TouchableOpacity>
         )}
         {order.ApprovalStatus === 'In Transit' && (
@@ -181,7 +187,7 @@ export default function SharedLogistics() {
             onPress={() => handleUpdateStatus(order, 'Delivered')}
           >
             <CheckCircle size={16} color="#FFF" />
-            <Text style={[styles.btnText, { color: '#FFF' }]}>Mark Delivered</Text>
+            <Text style={[styles.btnText, { color: '#FFF' }]}>{t('Mark Delivered')}</Text>
           </TouchableOpacity>
         )}
 
@@ -190,7 +196,7 @@ export default function SharedLogistics() {
           onPress={() => handleCancel(order)}
         >
           <X size={16} color="#DC2626" />
-          <Text style={[styles.btnText, { color: '#DC2626' }]}>Cancel Order</Text>
+          <Text style={[styles.btnText, { color: '#DC2626' }]}>{t('Cancel Order')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -207,8 +213,8 @@ export default function SharedLogistics() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Logistics & Delivery</Text>
-        <Text style={styles.subtitle}>Manage the physical dispatch and delivery of approved orders.</Text>
+        <Text style={styles.title}>{t('Logistics & Delivery')}</Text>
+        <Text style={styles.subtitle}>{t('Manage the physical dispatch and delivery of approved orders.')}</Text>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -244,8 +250,8 @@ export default function SharedLogistics() {
       {filteredOrders.length === 0 ? (
         <View style={styles.emptyState}>
           <PackageCheck size={48} color="#CBD5E1" />
-          <Text style={styles.emptyText}>No Active Logistics</Text>
-          <Text style={styles.emptySubtext}>There are no orders currently awaiting dispatch or delivery.</Text>
+          <Text style={styles.emptyText}>{t('No Active Logistics')}</Text>
+          <Text style={styles.emptySubtext}>{t('There are no orders currently awaiting dispatch or delivery.')}</Text>
         </View>
       ) : (
         <View style={styles.list}>
@@ -262,15 +268,15 @@ export default function SharedLogistics() {
 
               <View style={styles.cardBody}>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Product</Text>
+                  <Text style={styles.label}>{t('Product')}</Text>
                   <Text style={styles.value}>{order.Product}</Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Quantity</Text>
+                  <Text style={styles.label}>{t('Quantity')}</Text>
                   <Text style={styles.value}>{order.EstimateQty}</Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Price</Text>
+                  <Text style={styles.label}>{t('Price')}</Text>
                   {editingPriceId === order.OrdID ? (
                     <View style={styles.editPriceContainer}>
                       <Text style={styles.currency}>₹</Text>
@@ -293,7 +299,7 @@ export default function SharedLogistics() {
                   )}
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Address</Text>
+                  <Text style={styles.label}>{t('Address')}</Text>
                   <Text style={[styles.value, { textAlign: 'right', flex: 2 }]} numberOfLines={2}>
                     {order.Address}, {order.City}
                   </Text>
@@ -303,7 +309,7 @@ export default function SharedLogistics() {
               {order.ApprovalStatus === 'In Transit' && (
                 <View style={styles.warningBox}>
                   <AlertCircle size={16} color="#F59E0B" />
-                  <Text style={styles.warningText}>Once marked Delivered, Customer must confirm receipt.</Text>
+                  <Text style={styles.warningText}>{t('Once marked Delivered, Customer must confirm receipt.')}</Text>
                 </View>
               )}
 

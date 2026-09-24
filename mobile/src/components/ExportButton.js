@@ -2,8 +2,10 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Download } from 'lucide-react-native';
 import { exportToExcel } from '../utils/exportToExcel';
+import { useLanguage } from '../context/LanguageContext';
 
 export const ExportButton = ({ data, filename, sheetName }) => {
+  const { t } = useLanguage();
   return (
     <TouchableOpacity 
       style={styles.button}
@@ -11,7 +13,7 @@ export const ExportButton = ({ data, filename, sheetName }) => {
       activeOpacity={0.7}
     >
       <Download size={16} color="#1A1A1A" />
-      <Text style={styles.text}>Export Excel</Text>
+      <Text style={styles.text}>{t('Export Excel')}</Text>
     </TouchableOpacity>
   );
 };
