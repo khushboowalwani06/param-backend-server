@@ -9,7 +9,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function SalesVisits() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const [dealers, setDealers] = useState([]);
   const [visits, setVisits] = useState([]);
@@ -131,7 +131,7 @@ export default function SalesVisits() {
               return (
                 <View key={visit.id || idx} style={styles.visitCard}>
                   <View style={styles.visitHeader}>
-                    <Text style={styles.visitDealer} numberOfLines={1}>{displayName}</Text>
+                    <Text style={styles.visitDealer} numberOfLines={1}>{tDynamic(displayName)}</Text>
                     <View style={styles.visitDateBadge}>
                       <Text style={styles.visitDateText}>{new Date(visit.date).toLocaleDateString()}</Text>
                     </View>
@@ -165,7 +165,7 @@ export default function SalesVisits() {
               >
                 <Picker.Item label="Select a retailer..." value="" />
                 {dealers.map(d => (
-                  <Picker.Item key={d.UserID} label={`${d.Company || d.Name} (${d.UserID})`} value={d.UserID} />
+                  <Picker.Item key={d.UserID} label={`${tDynamic(d.Company || d.Name)} (${d.UserID})`} value={d.UserID} />
                 ))}
               </Picker>
             </View>

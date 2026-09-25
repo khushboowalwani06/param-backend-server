@@ -8,7 +8,7 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { Pagination } from '../../components/Pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLanguage } from '../../context/LanguageContext';
-const getProgressState = status => {
+const getProgressState = (status) => {
   const states = {
     sales: false,
     admin: false,
@@ -56,16 +56,17 @@ const OrderCardItem = ({
   onRefresh
 }) => {
   const {
-    t
+    t,
+    tDynamic
   } = useLanguage();
   const progress = getProgressState(order.ApprovalStatus);
   const isRejected = progress.current === 'rejected';
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [isFlipped, setIsFlipped] = useState(false);
-  const flipCard = toFlipped => {
-    const {
-      t
-    } = useLanguage();
+  const flipCard = (toFlipped) => {
+
+
+
     setIsFlipped(toFlipped);
     Animated.spring(flipAnim, {
       toValue: toFlipped ? 180 : 0,
@@ -161,7 +162,7 @@ const OrderCardItem = ({
           paddingRight: 8
         }]}>
             <Package size={14} color="#8E8E93" />
-            <Text style={styles.productText} numberOfLines={1}>{order.Product}</Text>
+            <Text style={styles.productText} numberOfLines={1}>{tDynamic(order.Product)}</Text>
           </View>
           <View style={styles.footerActions}>
             {order.ApprovalStatus === 'Delivered' && <TouchableOpacity style={styles.verifyBtn} onPress={() => flipCard(true)}>
@@ -169,7 +170,7 @@ const OrderCardItem = ({
                 <Text style={styles.verifyBtnText}>{t('Confirm Receipt')}</Text>
               </TouchableOpacity>}
             <View style={styles.statusPill}>
-              <Text style={styles.statusText}>{order.ApprovalStatus}</Text>
+              <Text style={styles.statusText}>{tDynamic(order.ApprovalStatus)}</Text>
             </View>
           </View>
         </View>
@@ -215,7 +216,8 @@ const OrderCardItem = ({
 };
 export default function CustomerOrders() {
   const {
-    t
+    t,
+    tDynamic
   } = useLanguage();
   const {
     user
@@ -233,12 +235,12 @@ export default function CustomerOrders() {
   const [endDate, setEndDate] = useState(null);
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
-  useRealtime(['orders'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders'], () => setRefreshKey((k) => k + 1));
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const data = await sheetsService.getOrders(user);
-        const myOrders = data.filter(o => o.UserID === user.UserID);
+        const myOrders = data.filter((o) => o.UserID === user.UserID);
         myOrders.sort((a, b) => new Date(b.OrderTimestamp) - new Date(a.OrderTimestamp));
         setOrders(myOrders);
         setCurrentPage(1);
@@ -255,12 +257,12 @@ export default function CustomerOrders() {
         <ActivityIndicator size="large" color="#1A1A1A" />
       </View>;
   }
-  const validOrders = orders.filter(o => !o.ApprovalStatus.includes('Rejected') && o.ApprovalStatus !== 'Cancelled');
+  const validOrders = orders.filter((o) => !o.ApprovalStatus.includes('Rejected') && o.ApprovalStatus !== 'Cancelled');
   const totalIncurred = validOrders.reduce((sum, o) => sum + (Number(o.EstimateAmt) || 0), 0);
-  const activeCount = orders.filter(o => !['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed', 'Rejected', 'Admin Rejected', 'Sales Rejected', 'Cancelled'].includes(o.ApprovalStatus) && o.ApprovalStatus !== 'Draft').length;
-  const dispatchedCount = orders.filter(o => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length;
-  const deliveredCount = orders.filter(o => ['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed'].includes(o.ApprovalStatus)).length;
-  const filteredOrders = orders.filter(o => {
+  const activeCount = orders.filter((o) => !['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed', 'Rejected', 'Admin Rejected', 'Sales Rejected', 'Cancelled'].includes(o.ApprovalStatus) && o.ApprovalStatus !== 'Draft').length;
+  const dispatchedCount = orders.filter((o) => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length;
+  const deliveredCount = orders.filter((o) => ['Delivered', 'Pending Invoice', 'Payment Pending', 'Payment Sent', 'Closed'].includes(o.ApprovalStatus)).length;
+  const filteredOrders = orders.filter((o) => {
     if (activeFilter === 'PENDING') {
       if (o.ApprovalStatus !== 'Pending Sales Approval' && o.ApprovalStatus !== 'Pending Admin Approval') return false;
     } else if (activeFilter === 'DISPATCHED') {
@@ -286,9 +288,9 @@ export default function CustomerOrders() {
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const clearDates = () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     setStartDate(null);
     setEndDate(null);
   };
@@ -358,7 +360,7 @@ export default function CustomerOrders() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={{
       paddingRight: 16
     }}>
-        {['ALL', 'PENDING', 'DISPATCHED', 'DELIVERED', 'REJECTED'].map(filter => <TouchableOpacity key={filter} style={[styles.filterBtn, activeFilter === filter && styles.filterBtnActive]} onPress={() => setActiveFilter(filter)}>
+        {['ALL', 'PENDING', 'DISPATCHED', 'DELIVERED', 'REJECTED'].map((filter) => <TouchableOpacity key={filter} style={[styles.filterBtn, activeFilter === filter && styles.filterBtnActive]} onPress={() => setActiveFilter(filter)}>
             <Text style={[styles.filterText, activeFilter === filter && styles.filterTextActive]}>{filter}</Text>
           </TouchableOpacity>)}
       </ScrollView>
@@ -372,7 +374,7 @@ export default function CustomerOrders() {
             <Text style={styles.emptyBtnText}>{t('Place New Order')}</Text>
           </TouchableOpacity>
         </View> : <View style={styles.orderList}>
-          {paginatedOrders.map(order => <OrderCardItem key={order.OrdID} order={order} user={user} navigation={navigation} onRefresh={() => setRefreshKey(k => k + 1)} />)}
+          {paginatedOrders.map((order) => <OrderCardItem key={order.OrdID} order={order} user={user} navigation={navigation} onRefresh={() => setRefreshKey((k) => k + 1)} />)}
         </View>}
 
       {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}

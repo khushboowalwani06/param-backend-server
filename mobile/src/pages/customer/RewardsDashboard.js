@@ -7,7 +7,7 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function RewardsDashboard() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   
   const [campaign, setCampaign] = useState({
@@ -207,7 +207,7 @@ export default function RewardsDashboard() {
             <Gift size={32} color="#64748B" />
           </View>
           <View style={styles.rewardInfo}>
-            <Text style={styles.rewardName}>{targets[0]?.rewardName}</Text>
+            <Text style={styles.rewardName}>{tDynamic(targets[0]?.rewardName)}</Text>
             <Text style={styles.rewardDesc}>Achieve {target1} bags before the campaign ends.</Text>
           </View>
         </View>
@@ -226,7 +226,7 @@ export default function RewardsDashboard() {
             <Trophy size={32} color="#D97706" />
           </View>
           <View style={styles.rewardInfo}>
-            <Text style={[styles.rewardName, { color: '#D97706' }]}>{targets[1]?.rewardName}</Text>
+            <Text style={[styles.rewardName, { color: '#D97706' }]}>{tDynamic(targets[1]?.rewardName)}</Text>
             <Text style={styles.rewardDesc}>Achieve {target2} tons for the ultimate reward.</Text>
           </View>
         </View>

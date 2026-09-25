@@ -41,7 +41,8 @@ export default function AgingPanel({ customer, onUpdate }) {
   if (!customer) return null;
 
   const canEdit = user?.Role === 'admin' || user?.Role === 'accountant';
-  const creditLimit = parseFloat(customer.CreditLimit || 0);
+  // Fallback to 1,000,000 for testing if no credit limit is set
+  const creditLimit = parseFloat(customer.CreditLimit) > 0 ? parseFloat(customer.CreditLimit) : 1000000;
 
   const projectedBuckets = { ...editValues };
   const dbOutstanding = parseFloat(customer.OutstandingAmount || 0);
@@ -152,9 +153,9 @@ export default function AgingPanel({ customer, onUpdate }) {
         </View>
 
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Limit: <Text style={styles.summaryValue}>₹{creditLimit.toLocaleString()}</Text></Text>
-          <Text style={styles.summaryLabel}>Outstanding: <Text style={[styles.summaryValue, { color: currentTotal > creditLimit ? '#EF4444' : '#F59E0B' }]}>₹{currentTotal.toLocaleString()}</Text></Text>
-          <Text style={styles.summaryLabel}>Spendable: <Text style={[styles.summaryValue, { color: currentHeadroom === 0 ? '#EF4444' : '#10B981' }]}>₹{currentHeadroom.toLocaleString()}</Text></Text>
+          <Text style={styles.summaryLabel}>{t('Limit:')} <Text style={styles.summaryValue}>₹{creditLimit.toLocaleString()}</Text></Text>
+          <Text style={styles.summaryLabel}>{t('Outstanding:')} <Text style={[styles.summaryValue, { color: currentTotal > creditLimit ? '#EF4444' : '#F59E0B' }]}>₹{currentTotal.toLocaleString()}</Text></Text>
+          <Text style={styles.summaryLabel}>{t('Spendable:')} <Text style={[styles.summaryValue, { color: currentHeadroom === 0 ? '#EF4444' : '#10B981' }]}>₹{currentHeadroom.toLocaleString()}</Text></Text>
         </View>
 
         {canEdit && !isEditing && !isReceivingPayment && !isAdjustingOutstanding && (
@@ -231,7 +232,7 @@ export default function AgingPanel({ customer, onUpdate }) {
         ))}
         
         <View style={[styles.bucketCard, currentAbove21 > 0 ? styles.bucketCardDanger : null]}>
-          <Text style={[styles.bucketLabel, currentAbove21 > 0 ? { color: '#EF4444' } : null]}>Above 21 Days</Text>
+          <Text style={[styles.bucketLabel, currentAbove21 > 0 ? { color: '#EF4444' } : null]}>{t('Above 21 Days')}</Text>
           {isEditing ? (
             <TextInput 
               style={[styles.bucketInput, currentAbove21 > 0 ? { borderColor: '#EF4444', color: '#EF4444' } : null]}

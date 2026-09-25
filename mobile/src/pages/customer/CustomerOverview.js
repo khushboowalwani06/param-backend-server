@@ -11,7 +11,7 @@ import { useLanguage } from '../../context/LanguageContext';
 const { width } = Dimensions.get('window');
 
 export default function CustomerOverview() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [orders, setOrders] = useState([]);
@@ -84,7 +84,8 @@ export default function CustomerOverview() {
   }).length;
   const pendingActions = filteredOrders.filter(o => (o.ApprovalStatus || '').includes('Payment Pending')).length;
 
-  const totalCreditLimit = Number(realtimeUser?.CreditLimit) || 0;
+  // Fallback to 1,000,000 for testing if no credit limit is set
+  const totalCreditLimit = Number(realtimeUser?.CreditLimit) > 0 ? Number(realtimeUser?.CreditLimit) : 1000000;
   const outstandingBalance = Number(realtimeUser?.OutstandingAmount) || 0;
   const availableBalance = totalCreditLimit - outstandingBalance;
 
@@ -141,7 +142,7 @@ export default function CustomerOverview() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.greeting}>Hi, {user?.Name || 'Customer'}!</Text>
+        <Text style={styles.greeting}>{t('Hi,')} {tDynamic(user?.Name) || t('Customer')}!</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowDatePicker(true)}>
             <Calendar size={16} color="#1A1A1A" />
@@ -150,7 +151,7 @@ export default function CustomerOverview() {
             <Download size={16} color="#1A1A1A" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.placeOrderBtn} onPress={() => navigation.navigate('customer/order')}>
-            <Text style={styles.placeOrderText}>Place Order</Text>
+            <Text style={styles.placeOrderText}>{t('Place Order')}</Text>
             <ArrowRight size={16} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -158,35 +159,35 @@ export default function CustomerOverview() {
 
       {/* Financial Overview (Dark Card) */}
       <View style={[styles.card, styles.darkCard]}>
-        <Text style={styles.cardTitleDark}>Financial Overview</Text>
+        <Text style={styles.cardTitleDark}>{t('Financial Overview')}</Text>
         <View style={styles.balanceContainer}>
           <Text style={styles.currencySymbol}>₹</Text>
           <Text style={styles.balanceText} numberOfLines={1}>{formatCompact(availableBalance > 0 ? availableBalance : 0)}</Text>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
+          <Text style={styles.balanceLabel}>{t('Available Balance')}</Text>
         </View>
 
         <View style={styles.pillRow}>
           <TouchableOpacity style={styles.pill} onPress={() => navigation.navigate('customer/orders')}>
             <View style={[styles.pillIcon, { borderStyle: 'solid' }]}><View style={styles.pillDot} /></View>
             <Text style={styles.pillNumber}>{totalOrders}</Text>
-            <Text style={styles.pillLabel}>Total</Text>
+            <Text style={styles.pillLabel}>{t('Total')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} onPress={() => navigation.navigate('customer/orders')}>
             <View style={[styles.pillIcon, { borderStyle: 'dashed' }]} />
             <Text style={styles.pillNumber}>{submittedOrders}</Text>
-            <Text style={styles.pillLabel}>Submitted</Text>
+            <Text style={styles.pillLabel}>{t('Submitted')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pill, pendingActions > 0 && { backgroundColor: '#FFF3CD' }]} onPress={() => navigation.navigate('customer/invoices')}>
             <View style={styles.pillIcon}><View style={[styles.pillDot, { backgroundColor: 'transparent', borderWidth: 2 }]} /></View>
             <Text style={styles.pillNumber}>{pendingActions}</Text>
-            <Text style={styles.pillLabel}>Invoices</Text>
+            <Text style={styles.pillLabel}>{t('Invoices')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Order Trends */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Order Trends (Past {chartDays} Days)</Text>
+        <Text style={styles.cardTitle}>{t('Order Trends (Past ')}{chartDays}{t(' Days)')}</Text>
         <View style={styles.chartContainer}>
           {volumeData.map((d, i) => {
             const hTons = (d.tons / maxVolume) * 100;
@@ -216,14 +217,14 @@ export default function CustomerOverview() {
 
       {/* Credit Health */}
       <View style={[styles.card, styles.darkCard]}>
-        <Text style={styles.cardTitleDark}>Credit Utilization</Text>
+        <Text style={styles.cardTitleDark}>{t('Credit Utilization')}</Text>
         <View style={styles.limitRow}>
           <View>
-            <Text style={styles.limitLabel}>Spendable</Text>
+            <Text style={styles.limitLabel}>{t('Spendable')}</Text>
             <Text style={styles.limitValue}>₹{formatCompact(availableBalance)}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.limitLabel}>Limit</Text>
+            <Text style={styles.limitLabel}>{t('Limit')}</Text>
             <Text style={styles.limitValue}>₹{formatCompact(totalCreditLimit)}</Text>
           </View>
         </View>
@@ -235,14 +236,14 @@ export default function CustomerOverview() {
 
       {/* Actions */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Ageing & Actions</Text>
+        <Text style={styles.cardTitle}>{t('Ageing & Actions')}</Text>
         <TouchableOpacity style={styles.actionRow} onPress={() => navigation.navigate('customer/invoices')}>
           <View style={[styles.actionIconBg, overdueCount > 0 && { backgroundColor: '#FFEFEF' }]}>
             <Circle size={18} color={overdueCount > 0 ? '#FF3B30' : '#8E8E93'} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.actionTitle}>Overdue Payments</Text>
-            <Text style={styles.actionSub}>Immediate attention required</Text>
+            <Text style={styles.actionTitle}>{t('Overdue Payments')}</Text>
+            <Text style={styles.actionSub}>{t('Immediate attention required')}</Text>
           </View>
           <Text style={[styles.actionCount, overdueCount > 0 && { color: '#FF3B30' }]}>{overdueCount}</Text>
         </TouchableOpacity>
@@ -251,8 +252,8 @@ export default function CustomerOverview() {
             <CheckCircle2 size={18} color={dueTodayCount > 0 ? '#FFCC00' : '#8E8E93'} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.actionTitle}>Due Today</Text>
-            <Text style={styles.actionSub}>Payments scheduled for today</Text>
+            <Text style={styles.actionTitle}>{t('Due Today')}</Text>
+            <Text style={styles.actionSub}>{t('Payments scheduled for today')}</Text>
           </View>
           <Text style={styles.actionCount}>{dueTodayCount}</Text>
         </TouchableOpacity>
@@ -260,15 +261,15 @@ export default function CustomerOverview() {
 
       {/* Support Contacts */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Support Contacts</Text>
+        <Text style={styles.cardTitle}>{t('Support Contacts')}</Text>
 
         <View style={styles.contactRow}>
           <View style={styles.contactIconBg}>
             <User size={18} color="#1A1A1A" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.contactTitle}>{salesRepName || 'Not Assigned'}</Text>
-            <Text style={styles.contactSub}>Sales Representative</Text>
+            <Text style={styles.contactTitle}>{tDynamic(salesRepName) || t('Not Assigned')}</Text>
+            <Text style={styles.contactSub}>{t('Sales Representative')}</Text>
           </View>
           <TouchableOpacity style={styles.contactActionBtn}>
             <Phone size={16} color="#1A1A1A" />
@@ -280,8 +281,8 @@ export default function CustomerOverview() {
             <User size={18} color="#1A1A1A" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.contactTitle}>{adminName}</Text>
-            <Text style={styles.contactSub}>System Admin</Text>
+            <Text style={styles.contactTitle}>{tDynamic(adminName)}</Text>
+            <Text style={styles.contactSub}>{t('System Admin')}</Text>
           </View>
           <TouchableOpacity style={styles.contactActionBtn}>
             <Mail size={16} color="#1A1A1A" />
@@ -291,24 +292,24 @@ export default function CustomerOverview() {
 
       {/* Rewards Progress */}
       <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('customer/rewards')}>
-        <Text style={styles.cardTitle}>Rewards Progress</Text>
+        <Text style={styles.cardTitle}>{t('Rewards Progress')}</Text>
         <View style={styles.limitRow}>
           <View>
-            <Text style={styles.limitLabel}>Tons (Target 1)</Text>
+            <Text style={styles.limitLabel}>{t('Tons (Target 1)')}</Text>
             <Text style={[styles.limitValue, { color: '#1A1A1A' }]}>{formatCompact(campaignTons)}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.limitLabel}>Tons (Target 2)</Text>
+            <Text style={styles.limitLabel}>{t('Tons (Target 2)')}</Text>
             <Text style={[styles.limitValue, { color: '#1A1A1A' }]}>{formatCompact(campaignTons)}</Text>
           </View>
         </View>
 
-        <Text style={styles.progressLabel}>Target 1 Progress ({tons1Pct}%)</Text>
+        <Text style={styles.progressLabel}>{t('Target 1 Progress (')}{tons1Pct}{t('%)')}</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${tons1Pct}%`, backgroundColor: '#8E8E93' }]} />
         </View>
 
-        <Text style={styles.progressLabel}>Target 2 Progress ({tons2Pct}%)</Text>
+        <Text style={styles.progressLabel}>{t('Target 2 Progress (')}{tons2Pct}{t('%)')}</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${tons2Pct}%`, backgroundColor: '#1A1A1A' }]} />
         </View>
@@ -318,7 +319,7 @@ export default function CustomerOverview() {
       <Modal visible={showDatePicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Date Range</Text>
+            <Text style={styles.modalTitle}>{t('Select Date Range')}</Text>
             {[3, 7, 10, 30].map(days => (
               <TouchableOpacity
                 key={days}
@@ -331,7 +332,7 @@ export default function CustomerOverview() {
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowDatePicker(false)}>
-              <Text style={styles.modalCloseText}>Cancel</Text>
+              <Text style={styles.modalCloseText}>{t('Cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

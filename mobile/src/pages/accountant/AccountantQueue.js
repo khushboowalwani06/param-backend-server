@@ -15,7 +15,7 @@ import { SearchFilter } from '../../components/SearchFilter';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function AccountantQueue() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,14 +133,14 @@ export default function AccountantQueue() {
       <View style={styles.cardHeader}>
         <View style={{ flex: 1, paddingRight: 8 }}>
           <Text style={styles.orderId} numberOfLines={1}>{item.OrdID}</Text>
-          <Text style={styles.customerName} numberOfLines={1}>{item.Company || item.Name}</Text>
+          <Text style={styles.customerName} numberOfLines={1}>{tDynamic(item.Company || item.Name)}</Text>
         </View>
         <StatusBadge status={item.ApprovalStatus} />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('Product:')}</Text>
-          <Text style={styles.value}>{item.Product}</Text>
+          <Text style={styles.value}>{tDynamic(item.Product)}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{t('Quantity:')}</Text>

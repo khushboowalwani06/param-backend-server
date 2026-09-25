@@ -27,15 +27,16 @@ const QueueCard = ({
   onSavePrice
 }) => {
   const {
-    t
+    t,
+    tDynamic
   } = useLanguage();
   const [editedPrice, setEditedPrice] = React.useState(order.EstimateAmt?.toString() || '');
   const [isSavingPrice, setIsSavingPrice] = React.useState(false);
   const isAging = differenceInHours(new Date(), new Date(order.OrderTimestamp)) > 24;
   const handleSavePrice = async () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     setIsSavingPrice(true);
     await onSavePrice(order.OrdID, editedPrice);
     setIsSavingPrice(false);
@@ -62,8 +63,8 @@ const QueueCard = ({
 
       <View style={styles.clientInfo}>
         <Text style={styles.sectionLabel}>{t('CLIENT INFO')}</Text>
-        <Text style={styles.companyName} numberOfLines={1}>{order.Company}</Text>
-        <Text style={styles.clientName} numberOfLines={1}>{order.Name}</Text>
+        <Text style={styles.companyName} numberOfLines={1}>{tDynamic(order.Company)}</Text>
+        <Text style={styles.clientName} numberOfLines={1}>{tDynamic(order.Name)}</Text>
       </View>
 
       <View style={styles.divider} />
@@ -71,7 +72,7 @@ const QueueCard = ({
       <View style={styles.grid}>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>{t('PRODUCT TYPE')}</Text>
-          <Text style={styles.gridVal} numberOfLines={1}>{order.Product}</Text>
+          <Text style={styles.gridVal} numberOfLines={1}>{tDynamic(order.Product)}</Text>
         </View>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>{t('QUANTITY')}</Text>
@@ -82,7 +83,7 @@ const QueueCard = ({
         marginTop: 8
       }]}>
             <Text style={styles.sectionLabel}>{t('DESTINATION')}</Text>
-            <Text style={styles.gridVal} numberOfLines={1}>{order.City}</Text>
+            <Text style={styles.gridVal} numberOfLines={1}>{tDynamic(order.City)}</Text>
           </View> : null}
         <View style={[styles.gridItem, {
         width: '100%',
@@ -191,19 +192,19 @@ export default function SalesQueue() {
   const [rejectReason, setRejectReason] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders', 'profiles'], () => setRefreshKey((k) => k + 1));
   const fetchData = async () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     try {
       const [ordersData, visitsData] = await Promise.all([sheetsService.getOrders(user), sheetsService.getVisits ? sheetsService.getVisits().catch(() => []) : Promise.resolve([])]);
-      const queue = ordersData.filter(o => o.ApprovalStatus === 'Pending Sales Approval');
+      const queue = ordersData.filter((o) => o.ApprovalStatus === 'Pending Sales Approval');
       queue.sort((a, b) => new Date(a.OrderTimestamp) - new Date(b.OrderTimestamp));
       setOrders(queue);
       setCurrentPage(1);
       let thisMonthVolume = 0;
-      ordersData.forEach(o => {
+      ordersData.forEach((o) => {
         if (!o.OrderTimestamp) return;
         let ts = o.OrderTimestamp;
         if (!ts.endsWith('Z') && !ts.includes('+')) ts += 'Z';
@@ -216,11 +217,11 @@ export default function SalesQueue() {
       });
       setMonthlyVolume(thisMonthVolume);
       const todayStr = new Date().toISOString().split('T')[0];
-      const myVisitsToday = visitsData.filter(v => v.sales_rep_id === user.UserID && v.date && v.date.startsWith(todayStr));
+      const myVisitsToday = visitsData.filter((v) => v.sales_rep_id === user.UserID && v.date && v.date.startsWith(todayStr));
       setDailyVisits(myVisitsToday.length);
       try {
         const allUsers = await sheetsService.getAllUsers(user);
-        const onlyDealers = allUsers.filter(u => u.Role === 'customer' || u.Role === 'dealer');
+        const onlyDealers = allUsers.filter((u) => u.Role === 'customer' || u.Role === 'dealer');
         setDealers(onlyDealers);
       } catch (e) {
         console.warn('Could not fetch dealers for balances view.');
@@ -237,9 +238,9 @@ export default function SalesQueue() {
   const loadHistory = async (userId, ordId) => {
     try {
       const allUsers = await sheetsService.getAllUsers(user);
-      const histUser = allUsers.find(u => u.UserID === userId);
+      const histUser = allUsers.find((u) => u.UserID === userId);
       if (histUser) {
-        setCustomerHistory(prev => ({
+        setCustomerHistory((prev) => ({
           ...prev,
           [ordId]: {
             TotalOrdersPlaced: 45,
@@ -253,9 +254,9 @@ export default function SalesQueue() {
       console.error(err);
     }
   };
-  const handleToggleExpand = order => {
+  const handleToggleExpand = (order) => {
     const isExpanding = !expandedOrders[order.OrdID];
-    setExpandedOrders(prev => ({
+    setExpandedOrders((prev) => ({
       ...prev,
       [order.OrdID]: isExpanding
     }));
@@ -263,15 +264,15 @@ export default function SalesQueue() {
       loadHistory(order.CustomerID, order.OrdID);
     }
   };
-  const handleApprove = async ordId => {
-    setSubmittingIds(prev => new Set(prev).add(ordId));
+  const handleApprove = async (ordId) => {
+    setSubmittingIds((prev) => new Set(prev).add(ordId));
     try {
       await sheetsService.updateOrderStatus(user, ordId, 'Pending Admin Approval');
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       alert(err.message);
     } finally {
-      setSubmittingIds(prev => {
+      setSubmittingIds((prev) => {
         const next = new Set(prev);
         next.delete(ordId);
         return next;
@@ -279,26 +280,26 @@ export default function SalesQueue() {
     }
   };
   const handleRejectSubmit = async () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     if (!rejectReason.trim()) {
       alert('Please provide a reason');
       return;
     }
     const ordId = rejectingOrder;
-    setSubmittingIds(prev => new Set(prev).add(ordId));
+    setSubmittingIds((prev) => new Set(prev).add(ordId));
     setRejectingOrder(null);
     setRejectReason('');
     try {
       await sheetsService.updateOrderStatus(user, ordId, 'Sales Rejected', {
         reason: rejectReason
       });
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       alert(err.message);
     } finally {
-      setSubmittingIds(prev => {
+      setSubmittingIds((prev) => {
         const next = new Set(prev);
         next.delete(ordId);
         return next;
@@ -308,12 +309,12 @@ export default function SalesQueue() {
   const handleSavePrice = async (ordId, newPrice) => {
     try {
       await sheetsService.updateOrderPrice(user, ordId, newPrice);
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       alert(err.message);
     }
   };
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders.filter((o) => {
     if (searchQuery) {
       const term = searchQuery.toLowerCase();
       if (!o.OrdID?.toLowerCase().includes(term) && !o.Company?.toLowerCase().includes(term)) {
@@ -332,10 +333,10 @@ export default function SalesQueue() {
   });
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const filteredDealers = dealers.filter(d => {
-    const {
-      t
-    } = useLanguage();
+  const filteredDealers = dealers.filter((d) => {
+
+
+
     if (!searchQuery) return true;
     const term = searchQuery.toLowerCase();
     return d.Company?.toLowerCase().includes(term) || d.Name?.toLowerCase().includes(term);
@@ -406,7 +407,7 @@ export default function SalesQueue() {
             flex: 1,
             minWidth: 200
           }}>
-                <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder="Search orders..." />
+                <SearchFilter value={searchQuery} onChange={setSearchQuery} placeholder={t('Search Orders...')} />
               </View>
               <DateRangeFilter startDate={dateRange.startDate} endDate={dateRange.endDate} onDateChange={setDateRange} onClear={() => setDateRange({
             startDate: '',
@@ -449,7 +450,7 @@ export default function SalesQueue() {
               fontSize: 12
             }]} adjustsFontSizeToFit numberOfLines={1}>{t('Outstanding')}</Text>
               </View>
-              {paginatedDealers.map(dealer => {
+              {paginatedDealers.map((dealer) => {
             const limit = Number(dealer.CreditLimit || 0);
             const outst = Number(dealer.OutstandingAmount || 0);
             const isOver = outst > limit;
@@ -501,10 +502,10 @@ export default function SalesQueue() {
       </Modal>
 
       {/* Edit Modal Placeholder */}
-      {editingOrder && <EditOrderModal order={editingOrder} onClose={() => setEditingOrder(null)} onSave={async updatedData => {
+      {editingOrder && <EditOrderModal order={editingOrder} onClose={() => setEditingOrder(null)} onSave={async (updatedData) => {
       await sheetsService.updateOrder(user, editingOrder.OrdID, updatedData);
       setEditingOrder(null);
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     }} />}
     </View>;
 }

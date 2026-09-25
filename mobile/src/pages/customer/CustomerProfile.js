@@ -6,7 +6,7 @@ import { sheetsService } from '../../services/sheetsService';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function CustomerProfile() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user, updateUser } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -55,8 +55,8 @@ export default function CustomerProfile() {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{(user?.Name || user?.Email || 'U').charAt(0).toUpperCase()}</Text>
         </View>
-        <Text style={styles.name}>{user?.Name || 'User Name'}</Text>
-        <Text style={styles.role}>{user?.Role || 'Customer'}</Text>
+        <Text style={styles.name}>{tDynamic(user?.Name) || t('User Name')}</Text>
+        <Text style={styles.role}>{tDynamic(user?.Role) || t('Customer')}</Text>
       </View>
 
       <View style={styles.section}>

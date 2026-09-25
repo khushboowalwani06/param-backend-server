@@ -18,7 +18,7 @@ const districts = [
 
 
 export const AdminTeam = () => {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,9 +222,9 @@ export const AdminTeam = () => {
                 <View style={styles.cardHeader}>
                   <View style={styles.avatar}><Text style={styles.avatarText}>{u.Name?.charAt(0) || 'U'}</Text></View>
                   <View style={styles.cardInfo}>
-                    <Text style={styles.userName} numberOfLines={1}>{u.Name}</Text>
+                    <Text style={styles.userName} numberOfLines={1}>{tDynamic(u.Name)}</Text>
                     <Text style={styles.userId} numberOfLines={1}>{t("ID:")} {u.UserID}</Text>
-                    <View style={styles.iconRow}><Building size={12} color="#8E8E93" /><Text style={styles.iconText} numberOfLines={1}>{u.Company || t("No Company")}</Text></View>
+                    <View style={styles.iconRow}><Building size={12} color="#8E8E93" /><Text style={styles.iconText} numberOfLines={1}>{tDynamic(u.Company) || t("No Company")}</Text></View>
                   </View>
                 </View>
 
@@ -266,8 +266,8 @@ export const AdminTeam = () => {
           <View key={u.UserID} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <View style={styles.cardInfo}>
-                    <Text style={styles.userName} numberOfLines={1}>{u.Name}</Text>
-                    <Text style={styles.userId} numberOfLines={1}>{u.Company} {t("(ID:")} {u.UserID})</Text>
+                    <Text style={styles.userName} numberOfLines={1}>{tDynamic(u.Name)}</Text>
+                    <Text style={styles.userId} numberOfLines={1}>{tDynamic(u.Company)} {t("(ID:")} {u.UserID})</Text>
                   </View>
                   <View style={styles.segmentBadge}><Text style={styles.segmentText}>{u.Segment || t("Trade")}</Text></View>
                 </View>
@@ -283,7 +283,7 @@ export const AdminTeam = () => {
                   style={{ height: Platform.OS === 'ios' ? 150 : 50, opacity: updatingId === u.UserID ? 0.5 : 1, color: '#1A1A1A' }}>
                   
                       <Picker.Item label={t("-- Unassigned --")} value="" />
-                      {salesReps.map((rep) => <Picker.Item key={rep.UserID} label={rep.Name} value={rep.UserID} />)}
+                      {salesReps.map((rep) => <Picker.Item key={rep.UserID} label={tDynamic(rep.Name)} value={rep.UserID} />)}
                     </Picker>
                   </View>
                 </View>
@@ -303,10 +303,10 @@ export const AdminTeam = () => {
             return (
               <View key={v.id} style={styles.visitCard}>
                   <View style={styles.visitHeader}>
-                    <Text style={styles.visitTitle} numberOfLines={1}>{retailerName}</Text>
+                    <Text style={styles.visitTitle} numberOfLines={1}>{tDynamic(retailerName)}</Text>
                     <View style={styles.iconRow}><Calendar size={12} color="#8E8E93" /><Text style={styles.visitDate}>{new Date(v.date).toLocaleDateString()}</Text></View>
                   </View>
-                  <Text style={styles.visitRep}>{t("Sales Rep:")} {rep?.Name || v.salesRepId || v.sales_rep_id}</Text>
+                  <Text style={styles.visitRep}>{t("Sales Rep:")} {tDynamic(rep?.Name || v.salesRepId || v.sales_rep_id)}</Text>
                   <Text style={styles.visitRetailerId}>{t("Retailer ID:")} {v.retailerId || v.retailer_id}</Text>
                   <Text style={styles.visitRemarks}>{v.remarks}</Text>
                 </View>);

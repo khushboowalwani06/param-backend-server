@@ -20,14 +20,15 @@ const RegistrationCard = ({
   actionLoading
 }) => {
   const {
-    t
+    t,
+    tDynamic
   } = useLanguage();
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [flippedDoc, setFlippedDoc] = useState(null);
   const flipToBack = async (doc) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     try {
       if (doc.data && doc.data.startsWith('data:')) {
         const isPdf = doc.data.includes('application/pdf');
@@ -87,9 +88,9 @@ const RegistrationCard = ({
     }]
   };
   const handleDownload = async (base64, label) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     try {
       const isPdf = base64.includes('application/pdf') || base64.endsWith('.pdf');
       const ext = isPdf ? '.pdf' : '.png';
@@ -142,8 +143,8 @@ const RegistrationCard = ({
       <Animated.View pointerEvents={flippedDoc ? 'none' : 'auto'} style={[styles.cardFace, styles.cardFront, frontAnimatedStyle]}>
         <View style={styles.cardHeader}>
           <View>
-            <Text style={styles.userName} numberOfLines={1}>{user.Name}</Text>
-            <Text style={styles.userCompany} numberOfLines={1}>{user.Company || 'N/A'} | {user.Role}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{tDynamic(user.Name)}</Text>
+            <Text style={styles.userCompany} numberOfLines={1}>{tDynamic(user.Company) || 'N/A'} | {user.Role}</Text>
           </View>
           <View style={styles.pendingBadge}><Text style={styles.pendingText}>{t('PENDING')}</Text></View>
         </View>
@@ -293,9 +294,9 @@ export const PendingRegistrations = () => {
     }
   };
   const toggleReason = (reason) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     setRejectionReasons((prev) => prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]);
   };
   if (loading) return <View style={{

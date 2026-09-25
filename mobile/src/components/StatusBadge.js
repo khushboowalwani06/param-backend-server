@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 export const StatusBadge = ({ status }) => {
+  const { tDynamic } = useLanguage();
   let badgeStyle = { backgroundColor: '#F2F2F7', color: '#475569' }; 
   const safeStatus = status || 'Unknown';
   
@@ -24,7 +26,7 @@ export const StatusBadge = ({ status }) => {
   return (
     <View style={[styles.badge, { backgroundColor: badgeStyle.backgroundColor }]}>
       <Text style={[styles.text, { color: badgeStyle.color }]}>
-        {safeStatus}
+        {tDynamic(safeStatus)}
       </Text>
     </View>
   );

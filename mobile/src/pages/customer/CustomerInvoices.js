@@ -12,7 +12,7 @@ import { Pagination } from '../../components/Pagination';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function CustomerInvoices() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +194,7 @@ export default function CustomerInvoices() {
                   
                   <View style={styles.cardDetails}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.cardProduct}>{order.Product}</Text>
+                      <Text style={styles.cardProduct}>{tDynamic(order.Product)}</Text>
                       <Text style={styles.cardQty}>{order.EstimateQty} {order.Unit || 'Tons'}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>

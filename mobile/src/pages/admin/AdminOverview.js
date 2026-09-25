@@ -16,7 +16,7 @@ import { useLanguage } from '../../context/LanguageContext';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const AdminOverview = () => {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const navigation = useNavigation();
   const { user } = useAuth();
   const { success, info } = useToast();
@@ -71,9 +71,9 @@ export const AdminOverview = () => {
 
   const totalOrders = filteredOrders.length;
   const pendingFinal = filteredOrders.filter((o) => o.ApprovalStatus === 'Pending Admin Approval' || o.ApprovalStatus === 'Pending Sales Approval').length;
-  const inTransit = filteredOrders.filter((o) => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length;
+  const inTransit = filteredOrders.filter((o) => o.ApprovalStatus?.includes('Dispatch') || o.ApprovalStatus?.includes('Transit')).length;
   const closedOrders = filteredOrders.filter((o) => o.ApprovalStatus === 'Closed' || o.ApprovalStatus === 'Delivered').length;
-  const overduePayments = filteredOrders.filter((o) => o.ApprovalStatus === 'Overdue' || o.ApprovalStatus.includes('Payment Pending') && new Date(o.PaymentDueDate) < new Date()).length;
+  const overduePayments = filteredOrders.filter((o) => o.ApprovalStatus === 'Overdue' || (o.ApprovalStatus?.includes('Payment Pending') && new Date(o.PaymentDueDate) < new Date())).length;
 
   const funnelSubmitted = filteredOrders.filter((o) => o.ApprovalStatus !== 'Draft').length;
   const funnelApproved = filteredOrders.filter((o) => !['Draft', 'Pending Sales Approval', 'Pending Admin Approval', 'Rejected', t("Admin Rejected")].includes(o.ApprovalStatus)).length;
@@ -110,7 +110,7 @@ export const AdminOverview = () => {
     return {
       label: dayObj.label,
       orders: dayOrders.length,
-      dispatch: dayOrders.filter((o) => o.ApprovalStatus.includes('Dispatch') || o.ApprovalStatus.includes('Transit')).length
+      dispatch: dayOrders.filter((o) => o.ApprovalStatus?.includes('Dispatch') || o.ApprovalStatus?.includes('Transit')).length
     };
   });
 
@@ -162,7 +162,7 @@ export const AdminOverview = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t("Hi,")} {user?.Name || 'Admin'}!</Text>
+        <Text style={styles.title}>{t("Hi,")} {tDynamic(user?.Name || 'Admin')}!</Text>
 
         <View style={styles.timeFiltersWrapper}>
           <View style={styles.timeFilters}>

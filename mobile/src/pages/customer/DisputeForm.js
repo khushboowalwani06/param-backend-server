@@ -12,7 +12,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function DisputeForm() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const route = useRoute();
   const initialOrderId = route.params?.order || '';
@@ -170,7 +170,7 @@ export default function DisputeForm() {
               <Picker selectedValue={formData.OrdID} onValueChange={(val) => setFormData({...formData, OrdID: val})}>
                 <Picker.Item label="Select an order..." value="" />
                 {deliveredOrders.map(o => (
-                  <Picker.Item key={o.OrdID} label={`${o.OrdID} - ${o.Product}`} value={o.OrdID} />
+                  <Picker.Item key={o.OrdID} label={`${o.OrdID} - ${tDynamic(o.Product)}`} value={o.OrdID} />
                 ))}
               </Picker>
             </View>
@@ -269,7 +269,7 @@ export default function DisputeForm() {
                       <Text style={styles.historyOrdId}>{d.OrdID}</Text>
                       <View style={styles.issueTypeRow}>
                         <AlertCircle size={14} color="#DC2626" />
-                        <Text style={styles.issueTypeText}>{d.IssueType} ({d.DamagedQuantity} units)</Text>
+                        <Text style={styles.issueTypeText}>{tDynamic(d.IssueType)} ({d.DamagedQuantity} units)</Text>
                       </View>
                     </View>
                   </View>

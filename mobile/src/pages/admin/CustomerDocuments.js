@@ -22,9 +22,9 @@ const DocumentCard = ({
     t
   } = useLanguage();
   const handleDownload = async (base64, label) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     try {
       const isPdf = base64.includes('application/pdf') || base64.endsWith('.pdf');
       const ext = isPdf ? '.pdf' : '.png';
@@ -167,9 +167,9 @@ export const CustomerDocuments = () => {
     }
   };
   const handlePreview = async (doc) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     try {
       console.log("PREVIEW DATA PRE-FIX: ", doc.data ? doc.data.substring(0, 100) : "NULL");
       if (doc.data) {
@@ -199,9 +199,9 @@ export const CustomerDocuments = () => {
     padding: 16
   }}><CardSkeleton /><CardSkeleton /></View>;
   const filteredUsers = approvedUsers.filter((user) => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     const term = searchTerm.toLowerCase();
     return user.Name?.toLowerCase().includes(term) || user.Company?.toLowerCase().includes(term) || user.Email?.toLowerCase().includes(term) || user.BPID?.toLowerCase().includes(term) || user.UserID?.toLowerCase().includes(term);
   });

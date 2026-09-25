@@ -1,10 +1,55 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LanguageContext = createContext();
 
 const translations = {
   gu: {
+    'Trade': 'વેપાર',
+    'Non-Trade': 'નોન-ટ્રેડ',
+    'Search Retailers...': 'રિટેલર્સ શોધો...',
+    'Retailers': 'રિટેલર્સ',
+    'Retailer Directory': 'રિટેલર ડિરેક્ટરી',
+    'Search Orders...': 'ઓર્ડર શોધો...',
+    'History': 'ઇતિહાસ',
+
+    'Place Order': 'ઓર્ડર આપો',
+    'Financial Overview': 'નાણાકીય વિહંગાવલોકન',
+    'Available Balance': 'ઉપલબ્ધ બેલેન્સ',
+    'Total': 'કુલ',
+    'Submitted': 'સબમિટ કરેલ',
+    'Invoices': 'ઇન્વોઇસેસ',
+    'Order Trends (Past ': 'ઓર્ડર વલણો (છેલ્લા ',
+    ' Days)': ' દિવસ)',
+    'Credit Utilization': 'ક્રેડિટ નો ઉપયોગ',
+    'Spendable': 'ખર્ચવાપાત્ર',
+    'Limit': 'મર્યાદા',
+    'Limit:': 'મર્યાદા:',
+    'Outstanding:': 'બાકી:',
+    'Spendable:': 'ખર્ચવાપાત્ર:',
+    'Ageing & Actions': 'એજિંગ અને ક્રિયાઓ',
+    'Overdue Payments': 'બાકી ચૂકવણી',
+    'Immediate attention required': 'તાત્કાલિક ધ્યાન જરૂરી છે',
+    'Due Today': 'આજે બાકી',
+    'Payments scheduled for today': 'આજે માટે સુનિશ્ચિત ચૂકવણી',
+    'Support Contacts': 'આધાર સંપર્કો',
+    'Sales Representative': 'વેચાણ પ્રતિનિધિ',
+    'System Admin': 'સિસ્ટમ એડમિન',
+    'Rewards Progress': 'ઇનામોની પ્રગતિ',
+    'Tons (Target 1)': 'ટન (લક્ષ્ય 1)',
+    'Tons (Target 2)': 'ટન (લક્ષ્ય 2)',
+    'Target 1 Progress (': 'લક્ષ્ય 1 પ્રગતિ (',
+    '%)': '%)',
+    'Target 2 Progress (': 'લક્ષ્ય 2 પ્રગતિ (',
+    'Select Date Range': 'તારીખ રેન્જ પસંદ કરો',
+    'Cancel': 'રદ કરો',
+    'Past 7 Days': 'છેલ્લા 7 દિવસ',
+    'Past 30 Days': 'છેલ્લા 30 દિવસ',
+    'Above 21 Days': '21 દિવસથી ઉપર',
+    'Hi,': 'નમસ્તે,',
+
+    'Rewards': 'ઇનામો',
+    'Segment (Trade / Non-Trade)': 'વિભાગ (ટ્રેડ / નોન-ટ્રેડ)',
     'All Segments': 'બધા સેગમેન્ટ્સ',
     'Sales Assignments': 'સેલ્સ અસાઇનમેન્ટ્સ',
     'Sales Visits': 'સેલ્સ મુલાકાતો',
@@ -520,21 +565,35 @@ const translations = {
     'Log Out': 'લૉગ આઉટ',
     'Sales Queue': 'સેલ્સ કતાર',
     'Sales Registry': 'સેલ્સ રજિસ્ટ્રી',
+
     'Log Visit': 'મુલાકાત નોંધો',
+    'JPEG, PNG, JPG (Max 5MB)': 'JPEG, PNG, JPG (મહત્તમ 5MB)',
+    'Gold Tier Trip (Dubai)': 'ગોલ્ડ ટિયર ટ્રીપ (દુબઈ)',
+    'Silver Tier Trip': 'સિલ્વર ટિયર ટ્રીપ',
+    'Ageing & Credit Overview': 'એજિંગ અને ક્રેડિટ વિહંગાવલોકન',
+    'customer': 'ગ્રાહક',
   }
 };
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('en');
+  const [dynamicTranslations, setDynamicTranslations] = useState({});
+  const fetchingKeys = useRef(new Set());
 
   useEffect(() => {
-    const loadLang = async () => {
+    const loadState = async () => {
       try {
         const savedLang = await AsyncStorage.getItem('user-language');
         if (savedLang) setLanguage(savedLang);
+        
+        // Load any previously auto-translated text from local cache
+        const savedDynamic = await AsyncStorage.getItem('dynamic-translations-gu');
+        if (savedDynamic) {
+          setDynamicTranslations(JSON.parse(savedDynamic));
+        }
       } catch (e) { }
     };
-    loadLang();
+    loadState();
   }, []);
 
   const toggleLanguage = async () => {
@@ -545,15 +604,98 @@ export const LanguageProvider = ({ children }) => {
     } catch (e) { }
   };
 
-  const t = (key) => {
-    if (language === 'gu' && translations.gu[key]) {
-      return translations.gu[key];
+  const fetchTranslationFallback = async (text) => {
+    /* 
+      SAFEST IMPLEMENTATION FOR EXPO:
+      Do NOT call Google Translate directly from the frontend. 
+      Even if you use EXPO_PUBLIC_API_KEY, the key gets embedded in the JS bundle and can be stolen.
+      Instead, we call our own backend server, which securely holds the secret API key.
+    */
+    try {
+      // NOTE: This assumes your backend server will eventually have this endpoint.
+      // We wrap it in a safe try-catch so it won't break if the endpoint isn't ready yet.
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000/api'}/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLanguage: 'gu' })
+      });
+      
+      if (!response.ok) throw new Error('Backend translation failed or not implemented yet');
+      
+      const data = await response.json();
+      return data.translatedText;
+    } catch (error) {
+      // Return a temporary marker or just the original text if the backend call fails
+      console.log(`[Translation] Missing translation for: "${text}"`);
+      return text; 
     }
+  };
+
+  const handleMissingTranslation = async (key) => {
+    // Prevent duplicate network calls for the same missing string
+    if (fetchingKeys.current.has(key)) return;
+    fetchingKeys.current.add(key);
+
+    const translatedText = await fetchTranslationFallback(key);
+    
+    // Only update state if the translation actually succeeded
+    if (translatedText && translatedText !== key) {
+      setDynamicTranslations(prev => {
+        const updated = { ...prev, [key]: translatedText };
+        // Cache the newly learned translation persistently
+        AsyncStorage.setItem('dynamic-translations-gu', JSON.stringify(updated)).catch(() => {});
+        return updated;
+      });
+    }
+  };
+
+  const t = (key) => {
+    // Failsafe for empty or invalid keys
+    if (!key || typeof key !== 'string') return key;
+
+    if (language === 'gu') {
+      // 1. Check hardcoded dictionary first (fastest)
+      if (translations.gu[key]) {
+        return translations.gu[key];
+      }
+      
+      // 2. Check the dynamically loaded/cached dictionary
+      if (dynamicTranslations[key]) {
+        return dynamicTranslations[key];
+      }
+      
+      // 3. Trigger automatic fallback in the background
+      handleMissingTranslation(key);
+    }
+    
+    // Always return the English text immediately if language is 'en', 
+    // or as a temporary fallback while waiting for the background fetch to finish.
     return key;
   };
 
+  /**
+   * Helper specifically designed for dynamic backend content (descriptions, messages).
+   * It uses the same cache-first system as t(), but adds safety filters to prevent
+   * accidental translation of PII, IDs, URLs, or pure numeric values.
+   */
+  const tDynamic = (content) => {
+    if (!content || typeof content !== 'string') return content;
+    
+    const trimmed = content.trim();
+    if (trimmed.length === 0) return content;
+
+    // Safety checks: Do not translate numbers, emails, or URLs
+    if (/^[\d.,\s-]+$/.test(trimmed)) return content; // Pure numbers/formatting
+    if (trimmed.includes('@') && trimmed.includes('.')) return content; // Likely an email
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return content; // URLs
+    if (/^[A-Za-z0-9_-]{10,}$/.test(trimmed) && !trimmed.includes(' ')) return content; // Likely a database ID
+
+    // Fall back to the core cache-first translation engine
+    return t(content);
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, t, tDynamic }}>
       {children}
     </LanguageContext.Provider>
   );

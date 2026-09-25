@@ -15,7 +15,7 @@ import { Pagination } from '../../components/Pagination';
 import { useLanguage } from '../../context/LanguageContext';
 
 const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmitting, onApprove, onReject, onEdit }) => {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -30,11 +30,11 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
 
       <View style={styles.clientInfo}>
         <Text style={styles.sectionLabel}>{t('CLIENT INFO')}</Text>
-        <Text style={styles.companyName} numberOfLines={1}>{order.Company}</Text>
-        <Text style={styles.clientName} numberOfLines={1}>{order.Name}</Text>
+        <Text style={styles.companyName} numberOfLines={1}>{tDynamic(order.Company)}</Text>
+        <Text style={styles.clientName} numberOfLines={1}>{tDynamic(order.Name)}</Text>
         <View style={styles.repRow}>
           <User size={12} color="#64748B" />
-          <Text style={styles.repText} numberOfLines={1}>{t("Sales Rep:")} {order.SalesApproverID || 'System'}</Text>
+          <Text style={styles.repText} numberOfLines={1}>{t("Sales Rep:")} {tDynamic(order.SalesApproverID || 'System')}</Text>
         </View>
       </View>
 
@@ -43,7 +43,7 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
       <View style={styles.grid}>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>{t('PRODUCT TYPE')}</Text>
-          <Text style={styles.gridVal}>{order.Product}</Text>
+          <Text style={styles.gridVal}>{tDynamic(order.Product)}</Text>
         </View>
         <View style={styles.gridItem}>
           <Text style={styles.sectionLabel}>{t('QUANTITY')}</Text>
@@ -56,7 +56,7 @@ const QueueCard = ({ order, index, isExpanded, onToggleExpand, hist, isSubmittin
         {order.City ?
         <View style={styles.gridItem}>
             <Text style={styles.sectionLabel}>{t('DESTINATION')}</Text>
-            <Text style={styles.gridVal}>{order.City}</Text>
+            <Text style={styles.gridVal}>{tDynamic(order.City)}</Text>
           </View> :
         null}
       </View>
@@ -172,7 +172,7 @@ export const AdminQueue = () => {
   };
 
   const handleReject = async () => {
-    const { t } = useLanguage();
+
     if (!overrideReason.trim()) {
       alert("Please provide a rejection reason.");
       return;
@@ -194,7 +194,7 @@ export const AdminQueue = () => {
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   const filteredOrders = orders.filter((o) => {
-    const { t } = useLanguage();
+
     const term = searchTerm.toLowerCase();
     const matchesSearch = o.OrdID?.toLowerCase().includes(term) ||
     o.Company?.toLowerCase().includes(term) ||

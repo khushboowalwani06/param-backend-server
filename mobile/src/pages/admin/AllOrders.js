@@ -14,7 +14,7 @@ import { Pagination } from '../../components/Pagination';
 import { useLanguage } from '../../context/LanguageContext';
 
 const OrderCard = ({ order, users, onEditStart }) => {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
 
   const u = users.find((usr) => usr.UserID === order.UserID);
@@ -35,13 +35,13 @@ const OrderCard = ({ order, users, onEditStart }) => {
         <View style={styles.cardBody}>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>{t('CUSTOMER')}</Text>
-            <Text style={styles.infoValue} numberOfLines={1}>{order.Name} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({order.Company})</Text></Text>
+            <Text style={styles.infoValue} numberOfLines={1}>{tDynamic(order.Name)} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>({tDynamic(order.Company)})</Text></Text>
           </View>
 
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>{t('PRODUCT')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{order.Product}</Text>
+              <Text style={[styles.infoValue, { flex: 1 }]} numberOfLines={1}>{tDynamic(order.Product)}</Text>
               <View style={[styles.segmentBadge, isNonTrade && styles.segmentBadgeNonTrade]}>
                 <Text style={[styles.segmentBadgeText, isNonTrade && styles.segmentBadgeTextNonTrade]}>{userSegment}</Text>
               </View>
@@ -117,7 +117,7 @@ export const AllOrders = () => {
   if (loading) return <View style={{ padding: 16 }}><CardSkeleton /><CardSkeleton /></View>;
 
   const filteredOrders = orders.filter((o) => {
-    const { t } = useLanguage();
+
     if (activeSegment !== t("All Segments")) {
       const u = users.find((usr) => usr.UserID === o.UserID);
       const segment = u ? u.Segment ? u.Segment : u.NonTradeActivated === true || u.NonTradeActivated === 'true' ? t("Non-Trade") : t("Trade") : t("Trade");

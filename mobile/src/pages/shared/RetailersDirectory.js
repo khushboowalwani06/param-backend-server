@@ -38,6 +38,7 @@ const RetailerCard = React.memo(({
   onSaveRewards,
   rewardsData
 }) => {
+  const { t, tDynamic } = useLanguage();
   const [flipped, setFlipped] = useState(false);
   const [flipContext, setFlipContext] = useState(null);
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -83,11 +84,11 @@ const RetailerCard = React.memo(({
     inputRange: [0, 180],
     outputRange: ['180deg', '360deg']
   });
-  const formatCurrency = val => `₹${Number(val).toLocaleString('en-IN')}`;
+  const formatCurrency = (val) => `₹${Number(val).toLocaleString('en-IN')}`;
   const renderFront = () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     return <Animated.View pointerEvents={flipped ? 'none' : 'auto'} style={[styles.cardFace, {
       transform: [{
         rotateY: frontInterpolate
@@ -98,7 +99,7 @@ const RetailerCard = React.memo(({
           flex: 1,
           paddingRight: 8
         }}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{r.Name || 'Unknown'}</Text>
+          <Text style={styles.cardTitle} numberOfLines={1}>{tDynamic(r.Name) || t('Unknown')}</Text>
         </View>
         <View style={[styles.badge, {
           backgroundColor: badgeBg
@@ -108,7 +109,7 @@ const RetailerCard = React.memo(({
           }]}>{t(segment)}</Text>
         </View>
       </View>
-      <Text style={styles.cardSub}>{r.Company || 'No Company'} | {r.UserID}</Text>
+      <Text style={styles.cardSub}>{tDynamic(r.Company) || t('No Company')} | {r.UserID}</Text>
       
       <View style={styles.infoGrid}>
         <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('Phone')}</Text><Text style={styles.infoValue} numberOfLines={1}>{r.Phone || 'N/A'}</Text></View>
@@ -227,9 +228,9 @@ const RetailerCard = React.memo(({
     </Animated.View>;
   };
   const renderBack = () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     return <Animated.View pointerEvents={flipped ? 'auto' : 'none'} style={[styles.cardFace, styles.cardFaceBack, {
       transform: [{
         rotateY: backInterpolate
@@ -249,40 +250,40 @@ const RetailerCard = React.memo(({
         }}>
             <View>
               <Text style={styles.formLabel}>{t('Start Date')}</Text>
-              <TextInput style={styles.formInput} value={rewardsForm.startDate} onChangeText={t => setRewardsForm({
+              <TextInput style={styles.formInput} value={rewardsForm.startDate} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               startDate: t
             })} placeholder="YYYY-MM-DD" />
             </View>
             <View>
               <Text style={styles.formLabel}>{t('End Date')}</Text>
-              <TextInput style={styles.formInput} value={rewardsForm.endDate} onChangeText={t => setRewardsForm({
+              <TextInput style={styles.formInput} value={rewardsForm.endDate} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               endDate: t
             })} placeholder="YYYY-MM-DD" />
             </View>
             <View style={styles.formGroup}>
               <Text style={styles.formGroupTitle}>{t('Target 1 (Silver)')}</Text>
-              <TextInput style={styles.formInput} value={rewardsForm.target1} onChangeText={t => setRewardsForm({
+              <TextInput style={styles.formInput} value={rewardsForm.target1} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               target1: t
             })} placeholder="Qty (Tons)" keyboardType="numeric" />
               <TextInput style={[styles.formInput, {
               marginTop: 8
-            }]} value={rewardsForm.rewardName1} onChangeText={t => setRewardsForm({
+            }]} value={rewardsForm.rewardName1} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               rewardName1: t
             })} placeholder="Reward Name" />
             </View>
             <View style={styles.formGroup}>
               <Text style={styles.formGroupTitle}>{t('Target 2 (Gold)')}</Text>
-              <TextInput style={styles.formInput} value={rewardsForm.target2} onChangeText={t => setRewardsForm({
+              <TextInput style={styles.formInput} value={rewardsForm.target2} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               target2: t
             })} placeholder="Qty (Tons)" keyboardType="numeric" />
               <TextInput style={[styles.formInput, {
               marginTop: 8
-            }]} value={rewardsForm.rewardName2} onChangeText={t => setRewardsForm({
+            }]} value={rewardsForm.rewardName2} onChangeText={(t) => setRewardsForm({
               ...rewardsForm,
               rewardName2: t
             })} placeholder="Reward Name" />
@@ -292,14 +293,14 @@ const RetailerCard = React.memo(({
         }}>
             <View>
               <Text style={styles.formLabel}>{t('Name')}</Text>
-              <TextInput style={styles.formInput} value={profileForm.Name} onChangeText={t => setProfileForm({
+              <TextInput style={styles.formInput} value={profileForm.Name} onChangeText={(t) => setProfileForm({
               ...profileForm,
               Name: t
             })} />
             </View>
             <View>
               <Text style={styles.formLabel}>{t('Company')}</Text>
-              <TextInput style={styles.formInput} value={profileForm.Company} onChangeText={t => setProfileForm({
+              <TextInput style={styles.formInput} value={profileForm.Company} onChangeText={(t) => setProfileForm({
               ...profileForm,
               Company: t
             })} />
@@ -312,7 +313,7 @@ const RetailerCard = React.memo(({
               flex: 1
             }}>
                 <Text style={styles.formLabel}>{t('Phone')}</Text>
-                <TextInput style={styles.formInput} value={profileForm.Phone} onChangeText={t => setProfileForm({
+                <TextInput style={styles.formInput} value={profileForm.Phone} onChangeText={(t) => setProfileForm({
                 ...profileForm,
                 Phone: t
               })} keyboardType="phone-pad" />
@@ -321,7 +322,7 @@ const RetailerCard = React.memo(({
               flex: 1
             }}>
                 <Text style={styles.formLabel}>{t('City')}</Text>
-                <TextInput style={styles.formInput} value={profileForm.City} onChangeText={t => setProfileForm({
+                <TextInput style={styles.formInput} value={profileForm.City} onChangeText={(t) => setProfileForm({
                 ...profileForm,
                 City: t
               })} />
@@ -329,14 +330,14 @@ const RetailerCard = React.memo(({
             </View>
             <View>
               <Text style={styles.formLabel}>{t('District')}</Text>
-              <TextInput style={styles.formInput} value={profileForm.District} onChangeText={t => setProfileForm({
+              <TextInput style={styles.formInput} value={profileForm.District} onChangeText={(t) => setProfileForm({
               ...profileForm,
               District: t
             })} />
             </View>
             <View>
               <Text style={styles.formLabel}>{t('Segment (Trade / Non-Trade)')}</Text>
-              <TextInput style={styles.formInput} value={profileForm.Segment} onChangeText={t => setProfileForm({
+              <TextInput style={styles.formInput} value={profileForm.Segment} onChangeText={(t) => setProfileForm({
               ...profileForm,
               Segment: t
             })} />
@@ -386,9 +387,7 @@ const RetailerCard = React.memo(({
 export const RetailersDirectory = ({
   compactMode = false
 }) => {
-  const {
-    t
-  } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const navigation = useNavigation();
   const {
     user
@@ -408,17 +407,17 @@ export const RetailersDirectory = ({
   const [selectedLocation, setSelectedLocation] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  useRealtime(['users', 'orders'], () => setRefreshKey(k => k + 1));
+  useRealtime(['users', 'orders'], () => setRefreshKey((k) => k + 1));
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [allUsers, aggData, distData, bulkRewards] = await Promise.all([sheetsService._fetch('/users').catch(() => []), sheetsService.getOrderAggregates().catch(() => ({})), sheetsService.getAvailableDistricts().catch(() => []), sheetsService.getBulkCustomerRewards().catch(() => ({}))]);
         if (Array.isArray(distData)) setAvailableDistricts(distData);
-        const onlyRetailers = allUsers.filter(u => (u.Role === 'customer' || u.Role === 'dealer' || u.Role === 'retailer') && u.ApprovalStatus !== 'Pending');
+        const onlyRetailers = allUsers.filter((u) => (u.Role === 'customer' || u.Role === 'dealer' || u.Role === 'retailer') && u.ApprovalStatus !== 'Pending');
         setRetailers(onlyRetailers);
         setOrderAggregates(aggData);
         const salesMap = {};
-        allUsers.forEach(u => {
+        allUsers.forEach((u) => {
           if (u.Role === 'sales') salesMap[u.UserID] = u.Name || 'Unknown Rep';
         });
         setSalesRepsMap(salesMap);
@@ -432,8 +431,8 @@ export const RetailersDirectory = ({
     };
     fetchData();
   }, [user, error, refreshKey]);
-  const uniqueLocations = [...new Set(retailers.map(r => r.City || 'Unknown'))].filter(Boolean).sort();
-  const filteredRetailers = retailers.filter(r => {
+  const uniqueLocations = [...new Set(retailers.map((r) => r.City || 'Unknown'))].filter(Boolean).sort();
+  const filteredRetailers = retailers.filter((r) => {
     if (selectedLocation && (r.City || 'Unknown') !== selectedLocation) return false;
     const segment = r.Segment ? r.Segment : r.NonTradeActivated === true || r.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade';
     if (activeSegment !== 'All Segments' && segment !== activeSegment) return false;
@@ -443,7 +442,7 @@ export const RetailersDirectory = ({
   });
   const totalPages = Math.ceil(filteredRetailers.length / itemsPerPage);
   const paginatedRetailers = filteredRetailers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const handleDeleteCustomer = async customerId => {
+  const handleDeleteCustomer = async (customerId) => {
     Alert.alert("Confirm Delete", "Are you sure you want to permanently delete this customer?", [{
       text: "Cancel",
       style: "cancel"
@@ -453,7 +452,7 @@ export const RetailersDirectory = ({
       onPress: async () => {
         try {
           await sheetsService.deleteUser(user, customerId);
-          setRetailers(prev => prev.filter(r => r.UserID !== customerId));
+          setRetailers((prev) => prev.filter((r) => r.UserID !== customerId));
         } catch (err) {
           error(err.message || 'Failed to delete customer');
         }
@@ -465,7 +464,7 @@ export const RetailersDirectory = ({
       await sheetsService.updateCustomerLimits(user, userId, {
         CreditLimit: Number(editLimit)
       });
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       error(err.message || 'Failed to update limit');
     }
@@ -473,7 +472,7 @@ export const RetailersDirectory = ({
   const handleSaveProfile = async (customerId, formData) => {
     try {
       await sheetsService.updateCustomerProfile(user, customerId, formData);
-      setRetailers(prev => prev.map(r => r.UserID === customerId ? {
+      setRetailers((prev) => prev.map((r) => r.UserID === customerId ? {
         ...r,
         ...formData
       } : r));
@@ -485,13 +484,13 @@ export const RetailersDirectory = ({
   const handleSaveRewards = async (customerId, formData) => {
     try {
       await sheetsService.updateCustomerRewards(user, customerId, formData);
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       error(err.message || 'Failed to update rewards');
       throw err;
     }
   };
-  const handleOrder = r => {
+  const handleOrder = (r) => {
     const rolePath = user.Role === 'admin' ? 'admin' : (user.Role || '').toLowerCase();
     navigation.navigate(`${rolePath}/new-order`, {
       forCustomer: JSON.stringify(r)
@@ -524,13 +523,13 @@ export const RetailersDirectory = ({
             position: 'absolute',
             left: 12
           }} />
-              <TextInput value={searchTerm} onChangeText={setSearchTerm} placeholder="Search retailers..." style={styles.searchInput} />
+              <TextInput value={searchTerm} onChangeText={setSearchTerm} placeholder={t('Search retailers...')} style={styles.searchInput} />
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{
           gap: 8,
           paddingVertical: 4
         }}>
-              {['All Segments', 'Trade', 'Non-Trade'].map(seg => <TouchableOpacity key={seg} onPress={() => setActiveSegment(seg)} style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}>
+              {['All Segments', 'Trade', 'Non-Trade'].map((seg) => <TouchableOpacity key={seg} onPress={() => setActiveSegment(seg)} style={[styles.segmentBtn, activeSegment === seg && styles.segmentBtnActive]}>
                   <Text style={[styles.segmentText, activeSegment === seg && styles.segmentTextActive]}>{seg}</Text>
                 </TouchableOpacity>)}
             </ScrollView>
@@ -539,11 +538,11 @@ export const RetailersDirectory = ({
         </View>}
 
       {compactMode ? <View style={styles.listContainer}>
-          {paginatedRetailers.slice(0, 5).map(r => renderRetailerItem({
+          {paginatedRetailers.slice(0, 5).map((r) => renderRetailerItem({
         item: r
       }))}
         </View> : <>
-          <FlatList data={paginatedRetailers} keyExtractor={r => r.UserID} contentContainerStyle={styles.listContainer} initialNumToRender={5} maxToRenderPerBatch={5} windowSize={5} removeClippedSubviews={true} renderItem={renderRetailerItem} />
+          <FlatList data={paginatedRetailers} keyExtractor={(r) => r.UserID} contentContainerStyle={styles.listContainer} initialNumToRender={5} maxToRenderPerBatch={5} windowSize={5} removeClippedSubviews={true} renderItem={renderRetailerItem} />
         {totalPages > 1 && <View style={{
         padding: 16
       }}>

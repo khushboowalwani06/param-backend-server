@@ -9,7 +9,7 @@ import { ExportButton } from '../../components/ExportButton';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function CompetitorLog() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const [intelFeed, setIntelFeed] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,10 +113,10 @@ export default function CompetitorLog() {
                 </View>
 
                 <View style={styles.cardBody}>
-                  <Text style={styles.competitorName} numberOfLines={1}>{intel.competitor_name}</Text>
+                  <Text style={styles.competitorName} numberOfLines={1}>{tDynamic(intel.competitor_name)}</Text>
                   <View style={styles.salesRepRow}>
                     <User size={14} color="#64748B" />
-                    <Text style={styles.salesRepName} numberOfLines={1}>{intel.sales_rep_name}</Text>
+                    <Text style={styles.salesRepName} numberOfLines={1}>{tDynamic(intel.sales_rep_name)}</Text>
                   </View>
                   <Text style={styles.dateText}>{new Date(intel.created_at).toLocaleString()}</Text>
                 </View>

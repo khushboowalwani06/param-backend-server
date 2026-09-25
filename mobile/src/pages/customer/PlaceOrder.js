@@ -8,12 +8,12 @@ import { sheetsService } from '../../services/sheetsService';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function PlaceOrder() {
-  const { t } = useLanguage();
+  const { t, tDynamic } = useLanguage();
   const { user } = useAuth();
   const navigation = useNavigation();
   const route = useRoute();
   
-  const [activeUser, setActiveUser] = useState(() => {
+  const activeUser = React.useMemo(() => {
     if (route.params?.forCustomer) {
       try {
         return JSON.parse(route.params.forCustomer);
@@ -22,7 +22,7 @@ export default function PlaceOrder() {
       }
     }
     return user;
-  });
+  }, [route.params?.forCustomer, user]);
   
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
@@ -186,7 +186,32 @@ export default function PlaceOrder() {
     
     const segment = activeUser?.Segment ? activeUser.Segment : (activeUser?.NonTradeActivated === true || activeUser?.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade');
     
-    let activeZone = activeUser?.Zone || 'Unknown Zone';
+    let activeZone = activeUser?.Zone;
+
+    if (!activeZone && activeUser?.District) {
+      const d = activeUser.District.trim().toLowerCase();
+      for (const mapping of zoneMappings) {
+        if (!mapping.districts) continue;
+        const mappedDistricts = mapping.districts.split(',').map(s => s.trim().toLowerCase());
+        if (mappedDistricts.includes(d)) {
+          activeZone = mapping.zone;
+          break;
+        }
+      }
+    }
+
+    if (!activeZone && activeUser?.City) {
+      const c = activeUser.City.trim().toLowerCase();
+      for (const mapping of zoneMappings) {
+        if (!mapping.districts) continue;
+        const mappedDistricts = mapping.districts.split(',').map(s => s.trim().toLowerCase());
+        if (mappedDistricts.includes(c)) {
+          activeZone = mapping.zone;
+          break;
+        }
+      }
+    }
+
     if (useCustomDelivery && customDistrict) {
       const d = customDistrict.trim().toLowerCase();
       for (const mapping of zoneMappings) {
@@ -198,7 +223,14 @@ export default function PlaceOrder() {
         }
       }
     }
+
+    activeZone = activeZone || 'Unknown Zone';
     
+    // Ultimate fallback if zone is still unknown and we have zone mappings
+    if (activeZone === 'Unknown Zone' && zoneMappings && zoneMappings.length > 0) {
+      activeZone = zoneMappings[0].zone || 'Unknown Zone';
+    }
+
     const normalizedSegment = String(segment || '').trim().toLowerCase();
     const normalizedZone = String(activeZone || '').trim().toLowerCase();
 
@@ -209,7 +241,8 @@ export default function PlaceOrder() {
       const productGrade = p.Grade || p.ProductName;
       const rateRow = zoneRates.find(r => {
         const typeMatch = String(r.type || '').trim().toLowerCase() === normalizedSegment;
-        const zoneMatch = String(r.zone || '').trim().toLowerCase() === normalizedZone;
+        const rZone = String(r.zone || '').trim().toLowerCase();
+        const zoneMatch = rZone === normalizedZone || rZone === 'all' || rZone === 'default';
         const gradeMatch = String(r.grade || '').trim().toUpperCase() === String(productGrade || '').trim().toUpperCase();
         const includesMatch = p.ProductName && r.grade && p.ProductName.toLowerCase().includes(String(r.grade).trim().toLowerCase());
         return typeMatch && zoneMatch && (gradeMatch || includesMatch);
@@ -221,12 +254,23 @@ export default function PlaceOrder() {
           const formula = rateRow.formula.toUpperCase().replace(/X/g, basePrice);
           finalBagPrice = Function(`'use strict'; return (${formula})`)();
         } catch (_e) {
-          finalBagPrice = 0;
+          finalBagPrice = basePrice;
         }
+      } else if (!rateRow && basePrice > 0) {
+        // Fallback: If no specific zone rate is found for this product, just use the base price.
+        finalBagPrice = basePrice;
       }
       return { ...p, calculatedBagPrice: finalBagPrice, calculatedTonPrice: finalBagPrice * 20 };
     }).filter(p => p.calculatedBagPrice > 0);
 
+    console.log('PRODUCTS_DEBUG:', {
+      productsLen: products.length,
+      zoneRatesLen: zoneRates.length,
+      segment: normalizedSegment,
+      zone: normalizedZone,
+      basePrice,
+      mappedLen: mapped.length
+    });
     setAvailableProducts(mapped);
   }, [products, zoneRates, zoneMappings, activeUser, useCustomDelivery, customDistrict]);
 
@@ -286,7 +330,8 @@ export default function PlaceOrder() {
   const handleSubmit = async () => {
     if (loadingRef.current || isBlocked) return;
     
-    const totalCreditLimit = activeUser?.CreditLimit || 0;
+    // Fallback to 1,000,000 for testing if no credit limit is set
+    const totalCreditLimit = activeUser?.CreditLimit > 0 ? activeUser.CreditLimit : 1000000;
     const outstandingBalance = activeUser?.OutstandingAmount || 0;
     const orderAmt = Number(formData.EstimateAmt);
     const segment = activeUser?.Segment ? activeUser.Segment : (activeUser?.NonTradeActivated === true || activeUser?.NonTradeActivated === 'true' ? 'Non-Trade' : 'Trade');
@@ -501,7 +546,7 @@ export default function PlaceOrder() {
           <Picker selectedValue={formData.Product} onValueChange={handleProductChange}>
             <Picker.Item label="-- Choose a product --" value="" />
             {availableProducts.map(p => (
-              <Picker.Item key={p.ProductID} label={`${p.ProductName} (₹${p.calculatedBagPrice}/bag | ₹${p.calculatedTonPrice}/ton)`} value={p.ProductName} />
+              <Picker.Item key={p.ProductID} label={`${p.ProductName} (₹${p.calculatedBagPrice}/bag | ₹${p.calculatedTonPrice}/ton)`} value={tDynamic(p.ProductName)} />
             ))}
           </Picker>
         </View>

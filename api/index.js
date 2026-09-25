@@ -64,6 +64,30 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', engine: 'supabase' });
 });
 
+// --- TRANSLATION API (FRONTEND PROXY) ---
+app.post('/api/translate', async (req, res) => {
+  try {
+    const { text, targetLanguage = 'gu' } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({ error: 'Missing text to translate' });
+    }
+
+    try {
+      const { translate } = await import('@vitalets/google-translate-api');
+      const result = await translate(text, { to: targetLanguage });
+      return res.json({ translatedText: result.text });
+    } catch (err) {
+      console.error('[Backend] Translation API Error:', err);
+      // Fallback
+      return res.json({ translatedText: text, isFallback: true });
+    }
+  } catch (error) {
+    console.error('[Backend] Internal error in /translate:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Helper for PascalCase profile
 const mapProfile = (p) => {
   return {

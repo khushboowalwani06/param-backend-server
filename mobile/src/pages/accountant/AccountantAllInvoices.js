@@ -49,7 +49,8 @@ const FlippableCard = ({
   onOpenInvoice
 }) => {
   const {
-    t
+    t,
+    tDynamic
   } = useLanguage();
   const [flipped, setFlipped] = useState(false);
   const flipAnim = useSharedValue(0);
@@ -69,9 +70,9 @@ const FlippableCard = ({
     };
   });
   const backStyle = useAnimatedStyle(() => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     const rotateY = interpolate(flipAnim.value, [0, 1], [180, 360]);
     return {
       transform: [{
@@ -114,7 +115,7 @@ const FlippableCard = ({
         <View style={styles.cardBody}>
           <View style={styles.row}>
             <Text style={styles.label}>{t('Customer:')}</Text>
-            <Text style={styles.value}>{order.Company || order.Name}</Text>
+            <Text style={styles.value}>{tDynamic(order.Company || order.Name)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>{t('Amount:')}</Text>
@@ -194,9 +195,9 @@ export default function AccountantAllInvoices() {
     try {
       setLoading(true);
       const [data, accountsData] = await Promise.all([sheetsService.getOrders(user), sheetsService.getAllAccounts(user).catch(() => [])]);
-      const invoicedOrders = data.filter(o => o.ApprovalStatus === 'Payment Pending' || o.ApprovalStatus === 'Payment Sent' || o.ApprovalStatus === 'Closed' || o.ApprovalStatus === 'Overdue');
-      const ordersWithAccounts = invoicedOrders.map(o => {
-        const acc = accountsData.find(a => a.OrdID === o.OrdID) || {};
+      const invoicedOrders = data.filter((o) => o.ApprovalStatus === 'Payment Pending' || o.ApprovalStatus === 'Payment Sent' || o.ApprovalStatus === 'Closed' || o.ApprovalStatus === 'Overdue');
+      const ordersWithAccounts = invoicedOrders.map((o) => {
+        const acc = accountsData.find((a) => a.OrdID === o.OrdID) || {};
         return {
           ...o,
           ...acc
@@ -211,7 +212,7 @@ export default function AccountantAllInvoices() {
       setLoading(false);
     }
   };
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders.filter((o) => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = o.OrdID?.toLowerCase().includes(term) || o.Company?.toLowerCase().includes(term) || o.Product?.toLowerCase().includes(term) || o.TransactionID && o.TransactionID.toLowerCase().includes(term);
     let matchesDate = true;
@@ -224,7 +225,7 @@ export default function AccountantAllInvoices() {
     }
     return matchesSearch && matchesDate;
   });
-  const toggleSelect = ordId => {
+  const toggleSelect = (ordId) => {
     const newSelected = new Set(selectedOrders);
     if (newSelected.has(ordId)) {
       newSelected.delete(ordId);
@@ -237,31 +238,31 @@ export default function AccountantAllInvoices() {
     if (selectedOrders.size === filteredOrders.length) {
       setSelectedOrders(new Set());
     } else {
-      setSelectedOrders(new Set(filteredOrders.map(o => o.OrdID)));
+      setSelectedOrders(new Set(filteredOrders.map((o) => o.OrdID)));
     }
   };
-  const handleOpenInvoice = url => {
-    const {
-      t
-    } = useLanguage();
+  const handleOpenInvoice = (url) => {
+
+
+
     if (url) {
-      Linking.openURL(url).catch(err => {
+      Linking.openURL(url).catch((err) => {
         Alert.alert('Error', 'Cannot open the invoice URL');
         console.error(err);
       });
     }
   };
   const generateBulkZip = async () => {
-    const {
-      t
-    } = useLanguage();
+
+
+
     if (selectedOrders.size === 0) return;
     setIsGeneratingZip(true);
     try {
       const zip = new JSZip();
       const folder = zip.folder("Invoices");
       let csvContent = "OrderID,Date,Customer,Amount,Status,TransactionID\n";
-      const selectedArr = filteredOrders.filter(o => selectedOrders.has(o.OrdID));
+      const selectedArr = filteredOrders.filter((o) => selectedOrders.has(o.OrdID));
       for (const order of selectedArr) {
         // Add to CSV
         const amt = order.FinalInvoicedAmount || order.EstimateAmt || 0;
@@ -351,7 +352,7 @@ export default function AccountantAllInvoices() {
           </TouchableOpacity>}
       </View>
 
-      <FlatList data={paginatedOrders} keyExtractor={order => order.OrdID} style={styles.listContainer} initialNumToRender={10} windowSize={5} ListEmptyComponent={<View style={styles.emptyState}>
+      <FlatList data={paginatedOrders} keyExtractor={(order) => order.OrdID} style={styles.listContainer} initialNumToRender={10} windowSize={5} ListEmptyComponent={<View style={styles.emptyState}>
             <FileText size={48} color="#CBD5E1" />
             <Text style={styles.emptyText}>{t('No Invoices Yet')}</Text>
           </View>} renderItem={({
