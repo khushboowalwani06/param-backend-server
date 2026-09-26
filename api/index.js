@@ -1827,8 +1827,9 @@ app.patch('/api/customers/:id/limits', authenticateToken, async (req, res) => {
     if (Bkt16_20 !== undefined) payload.bkt_16_20 = Bkt16_20;
     if (Bkt21_Above !== undefined) payload.bkt_21_above = Bkt21_Above;
 
-    const { error } = await supabase.from('profiles').update(payload).eq('user_id', id);
+    const { data, error } = await supabase.from('profiles').update(payload).eq('user_id', id).select();
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Update failed. Did you add SUPABASE_SERVICE_ROLE_KEY to your Vercel Environment Variables?');
 
     res.json({ success: true });
   } catch (err) {
