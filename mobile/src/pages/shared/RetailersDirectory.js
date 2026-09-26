@@ -461,12 +461,14 @@ export const RetailersDirectory = ({
   };
   const handleSaveCreditLimit = async (userId, editLimit) => {
     try {
+      setRetailers((prev) => prev.map((r) => r.UserID === userId ? { ...r, CreditLimit: Number(editLimit) } : r));
       await sheetsService.updateCustomerLimits(user, userId, {
         CreditLimit: Number(editLimit)
       });
       setRefreshKey((k) => k + 1);
     } catch (err) {
       error(err.message || 'Failed to update limit');
+      setRefreshKey((k) => k + 1);
     }
   };
   const handleSaveProfile = async (customerId, formData) => {
