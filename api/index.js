@@ -709,7 +709,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
     if (rpcError) {
       if (rpcError.message.includes('Account is blocked') || rpcError.message.includes('Account automatically blocked') || rpcError.message.includes('Credit limit exceeded')) {
-        return res.status(403).json({ error: rpcError.message });
+        return res.status(400).json({ error: rpcError.message });
       }
       throw rpcError;
     }
