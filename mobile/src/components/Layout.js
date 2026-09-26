@@ -130,7 +130,7 @@ export default function Layout() {
           <Drawer.Screen name="customer/invoices" component={CustomerInvoices} options={{ drawerLabel: t('Invoices & Payments'), title: t('Invoices & Payments') }} />
           <Drawer.Screen name="customer/disputes" component={DisputeForm} options={{ drawerLabel: t('Report Issue'), title: t('Report Issue') }} />
           <Drawer.Screen name="customer/rewards" component={RewardsDashboard} options={{ drawerLabel: t('Rewards & Targets'), title: t('Rewards & Targets') }} />
-          <Drawer.Screen name="customer/aging" component={CustomerAging} options={{ drawerLabel: t('Aging Report'), title: t('Aging Report') }} />
+          <Drawer.Screen name="customer/aging" component={CustomerAging} options={{ drawerLabel: t('Ageing Report'), title: t('Ageing Report') }} />
           <Drawer.Screen name="customer/profile" component={CustomerProfile} options={{ drawerLabel: t('Profile'), title: t('Profile') }} />
         </>
       )}

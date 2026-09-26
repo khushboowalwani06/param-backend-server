@@ -541,7 +541,7 @@ const translations = {
     'History': 'ઇતિહાસ',
     'Competitor Intel': 'હરીફ માહિતી',
     'Customer Ageing': 'ગ્રાહક એજિંગ',
-    'Aging Report': 'એજિંગ રિપોર્ટ',
+    'Ageing Report': 'એજિંગ રિપોર્ટ',
     'Reported Issues': 'નોંધાયેલ સમસ્યાઓ',
     'Issues': 'સમસ્યાઓ',
     'Pending Registrations': 'નોંધણી મંજૂરીઓ',
