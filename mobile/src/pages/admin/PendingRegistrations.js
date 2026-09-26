@@ -233,7 +233,7 @@ export const PendingRegistrations = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [refreshKey, setRefreshKey] = useState(0);
-  useRealtime(['users'], () => setRefreshKey((k) => k + 1));
+  useRealtime(['profiles'], () => setRefreshKey((k) => k + 1));
   useEffect(() => {
     fetchPending();
   }, [refreshKey]);

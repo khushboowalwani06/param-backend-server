@@ -37,7 +37,7 @@ export const AdminTeam = () => {
   const [orders, setOrders] = useState([]);
   const [visits, setVisits] = useState([]);
 
-  useRealtime(['users'], () => setRefreshKey((k) => k + 1));
+  useRealtime(['profiles'], () => setRefreshKey((k) => k + 1));
 
   useEffect(() => {
     fetchUsers();

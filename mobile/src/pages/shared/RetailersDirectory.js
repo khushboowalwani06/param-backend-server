@@ -407,7 +407,7 @@ export const RetailersDirectory = ({
   const [selectedLocation, setSelectedLocation] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  useRealtime(['users', 'orders'], () => setRefreshKey((k) => k + 1));
+  useRealtime(['profiles', 'orders'], () => setRefreshKey((k) => k + 1));
   useEffect(() => {
     const fetchData = async () => {
       try {

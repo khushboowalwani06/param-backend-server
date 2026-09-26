@@ -25,7 +25,7 @@ export default function RewardsDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useRealtime(['orders', 'users'], () => setRefreshKey(k => k + 1));
+  useRealtime(['orders', 'profiles'], () => setRefreshKey(k => k + 1));
 
   useEffect(() => {
     const fetchTargets = async () => {

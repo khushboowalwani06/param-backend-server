@@ -25,7 +25,7 @@ export const CreditManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  useRealtime(['users'], () => setRefreshKey((k) => k + 1));
+  useRealtime(['profiles'], () => setRefreshKey((k) => k + 1));
 
   const loadCustomers = async () => {
     try {

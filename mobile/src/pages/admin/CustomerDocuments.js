@@ -127,7 +127,7 @@ export const CustomerDocuments = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  useRealtime(['users'], () => setRefreshKey((k) => k + 1));
+  useRealtime(['profiles'], () => setRefreshKey((k) => k + 1));
   useEffect(() => {
     fetchApproved();
   }, [refreshKey]);
