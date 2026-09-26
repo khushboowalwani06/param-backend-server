@@ -627,6 +627,8 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
         OrderTimestamp: o.order_timestamp,
         BagPrice: o.bag_price,
         TonPrice: o.ton_price,
+        Unit: o.ton_price > 0 && !o.bag_price ? 'Tons' : 'Bags',
+        UnitPrice: o.ton_price > 0 && !o.bag_price ? o.ton_price : o.bag_price,
         CurrentStage: o.current_stage,
         SalesApprovalDate: o.sales_approval_date,
         AdminApprovalStatus: o.admin_approval_status,
@@ -738,10 +740,15 @@ app.patch('/api/orders/:id', authenticateToken, async (req, res) => {
     if (Product !== undefined) payload.product = Product;
     if (EstimateQty !== undefined) payload.estimate_qty = EstimateQty;
     if (EstimateAmt !== undefined) payload.estimate_amt = EstimateAmt;
-    if (Unit !== undefined) payload.unit = Unit;
+    // Removed payload.unit = Unit; because unit column does not exist
     if (UnitPrice !== undefined) {
-      if (Unit === 'Bags') payload.bag_price = UnitPrice;
-      else payload.ton_price = UnitPrice;
+      if (Unit === 'Bags') {
+        payload.bag_price = UnitPrice;
+        payload.ton_price = null;
+      } else {
+        payload.ton_price = UnitPrice;
+        payload.bag_price = null;
+      }
     }
     const { data, error } = await supabase
       .from('orders')
